@@ -29,12 +29,12 @@ const features = {
 test('isValidLocation', t => {
 
   t.test('points', t => {
-    t.test('a valid [lon,lat] coordinate pair returns true', t => {
-      t.true(loco.isValidLocation([0, 0]));
-      t.true(loco.isValidLocation([-180, -90]));
-      t.true(loco.isValidLocation([-180, 90]));
-      t.true(loco.isValidLocation([180, -90]));
-      t.true(loco.isValidLocation([180, 90]));
+    t.test('a valid [lon,lat] coordinate pair returns "point"', t => {
+      t.equal('point', loco.isValidLocation([0, 0]));
+      t.equal('point', loco.isValidLocation([-180, -90]));
+      t.equal('point', loco.isValidLocation([-180, 90]));
+      t.equal('point', loco.isValidLocation([180, -90]));
+      t.equal('point', loco.isValidLocation([180, 90]));
       t.end();
     });
     t.test('an invalid [lon,lat] coordinate pair returns false', t => {
@@ -53,8 +53,8 @@ test('isValidLocation', t => {
 
 
   t.test('`.geojson` filenames', t => {
-    t.test('a valid `.geojson` filename in this project returns true', t => {
-      t.true(loco.isValidLocation('philly_metro.geojson', features));
+    t.test('a valid `.geojson` filename in this project returns "geojson"', t => {
+      t.equal('geojson', loco.isValidLocation('philly_metro.geojson', features));
       t.end();
     });
     t.test('an invalid `.geojson` filename in this project returns false', t => {
@@ -68,16 +68,16 @@ test('isValidLocation', t => {
 
 
   t.test('country coder feature identifiers', t => {
-    t.test('a valid country coder feature identifier returns true', t => {
-      t.true(loco.isValidLocation('GB'));
-      t.true(loco.isValidLocation('gb'));
-      t.true(loco.isValidLocation('GBR'));
-      t.true(loco.isValidLocation('gbr'));
-      t.true(loco.isValidLocation('826'));
-      t.true(loco.isValidLocation(826));
-      t.true(loco.isValidLocation('Q145'));
-      t.true(loco.isValidLocation('🇬🇧'));
-      t.true(loco.isValidLocation('united kingdom'));
+    t.test('a valid country coder feature identifier returns "countrycoder"', t => {
+      t.equal('countrycoder', loco.isValidLocation('GB'));
+      t.equal('countrycoder', loco.isValidLocation('gb'));
+      t.equal('countrycoder', loco.isValidLocation('GBR'));
+      t.equal('countrycoder', loco.isValidLocation('gbr'));
+      t.equal('countrycoder', loco.isValidLocation('826'));
+      t.equal('countrycoder', loco.isValidLocation(826));
+      t.equal('countrycoder', loco.isValidLocation('Q145'));
+      t.equal('countrycoder', loco.isValidLocation('🇬🇧'));
+      t.equal('countrycoder', loco.isValidLocation('united kingdom'));
       t.end();
     });
     t.test('an invalid country coder feature identifier returns false', t => {
