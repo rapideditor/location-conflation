@@ -14,9 +14,9 @@
   "main": "dist/index.js",
   "module": "index.mjs",
   "scripts": {
-    "build": "node build.js && rollup -c",
-    "lint": "eslint *.js test/*.js",
-    "test": "npm run build && npm run lint && tap test/*.js"
+    "build": "rollup -c",
+    "lint": "eslint *.js src/*.js test/*.js",
+    "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
   },
   "dependencies": {
     "@mapbox/geojson-area": "^0.2.2",
@@ -29,10 +29,11 @@
   },
   "devDependencies": {
     "eslint": "^6.0.0",
-    "rollup": "^1.25.1",
+    "rollup": "^1.27.3",
     "rollup-plugin-commonjs": "^10.0.0",
+    "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.0.4",
-    "tap": "^14.8.2"
+    "tap": "^14.10.0"
   },
   "engines": {
     "node": ">=8.0.0"

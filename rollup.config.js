@@ -5,7 +5,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 export default {
   input: 'index.mjs',
   output: {
-    name: 'oci',
+    name: 'location-conflation',
     file: 'dist/index.js',
     format: 'umd'
   },
