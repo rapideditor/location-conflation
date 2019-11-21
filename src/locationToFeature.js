@@ -50,37 +50,28 @@ function locationToFeature(location, features) {
 
   // a country-coder string?
   } else {
-    if (location === '001') {    // waitfor https://github.com/ideditor/country-coder/issues/14
-      const world = {
-        type: 'Feature',
-        id: '001',
-        properties: {
-          m49: '001',
-          wikidata: 'Q2',
-          nameEn: 'World',
-          id:  '001',
-          area: 510072000
-        },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
-        }
+    let feature;
+    if (location === '001') {  // the world
+      feature = CountryCoder.feature(location);
+      feature.geometry = {
+        type: 'Polygon',
+        coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
       };
-      return { type: 'countrycoder', feature: world };
-
     } else {
-      let feature = CountryCoder.aggregateFeature(location);
-      if (feature) {
-        feature.properties = feature.properties || {};
-        if (!feature.properties.area) {                            // ensure area property
-          const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
-          feature.properties.area = Number(area.toFixed(2));
-        }
-        return { type: 'countrycoder', feature: feature };
-      } else {
-        return null;
-      }
+      feature = CountryCoder.aggregateFeature(location);
     }
+
+    if (feature) {
+      feature.properties = feature.properties || {};
+      if (!feature.properties.area) {                            // ensure area property
+        const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
+        feature.properties.area = Number(area.toFixed(2));
+      }
+      return { type: 'countrycoder', feature: feature };
+    } else {
+      return null;
+    }
+
   }
 }
 
