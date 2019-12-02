@@ -1,29 +1,7 @@
 const test = require('tap').test;
 const loco = require('../.');
 
-const features = {
-  philly_metro: {
-    type: 'Feature',
-    id: 'philly_metro',
-    properties: {},
-    geometry: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [-75.7, 40.3],
-          [-75.3, 40.4],
-          [-74.7, 40.3],
-          [-74.45, 40.1],
-          [-74.9, 39.55],
-          [-75.5, 39.55],
-          [-75.8, 39.7218],
-          [-76.23, 39.7211],
-          [-75.7, 40.3]
-        ]
-      ]
-    }
-  }
-};
+const features = require('./fixtures/features.json');
 
 
 test('locationToFeature', t => {

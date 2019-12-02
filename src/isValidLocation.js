@@ -11,8 +11,7 @@ function isValidLocation(location, features) {
     ) && 'point';
 
   } else if (/^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-    let featureId = location.replace('.geojson', '');
-    return !!features[featureId] && 'geojson';
+    return !!features[location] && 'geojson';
 
   } else {    // a country-coder string?
     let ccmatch = CountryCoder.feature(location);

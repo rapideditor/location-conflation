@@ -1445,7 +1445,7 @@
 	    ) {
 	      const RADIUS = 25000;  // meters
 	      const EDGES = 10;
-	      const id = location.toString();
+	      const id = 'point:' + location.toString();
 	      const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
 
 	      let feature = {
@@ -1464,9 +1464,7 @@
 
 	   // a .geojson filename?
 	   } else if (/^\S+\.geojson$/i.test(location)) {
-	    let featureId = location.replace('.geojson', '');
-	    let feature = features[featureId];
-
+	    let feature = features[location];
 	    if (feature) {
 	      feature.properties = feature.properties || {};
 	      if (!feature.properties.area) {                          // ensure area property
@@ -1517,8 +1515,7 @@
 	    ) && 'point';
 
 	  } else if (/^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-	    let featureId = location.replace('.geojson', '');
-	    return !!features[featureId] && 'geojson';
+	    return !!features[location] && 'geojson';
 
 	  } else {    // a country-coder string?
 	    let ccmatch = countryCoder.feature(location);
