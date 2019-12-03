@@ -71,7 +71,19 @@ function resolve(locations) {
       return accumulator;
     } else {
       _currCount++;
-      return !accumulator ? result.feature : union(accumulator, result.feature);
+
+      let feature = result.feature;
+
+      // So.. We sometimes run into issues with `turf.union` and JSTS.. :(
+      // Some of the results we get from country-coder are MultiPolygon regions containing
+      // many countries.  It seems to help if we reduce the complexity of these regions
+      // before we try to union them into the accumulated feature.
+      if (Array.isArray(feature.properties.members) && feature.properties.id !== '001') {
+        // Try unioning region with itself to remove internal boundaries.
+        feature = union(feature, feature);
+      }
+
+      return !accumulator ? feature : union(accumulator, feature);
     }
   }
 
