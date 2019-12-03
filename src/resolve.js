@@ -5,6 +5,7 @@ const calcArea = require('@mapbox/geojson-area');
 const difference = require('@turf/difference');
 const union = require('@turf/union').default;
 
+
 // resolve()
 // pass a locations Object like:
 // {
@@ -17,19 +18,12 @@ function resolve(locations) {
   locations.include = locations.include || [];
   locations.exclude = locations.exclude || [];
 
-  // resolve included..
-  let includeCount = 0;
-  let includeGeoJSON = locations.include.reduce((accumulator, location) => {
-    let result = locationToFeature(location);
-    if (!result) {
-      console.warn(`Warning:  Couldn't resolve include location "${location}"`);
-      return accumulator;
-    } else {
-      includeCount++;
-      return !accumulator ? result.feature : union(accumulator, result.feature);
-    }
-  }, null);
+  let _currCount;   // keep track of how many locations were actually resolvable.
 
+  // resolve included..
+  _currCount = 0;
+  let includeGeoJSON = locations.include.reduce(locationReducer, null);
+  let includeCount = _currCount;
   if (!includeCount) {
     console.warn('Warning:  Nothing included, defaulting to world ("001").');
     includeGeoJSON = locationToFeature('001').feature;
@@ -37,17 +31,9 @@ function resolve(locations) {
   }
 
   // resolve excluded..
-  let excludeCount = 0;
-  let excludeGeoJSON = locations.exclude.reduce((accumulator, location) => {
-    let result = locationToFeature(location);
-    if (!result) {
-      console.warn(`Warning:  Couldn't resolve exclude location "${location}"`);
-      return accumulator;
-    } else {
-      excludeCount++;
-      return !accumulator ? result.feature : union(accumulator, result.feature);
-    }
-  }, null);
+  _currCount = 0;
+  let excludeGeoJSON = locations.exclude.reduce(locationReducer, null);
+  let excludeCount = _currCount;
 
   // generate an id
   let id = '+[' + locations.include.toString() + ']';
@@ -67,6 +53,7 @@ function resolve(locations) {
     return includeGeoJSON;
   }
 
+  // calculate include-exclude, recalc area and return result
   let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
   const area = calcArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
 
@@ -74,6 +61,20 @@ function resolve(locations) {
   resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
 
   return resultGeoJSON;
+
+
+  // reduce all the locations into a single geojson feature
+  function locationReducer(accumulator, location) {
+    let result = locationToFeature(location);
+    if (!result) {
+      console.warn(`Warning:  Couldn't resolve location "${location}"`);
+      return accumulator;
+    } else {
+      _currCount++;
+      return !accumulator ? result.feature : union(accumulator, result.feature);
+    }
+  }
+
 }
 
 
