@@ -1195,6 +1195,79 @@
 		callingCodes: callingCodes
 	});
 
+	function isValidLocation(location, features) {
+	  features = features || {};
+
+	  if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
+	    return !!(
+	      location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
+	      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+	    ) && 'point';
+
+	  } else if (/^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
+	    return !!features[location] && 'geojson';
+
+	  } else {    // a country-coder string?
+	    let ccmatch = countryCoder.feature(location);
+	    return !!ccmatch && 'countrycoder';
+	  }
+	}
+
+	var isValidLocation_1 = isValidLocation;
+
+	// getIdentifier()
+	// generates a stable identifier for a location set
+	//
+	// pass a locations Object like:
+	// {
+	//   include: [ Array ],
+	//   exclude: [ Array ]
+	// }
+	//
+	function getIdentifier(locations, features) {
+	  locations = locations || {};
+	  let include = (locations.include || []).filter(l => isValidLocation_1(l, features));
+	  let exclude = (locations.exclude || []).filter(l => isValidLocation_1(l, features));
+
+	  if (include.length) {
+	    include.sort(compare);
+	  } else {
+	    include = ['001'];   // default to 'the world'
+	  }
+
+	  let id = '+' + JSON.stringify(include);
+
+	  if (exclude.length) {
+	    exclude.sort(compare);
+	    id += '-' + JSON.stringify(exclude);
+	  }
+
+	  return id;
+
+
+	  // it's ok to sort these lists because they all end up unioned together.
+	  function compare(a, b) {
+	    const rank = { countrycoder: 1, geojson: 2, point: 3 };
+	    const aRank = rank[isValidLocation_1(a, features)] || 4;
+	    const bRank = rank[isValidLocation_1(b, features)] || 4;
+
+	    if (aRank > bRank) return 1;
+	    if (aRank < bRank) return -1;
+
+	    // numeric sort point [lon,lat] locations
+	    if (aRank === 3 && bRank === 3) {
+	      return (a[0] - b[0] > 0) ? 1
+	        : (a[0] - b[0] < 0) ? -1
+	        : (a[1] - b[1]);
+	    }
+
+	    // lexical sort other identifiers
+	    return a.localeCompare(b);
+	  }
+	}
+
+	var getIdentifier_1 = getIdentifier;
+
 	var RADIUS = 6378137;
 	var FLATTENING = 1/298.257223563;
 	var POLAR_RADIUS = 6356752.3142;
@@ -1505,26 +1578,7 @@
 
 	var locationToFeature_1 = locationToFeature;
 
-	function isValidLocation(location, features) {
-	  features = features || {};
-
-	  if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
-	    return !!(
-	      location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-	      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
-	    ) && 'point';
-
-	  } else if (/^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-	    return !!features[location] && 'geojson';
-
-	  } else {    // a country-coder string?
-	    let ccmatch = countryCoder.feature(location);
-	    return !!ccmatch && 'countrycoder';
-	  }
-	}
-
-	var isValidLocation_1 = isValidLocation;
-
+	exports.getIdentifier = getIdentifier_1;
 	exports.isValidLocation = isValidLocation_1;
 	exports.locationToFeature = locationToFeature_1;
 
