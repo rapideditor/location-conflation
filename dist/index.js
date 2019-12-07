@@ -1235,11 +1235,11 @@
 	    include = ['001'];   // default to 'the world'
 	  }
 
-	  let id = '+' + JSON.stringify(include);
+	  let id = '+' + JSON.stringify(include).toLowerCase();
 
 	  if (exclude.length) {
 	    exclude.sort(compare);
-	    id += '-' + JSON.stringify(exclude);
+	    id += '-' + JSON.stringify(exclude).toLowerCase();
 	  }
 
 	  return id;

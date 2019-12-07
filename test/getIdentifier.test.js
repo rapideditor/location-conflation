@@ -72,5 +72,11 @@ test('getIdentifier', t => {
     t.end();
   });
 
+  t.test('force lowercase', t => {
+    let locations = { include: ['US'], exclude: ['PR'] };
+    t.equal(loco.getIdentifier(locations, features), '+["us"]-["pr"]');
+    t.end();
+  });
+
   t.end();
 });
