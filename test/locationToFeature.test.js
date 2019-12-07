@@ -1,7 +1,8 @@
 const test = require('tap').test;
-const loco = require('../.');
+const LocationConflation = require('../.');
 
 const features = require('./fixtures/features.json');
+const loco = new LocationConflation(features);
 
 
 test('locationToFeature', t => {
@@ -27,7 +28,7 @@ test('locationToFeature', t => {
 
   t.test('`.geojson` filenames', t => {
     t.test('a valid `.geojson` filename in this project returns a feature match', t => {
-      let result = loco.locationToFeature('philly_metro.geojson', features);
+      let result = loco.locationToFeature('philly_metro.geojson');
       t.notEqual(result, null);
       t.equal(result.type, 'geojson');
       t.type(result.feature, 'object');
@@ -36,7 +37,7 @@ test('locationToFeature', t => {
       t.end();
     });
     t.test('an invalid `.geojson` filename in this project returns a null match', t => {
-      let result = loco.locationToFeature('fake.geojson', features);
+      let result = loco.locationToFeature('fake.geojson');
       t.equal(result, null);
       t.end();
     });

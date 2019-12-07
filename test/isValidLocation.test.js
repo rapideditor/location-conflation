@@ -1,7 +1,8 @@
 const test = require('tap').test;
-const loco = require('../.');
+const LocationConflation = require('../.');
 
 const features = require('./fixtures/features.json');
+const loco = new LocationConflation(features);
 
 
 test('isValidLocation', t => {
@@ -32,13 +33,12 @@ test('isValidLocation', t => {
 
   t.test('`.geojson` filenames', t => {
     t.test('a valid `.geojson` filename in this project returns "geojson"', t => {
-      t.equal('geojson', loco.isValidLocation('philly_metro.geojson', features));
+      t.equal('geojson', loco.isValidLocation('philly_metro.geojson'));
       t.end();
     });
     t.test('an invalid `.geojson` filename in this project returns false', t => {
-      t.false(loco.isValidLocation('philly_metro.geojson'));        // no features to check it against
-      t.false(loco.isValidLocation('philly_metro', features));  // missing .geojson
-      t.false(loco.isValidLocation('fake.geojson', features));  // fake filename
+      t.false(loco.isValidLocation('philly_metro'));           // missing .geojson
+      t.false(loco.isValidLocation('fake.geojson'));           // fake filename
       t.end();
     });
     t.end();
