@@ -6,7 +6,41 @@ const difference = require('@turf/difference');
 const union = require('@turf/union').default;
 
 
-// resolve()
+let _cccache = {};
+
+let world = CountryCoder.feature('001');
+world.geometry = {
+  type: 'Polygon',
+  coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
+};
+_cccache['001'] = world;
+
+// console.log('');
+// console.log('start cache1');
+// console.time('end cache1');
+cacheGeometry();
+// console.timeEnd('end cache1');
+
+
+function cacheGeometry() {
+  world.properties.members.reduce(reduceCodes, null);
+
+  function reduceCodes(accumulator, code) {
+    let feature = CountryCoder.feature(code);
+    if (!feature.geometry) {
+      _cccache[code] = feature;
+      let aggregate = feature.properties.members.reduce(reduceCodes, null);
+      feature.geometry = aggregate.geometry;
+    }
+
+    return !accumulator ? feature : union(accumulator, feature);
+  }
+}
+
+
+
+
+// resolve() - USES THE CC CACHE
 // pass a locations Object like:
 // {
 //   include: [ Array ],
@@ -65,26 +99,18 @@ function resolve(locations) {
 
   // reduce all the locations into a single geojson feature
   function locationReducer(accumulator, location) {
-    let result = locationToFeature(location);
-    if (!result) {
-      console.warn(`Warning:  Couldn't resolve location "${location}"`);
-      return accumulator;
-    } else {
-      _currCount++;
-
-      let feature = result.feature;
-
-      // So.. We sometimes run into issues with `turf.union` and JSTS.. :(
-      // Some of the results we get from country-coder are MultiPolygon regions containing
-      // many countries.  It seems to help if we reduce the complexity of these regions
-      // before we try to union them into the accumulated feature.
-      // if (Array.isArray(feature.properties.members) && feature.properties.id !== '001') {
-        // Try unioning region with itself to remove internal boundaries.
-        // feature = union(feature, feature);
-      // }
-
-      return !accumulator ? feature : union(accumulator, feature);
+    let feature = _cccache[location];
+    if (!feature) {
+      let result = locationToFeature(location);
+      if (!result) {
+        console.warn(`Warning:  Couldn't resolve location "${location}"`);
+        return accumulator;
+      } else {
+        feature = result.feature;
+      }
     }
+    _currCount++;
+    return !accumulator ? feature : union(accumulator, feature);
   }
 
 }
