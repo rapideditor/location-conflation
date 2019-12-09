@@ -8,6 +8,40 @@ import difference  from '@turf/difference';
 import { default as union } from '@turf/union';
 
 
+
+// Reduce an array of locations into a single GeoJSON feature
+function _locationReducer(accumulator, location) {
+  let result = this.locationToFeature(location);   // eslint-disable-line no-invalid-this
+  if (!result || !result.feature) {
+    console.warn(`Warning:  Couldn't resolve location "${location}"`);  // eslint-disable-line no-console
+    return accumulator;
+  }
+  return !accumulator ? result.feature : union(accumulator, result.feature);
+}
+
+
+// It's ok to sort location lists because they all end up unioned together.
+function _locationSorter(a, b) {
+  const rank = { countrycoder: 1, geojson: 2, point: 3 };
+  const aRank = rank[this.isValidLocation(a)] || 4;   // eslint-disable-line no-invalid-this
+  const bRank = rank[this.isValidLocation(b)] || 4;   // eslint-disable-line no-invalid-this
+
+  if (aRank > bRank) return 1;
+  if (aRank < bRank) return -1;
+
+  // numeric sort point [lon,lat] locations
+  if (aRank === 3 && bRank === 3) {
+    return (a[0] - b[0] > 0) ? 1
+      : (a[0] - b[0] < 0) ? -1
+      : (a[1] - b[1]);
+  }
+
+  // lexical sort other identifiers
+  return a.localeCompare(b);
+}
+
+
+
 export default class {
 
   // constructor
@@ -27,7 +61,7 @@ export default class {
     this._features = features || {};
 
     // Update CountryCoder world geometry to be a polygon covering the world.
-    // (yes, modifying the internal CountryCoder feature.geometry is hacky, but seems safe)
+    // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
     let world = CountryCoder.feature('001');
     world.geometry = {
       type: 'Polygon',
@@ -104,64 +138,31 @@ export default class {
       let feature = CountryCoder.feature(location);
       if (feature) {
         feature.properties = feature.properties || {};
+
+        // -> This block of code is weird and requires some explanation. <-
+        // CountryCoder includes higher level features which are made up of members.
+        // These features don't have their own geometry, but CountryCoder provides an
+        //   `aggregateFeature` method to combine these members into a MultiPolygon.
+        // BUT, when we try to actually work with these MultiPolygons, Turf/JSTS
+        //   gets crashy because of topography bugs.
+        // SO, we'll aggregate the features ourselves by unioning them together,
+        //   then store the resulting geometry back in the CountryCoder feature itself.
+        // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
+        if (!feature.geometry) {
+          let aggregate = feature.properties.members.reduce(_locationReducer.bind(this), null);
+          feature.geometry = aggregate.geometry;
+        }
+
         if (!feature.properties.area) {                            // ensure area property
           const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
           feature.properties.area = Number(area.toFixed(2));
         }
+
         return { type: 'countrycoder', feature: feature };
+
       } else {
         return null;
       }
-
-    }
-  }
-
-
-  // getIdentifier
-  //
-  // Pass a `locationSet` Object like:
-  //   `{ include: [ Array ], exclude: [ Array ] }`
-  // Returns a stable identifier string of the form:
-  //   "+[included]-[excluded]"
-  getIdentifier(locationSet) {
-    locationSet = locationSet || {};
-    let include = (locationSet.include || []).filter(l => this.isValidLocation(l));
-    let exclude = (locationSet.exclude || []).filter(l => this.isValidLocation(l));
-    let that = this;
-
-    if (include.length) {
-      include.sort(compare);
-    } else {
-      include = ['001'];   // default to 'the world'
-    }
-
-    let id = '+' + JSON.stringify(include).toLowerCase();
-
-    if (exclude.length) {
-      exclude.sort(compare);
-      id += '-' + JSON.stringify(exclude).toLowerCase();
-    }
-
-    return id;
-
-    // it's ok to sort these lists because they all end up unioned together.
-    function compare(a, b) {
-      const rank = { countrycoder: 1, geojson: 2, point: 3 };
-      const aRank = rank[that.isValidLocation(a)] || 4;
-      const bRank = rank[that.isValidLocation(b)] || 4;
-
-      if (aRank > bRank) return 1;
-      if (aRank < bRank) return -1;
-
-      // numeric sort point [lon,lat] locations
-      if (aRank === 3 && bRank === 3) {
-        return (a[0] - b[0] > 0) ? 1
-          : (a[0] - b[0] < 0) ? -1
-          : (a[1] - b[1]);
-      }
-
-      // lexical sort other identifiers
-      return a.localeCompare(b);
     }
   }
 
@@ -177,23 +178,23 @@ export default class {
     locationSet = locationSet || {};
     let include = (locationSet.include || []).filter(l => this.isValidLocation(l));
     let exclude = (locationSet.exclude || []).filter(l => this.isValidLocation(l));
-    let that = this;
 
     if (include.length) {
-      include.sort(locationSorter);
+      include.sort(_locationSorter.bind(this));
     } else {
       include = ['001'];   // default to 'the world'
     }
 
-    // exit early if a simple shape..
+    // return quickly if it's a single included location..
     if (include.length === 1 && exclude.length === 0) {
-      return this.locationToFeature(include[0]);
+      let result = this.locationToFeature(include[0]);
+      return result && result.feature;
     }
 
     // generate identifier
     let id = '+' + JSON.stringify(include).toLowerCase();
     if (exclude.length) {
-      exclude.sort(locationSorter);
+      exclude.sort(_locationSorter.bind(this));
       id += '-' + JSON.stringify(exclude).toLowerCase();
     }
 
@@ -203,8 +204,8 @@ export default class {
     }
 
     // resolve lists
-    let includeGeoJSON = include.reduce(locationReducer, null);
-    let excludeGeoJSON = exclude.reduce(locationReducer, null);
+    let includeGeoJSON = include.reduce(_locationReducer.bind(this), null);
+    let excludeGeoJSON = exclude.reduce(_locationReducer.bind(this), null);
 
     // calculate include-exclude, recalc area and return result
     let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
@@ -215,58 +216,6 @@ export default class {
     this._cache[id] = resultGeoJSON;
 
     return resultGeoJSON;
-
-
-    // Reduce the locations into a single GeoJSON feature
-    function locationReducer(accumulator, location) {
-      let result = that.locationToFeature(location);
-      if (!result) {
-        console.warn(`Warning:  Couldn't resolve location "${location}"`);  // eslint-disable-line no-console
-        return accumulator;
-      }
-
-      let feature = result.feature;
-
-      // -> This block of code is weird and requires some explanation. <-
-      // CountryCoder includes higher level features which are made up of members.
-      // These features don't have their own geometry, but CountryCoder provides an
-      //   `aggregateFeature` method to combine these members into a MultiPolygon.
-      // BUT, when we try to actually work with these MultiPolygons, Turf/JSTS
-      //   gets crashy because of topography bugs.
-      // SO, we'll aggregate the features ourselves by unioning them together,
-      //   then store the resulting geometry back in the CountryCoder feature itself.
-      //   (yes, modifying the internal CountryCoder feature geometry is hacky, but seems safe)
-      if (result.type === 'countrycoder' && !feature.geometry) {
-        let aggregate = feature.properties.members.reduce(locationReducer, null);
-        feature.geometry = aggregate.geometry;
-        const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
-        feature.properties.area = Number(area.toFixed(2));
-      }
-
-      return !accumulator ? feature : union(accumulator, feature);
-    }
-
-
-    // It's ok to sort location lists because they all end up unioned together.
-    function locationSorter(a, b) {
-      const rank = { countrycoder: 1, geojson: 2, point: 3 };
-      const aRank = rank[that.isValidLocation(a)] || 4;
-      const bRank = rank[that.isValidLocation(b)] || 4;
-
-      if (aRank > bRank) return 1;
-      if (aRank < bRank) return -1;
-
-      // numeric sort point [lon,lat] locations
-      if (aRank === 3 && bRank === 3) {
-        return (a[0] - b[0] > 0) ? 1
-          : (a[0] - b[0] < 0) ? -1
-          : (a[1] - b[1]);
-      }
-
-      // lexical sort other identifiers
-      return a.localeCompare(b);
-    }
   }
-
 
 }
