@@ -1083,45 +1083,6 @@
 	  }
 	  return features;
 	}
-	function featuresIn(id, strict) {
-	  let feature = featureForID(id);
-	  if (!feature) return [];
-	  let features = [];
-	  if (!strict) {
-	    features.push(feature);
-	  }
-	  let properties = feature.properties;
-	  if (properties.members) {
-	    for (let i in properties.members) {
-	      let memberID = properties.members[i];
-	      features.push(featuresByCode[memberID]);
-	    }
-	  }
-	  return features;
-	}
-	function aggregateFeature(id) {
-	  let features = featuresIn(id, false);
-	  if (features.length === 0) return null;
-	  let aggregateCoordinates = [];
-	  for (let i in features) {
-	    let feature = features[i];
-	    if (
-	      feature.geometry &&
-	      feature.geometry.type === 'MultiPolygon' &&
-	      feature.geometry.coordinates
-	    ) {
-	      aggregateCoordinates = aggregateCoordinates.concat(feature.geometry.coordinates);
-	    }
-	  }
-	  return {
-	    type: 'Feature',
-	    properties: features[0].properties,
-	    geometry: {
-	      type: 'MultiPolygon',
-	      coordinates: aggregateCoordinates
-	    }
-	  };
-	}
 
 	var RADIUS = 6378137;
 	var FLATTENING = 1/298.257223563;
@@ -8635,6 +8596,554 @@
 	staticAccessors$2.serialVersionUID.get = function () { return -6820524753094095635 };
 
 	Object.defineProperties( GeometryFactory, staticAccessors$2 );
+
+	var geometryTypes = ['Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'];
+
+	/**
+	 * Class for reading and writing Well-Known Text.Create a new parser for GeoJSON
+	 * NOTE: Adapted from OpenLayers 2.11 implementation.
+	 */
+
+	/**
+	 * Create a new parser for GeoJSON
+	 *
+	 * @param {GeometryFactory} geometryFactory
+	 * @return An instance of GeoJsonParser.
+	 * @constructor
+	 * @private
+	 */
+	var GeoJSONParser = function GeoJSONParser (geometryFactory) {
+	  this.geometryFactory = geometryFactory || new GeometryFactory();
+	};
+	/**
+	 * Deserialize a GeoJSON object and return the Geometry or Feature(Collection) with JSTS Geometries
+	 *
+	 * @param {}
+	 *        A GeoJSON object.
+	 * @return {} A Geometry instance or object representing a Feature(Collection) with Geometry instances.
+	 * @private
+	 */
+	GeoJSONParser.prototype.read = function read (json) {
+	  var obj;
+	  if (typeof json === 'string') {
+	    obj = JSON.parse(json);
+	  } else {
+	    obj = json;
+	  }
+
+	  var type = obj.type;
+
+	  if (!parse[type]) {
+	    throw new Error('Unknown GeoJSON type: ' + obj.type)
+	  }
+
+	  if (geometryTypes.indexOf(type) !== -1) {
+	    return parse[type].apply(this, [obj.coordinates])
+	  } else if (type === 'GeometryCollection') {
+	    return parse[type].apply(this, [obj.geometries])
+	  }
+
+	  // feature or feature collection
+	  return parse[type].apply(this, [obj])
+	};
+
+	/**
+	 * Serialize a Geometry object into GeoJSON
+	 *
+	 * @param {Geometry}
+	 *        geometry A Geometry or array of Geometries.
+	 * @return {Object} A GeoJSON object represting the input Geometry/Geometries.
+	 * @private
+	 */
+	GeoJSONParser.prototype.write = function write (geometry) {
+	  var type = geometry.getGeometryType();
+
+	  if (!extract[type]) {
+	    throw new Error('Geometry is not supported')
+	  }
+
+	  return extract[type].apply(this, [geometry])
+	};
+
+	var parse = {
+	  /**
+	   * Parse a GeoJSON Feature object
+	   *
+	   * @param {Object}
+	   *          obj Object to parse.
+	   *
+	   * @return {Object} Feature with geometry/bbox converted to JSTS Geometries.
+	   */
+	  Feature: function (obj) {
+	    var feature = {};
+
+	    // copy features
+	    for (var key in obj) {
+	      feature[key] = obj[key];
+	    }
+
+	    // parse geometry
+	    if (obj.geometry) {
+	      var type = obj.geometry.type;
+	      if (!parse[type]) {
+	        throw new Error('Unknown GeoJSON type: ' + obj.type)
+	      }
+	      feature.geometry = this.read(obj.geometry);
+	    }
+
+	    // bbox
+	    if (obj.bbox) {
+	      feature.bbox = parse.bbox.apply(this, [obj.bbox]);
+	    }
+
+	    return feature
+	  },
+
+	  /**
+	   * Parse a GeoJSON FeatureCollection object
+	   *
+	   * @param {Object}
+	   *          obj Object to parse.
+	   *
+	   * @return {Object} FeatureCollection with geometry/bbox converted to JSTS Geometries.
+	   */
+	  FeatureCollection: function (obj) {
+	    var this$1 = this;
+
+	    var featureCollection = {};
+
+	    if (obj.features) {
+	      featureCollection.features = [];
+
+	      for (var i = 0; i < obj.features.length; ++i) {
+	        featureCollection.features.push(this$1.read(obj.features[i]));
+	      }
+	    }
+
+	    if (obj.bbox) {
+	      featureCollection.bbox = this.parse.bbox.apply(this, [obj.bbox]);
+	    }
+
+	    return featureCollection
+	  },
+
+	  /**
+	   * Convert the ordinates in an array to an array of Coordinates
+	   *
+	   * @param {Array}
+	   *          array Array with {Number}s.
+	   *
+	   * @return {Array} Array with Coordinates.
+	   */
+	  coordinates: function (array) {
+	    var coordinates = [];
+	    for (var i = 0; i < array.length; ++i) {
+	      var sub = array[i];
+	      coordinates.push(new Coordinate(sub[0], sub[1]));
+	    }
+	    return coordinates
+	  },
+
+	  /**
+	   * Convert the bbox to a LinearRing
+	   *
+	   * @param {Array}
+	   *          array Array with [xMin, yMin, xMax, yMax].
+	   *
+	   * @return {Array} Array with Coordinates.
+	   */
+	  bbox: function (array) {
+	    return this.geometryFactory.createLinearRing([
+	      new Coordinate(array[0], array[1]),
+	      new Coordinate(array[2], array[1]),
+	      new Coordinate(array[2], array[3]),
+	      new Coordinate(array[0], array[3]),
+	      new Coordinate(array[0], array[1])
+	    ])
+	  },
+
+	  /**
+	   * Convert an Array with ordinates to a Point
+	   *
+	   * @param {Array}
+	   *          array Array with ordinates.
+	   *
+	   * @return {Point} Point.
+	   */
+	  Point: function (array) {
+	    var coordinate = new Coordinate(array[0], array[1]);
+	    return this.geometryFactory.createPoint(coordinate)
+	  },
+
+	  /**
+	   * Convert an Array with coordinates to a MultiPoint
+	   *
+	   * @param {Array}
+	   *          array Array with coordinates.
+	   *
+	   * @return {MultiPoint} MultiPoint.
+	   */
+	  MultiPoint: function (array) {
+	    var this$1 = this;
+
+	    var points = [];
+	    for (var i = 0; i < array.length; ++i) {
+	      points.push(parse.Point.apply(this$1, [array[i]]));
+	    }
+	    return this.geometryFactory.createMultiPoint(points)
+	  },
+
+	  /**
+	   * Convert an Array with coordinates to a LineString
+	   *
+	   * @param {Array}
+	   *          array Array with coordinates.
+	   *
+	   * @return {LineString} LineString.
+	   */
+	  LineString: function (array) {
+	    var coordinates = parse.coordinates.apply(this, [array]);
+	    return this.geometryFactory.createLineString(coordinates)
+	  },
+
+	  /**
+	   * Convert an Array with coordinates to a MultiLineString
+	   *
+	   * @param {Array}
+	   *          array Array with coordinates.
+	   *
+	   * @return {MultiLineString} MultiLineString.
+	   */
+	  MultiLineString: function (array) {
+	    var this$1 = this;
+
+	    var lineStrings = [];
+	    for (var i = 0; i < array.length; ++i) {
+	      lineStrings.push(parse.LineString.apply(this$1, [array[i]]));
+	    }
+	    return this.geometryFactory.createMultiLineString(lineStrings)
+	  },
+
+	  /**
+	   * Convert an Array to a Polygon
+	   *
+	   * @param {Array}
+	   *          array Array with shell and holes.
+	   *
+	   * @return {Polygon} Polygon.
+	   */
+	  Polygon: function (array) {
+	    var this$1 = this;
+
+	    var shellCoordinates = parse.coordinates.apply(this, [array[0]]);
+	    var shell = this.geometryFactory.createLinearRing(shellCoordinates);
+	    var holes = [];
+	    for (var i = 1; i < array.length; ++i) {
+	      var hole = array[i];
+	      var coordinates = parse.coordinates.apply(this$1, [hole]);
+	      var linearRing = this$1.geometryFactory.createLinearRing(coordinates);
+	      holes.push(linearRing);
+	    }
+	    return this.geometryFactory.createPolygon(shell, holes)
+	  },
+
+	  /**
+	   * Convert an Array to a MultiPolygon
+	   *
+	   * @param {Array}
+	   *          array Array of arrays with shell and rings.
+	   *
+	   * @return {MultiPolygon} MultiPolygon.
+	   */
+	  MultiPolygon: function (array) {
+	    var this$1 = this;
+
+	    var polygons = [];
+	    for (var i = 0; i < array.length; ++i) {
+	      var polygon = array[i];
+	      polygons.push(parse.Polygon.apply(this$1, [polygon]));
+	    }
+	    return this.geometryFactory.createMultiPolygon(polygons)
+	  },
+
+	  /**
+	   * Convert an Array to a GeometryCollection
+	   *
+	   * @param {Array}
+	   *          array Array of GeoJSON geometries.
+	   *
+	   * @return {GeometryCollection} GeometryCollection.
+	   */
+	  GeometryCollection: function (array) {
+	    var this$1 = this;
+
+	    var geometries = [];
+	    for (var i = 0; i < array.length; ++i) {
+	      var geometry = array[i];
+	      geometries.push(this$1.read(geometry));
+	    }
+	    return this.geometryFactory.createGeometryCollection(geometries)
+	  }
+	};
+
+	var extract = {
+	  /**
+	   * Convert a Coordinate to an Array
+	   *
+	   * @param {Coordinate}
+	   *          coordinate Coordinate to convert.
+	   *
+	   * @return {Array} Array of ordinates.
+	   */
+	  coordinate: function (coordinate) {
+	    return [coordinate.x, coordinate.y]
+	  },
+
+	  /**
+	   * Convert a Point to a GeoJSON object
+	   *
+	   * @param {Point}
+	   *          point Point to convert.
+	   *
+	   * @return {Array} Array of 2 ordinates (paired to a coordinate).
+	   */
+	  Point: function (point) {
+	    var array = extract.coordinate.apply(this, [point.getCoordinate()]);
+	    return {
+	      type: 'Point',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a MultiPoint to a GeoJSON object
+	   *
+	   * @param {MultiPoint}
+	   *          multipoint MultiPoint to convert.
+	   *
+	   * @return {Array} Array of coordinates.
+	   */
+	  MultiPoint: function (multipoint) {
+	    var this$1 = this;
+
+	    var array = [];
+	    for (var i = 0; i < multipoint._geometries.length; ++i) {
+	      var point = multipoint._geometries[i];
+	      var geoJson = extract.Point.apply(this$1, [point]);
+	      array.push(geoJson.coordinates);
+	    }
+	    return {
+	      type: 'MultiPoint',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a LineString to a GeoJSON object
+	   *
+	   * @param {LineString}
+	   *          linestring LineString to convert.
+	   *
+	   * @return {Array} Array of coordinates.
+	   */
+	  LineString: function (linestring) {
+	    var this$1 = this;
+
+	    var array = [];
+	    var coordinates = linestring.getCoordinates();
+	    for (var i = 0; i < coordinates.length; ++i) {
+	      var coordinate = coordinates[i];
+	      array.push(extract.coordinate.apply(this$1, [coordinate]));
+	    }
+	    return {
+	      type: 'LineString',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a MultiLineString to a GeoJSON object
+	   *
+	   * @param {MultiLineString}
+	   *          multilinestring MultiLineString to convert.
+	   *
+	   * @return {Array} Array of Array of coordinates.
+	   */
+	  MultiLineString: function (multilinestring) {
+	    var this$1 = this;
+
+	    var array = [];
+	    for (var i = 0; i < multilinestring._geometries.length; ++i) {
+	      var linestring = multilinestring._geometries[i];
+	      var geoJson = extract.LineString.apply(this$1, [linestring]);
+	      array.push(geoJson.coordinates);
+	    }
+	    return {
+	      type: 'MultiLineString',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a Polygon to a GeoJSON object
+	   *
+	   * @param {Polygon}
+	   *          polygon Polygon to convert.
+	   *
+	   * @return {Array} Array with shell, holes.
+	   */
+	  Polygon: function (polygon) {
+	    var this$1 = this;
+
+	    var array = [];
+	    var shellGeoJson = extract.LineString.apply(this, [polygon._shell]);
+	    array.push(shellGeoJson.coordinates);
+	    for (var i = 0; i < polygon._holes.length; ++i) {
+	      var hole = polygon._holes[i];
+	      var holeGeoJson = extract.LineString.apply(this$1, [hole]);
+	      array.push(holeGeoJson.coordinates);
+	    }
+	    return {
+	      type: 'Polygon',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a MultiPolygon to a GeoJSON object
+	   *
+	   * @param {MultiPolygon}
+	   *          multipolygon MultiPolygon to convert.
+	   *
+	   * @return {Array} Array of polygons.
+	   */
+	  MultiPolygon: function (multipolygon) {
+	    var this$1 = this;
+
+	    var array = [];
+	    for (var i = 0; i < multipolygon._geometries.length; ++i) {
+	      var polygon = multipolygon._geometries[i];
+	      var geoJson = extract.Polygon.apply(this$1, [polygon]);
+	      array.push(geoJson.coordinates);
+	    }
+	    return {
+	      type: 'MultiPolygon',
+	      coordinates: array
+	    }
+	  },
+
+	  /**
+	   * Convert a GeometryCollection to a GeoJSON object
+	   *
+	   * @param {GeometryCollection}
+	   *          collection GeometryCollection to convert.
+	   *
+	   * @return {Array} Array of geometries.
+	   */
+	  GeometryCollection: function (collection) {
+	    var this$1 = this;
+
+	    var array = [];
+	    for (var i = 0; i < collection._geometries.length; ++i) {
+	      var geometry = collection._geometries[i];
+	      var type = geometry.getGeometryType();
+	      array.push(extract[type].apply(this$1, [geometry]));
+	    }
+	    return {
+	      type: 'GeometryCollection',
+	      geometries: array
+	    }
+	  }
+	};
+
+	/**
+	 * Converts a geometry in GeoJSON to a {@link Geometry}.
+	 */
+
+	/**
+	 * A <code>GeoJSONReader</code> is parameterized by a <code>GeometryFactory</code>,
+	 * to allow it to create <code>Geometry</code> objects of the appropriate
+	 * implementation. In particular, the <code>GeometryFactory</code> determines
+	 * the <code>PrecisionModel</code> and <code>SRID</code> that is used.
+	 *
+	 * @param {GeometryFactory} geometryFactory
+	 * @constructor
+	 */
+	var GeoJSONReader = function GeoJSONReader (geometryFactory) {
+	  this.geometryFactory = geometryFactory || new GeometryFactory();
+	  this.precisionModel = this.geometryFactory.getPrecisionModel();
+	  this.parser = new GeoJSONParser(this.geometryFactory);
+	};
+	/**
+	 * Reads a GeoJSON representation of a {@link Geometry}
+	 *
+	 * Will also parse GeoJSON Features/FeatureCollections as custom objects.
+	 *
+	 * @param {Object|String} geoJson a GeoJSON Object or String.
+	 * @return {Geometry|Object} a <code>Geometry or Feature/FeatureCollection representation.</code>
+	 * @memberof GeoJSONReader
+	 */
+	GeoJSONReader.prototype.read = function read (geoJson) {
+	  var geometry = this.parser.read(geoJson);
+
+	  if (this.precisionModel.getType() === PrecisionModel.FIXED) {
+	    this.reducePrecision(geometry);
+	  }
+
+	  return geometry
+	};
+
+	// NOTE: this is a hack
+	GeoJSONReader.prototype.reducePrecision = function reducePrecision (geometry) {
+	    var this$1 = this;
+
+	  var i, len;
+
+	  if (geometry.coordinate) {
+	    this.precisionModel.makePrecise(geometry.coordinate);
+	  } else if (geometry.points) {
+	    for (i = 0, len = geometry.points.length; i < len; i++) {
+	      this$1.precisionModel.makePrecise(geometry.points[i]);
+	    }
+	  } else if (geometry.geometries) {
+	    for (i = 0, len = geometry.geometries.length; i < len; i++) {
+	      this$1.reducePrecision(geometry.geometries[i]);
+	    }
+	  }
+	};
+
+	/**
+	 * @module GeoJSONWriter
+	 */
+
+	/**
+	 * Writes the GeoJSON representation of a {@link Geometry}. The
+	 * The GeoJSON format is defined <A
+	 * HREF="http://geojson.org/geojson-spec.html">here</A>.
+	 */
+
+	/**
+	 * The <code>GeoJSONWriter</code> outputs coordinates rounded to the precision
+	 * model. Only the maximum number of decimal places necessary to represent the
+	 * ordinates to the required precision will be output.
+	 *
+	 * @param {GeometryFactory} geometryFactory
+	 * @constructor
+	 */
+	var GeoJSONWriter = function GeoJSONWriter () {
+	  this.parser = new GeoJSONParser(this.geometryFactory);
+	};
+	/**
+	 * Converts a <code>Geometry</code> to its GeoJSON representation.
+	 *
+	 * @param {Geometry}
+	 *        geometry a <code>Geometry</code> to process.
+	 * @return {Object} The GeoJSON representation of the Geometry.
+	 * @memberof GeoJSONWriter
+	 */
+	GeoJSONWriter.prototype.write = function write (geometry) {
+	  return this.parser.write(geometry)
+	};
 
 	/* eslint-disable no-undef */
 
@@ -19524,13 +20033,664 @@
 	  return SnapIfNeededOverlayOp.overlayOp(g, other, OverlayOp.UNION)
 	};
 
+	/**
+	 * Earth Radius used with the Harvesine formula and approximates using a spherical (non-ellipsoid) Earth.
+	 */
+
+	/**
+	 * Wraps a GeoJSON {@link Geometry} in a GeoJSON {@link Feature}.
+	 *
+	 * @name feature
+	 * @param {Geometry} geometry input geometry
+	 * @param {Object} [properties={}] an Object of key-value pairs to add as properties
+	 * @param {Object} [options={}] Optional Parameters
+	 * @param {Array<number>} [options.bbox] Bounding Box Array [west, south, east, north] associated with the Feature
+	 * @param {string|number} [options.id] Identifier associated with the Feature
+	 * @returns {Feature} a GeoJSON Feature
+	 * @example
+	 * var geometry = {
+	 *   "type": "Point",
+	 *   "coordinates": [110, 50]
+	 * };
+	 *
+	 * var feature = turf.feature(geometry);
+	 *
+	 * //=feature
+	 */
+	function feature$1(geometry, properties, options) {
+	    // Optional Parameters
+	    options = options || {};
+	    if (!isObject(options)) throw new Error('options is invalid');
+	    var bbox = options.bbox;
+	    var id = options.id;
+
+	    // Validation
+	    if (geometry === undefined) throw new Error('geometry is required');
+	    if (properties && properties.constructor !== Object) throw new Error('properties must be an Object');
+	    if (bbox) validateBBox(bbox);
+	    if (id) validateId(id);
+
+	    // Main
+	    var feat = {type: 'Feature'};
+	    if (id) feat.id = id;
+	    if (bbox) feat.bbox = bbox;
+	    feat.properties = properties || {};
+	    feat.geometry = geometry;
+	    return feat;
+	}
+
+	/**
+	 * isNumber
+	 *
+	 * @param {*} num Number to validate
+	 * @returns {boolean} true/false
+	 * @example
+	 * turf.isNumber(123)
+	 * //=true
+	 * turf.isNumber('foo')
+	 * //=false
+	 */
+	function isNumber(num) {
+	    return !isNaN(num) && num !== null && !Array.isArray(num);
+	}
+
+	/**
+	 * isObject
+	 *
+	 * @param {*} input variable to validate
+	 * @returns {boolean} true/false
+	 * @example
+	 * turf.isObject({elevation: 10})
+	 * //=true
+	 * turf.isObject('foo')
+	 * //=false
+	 */
+	function isObject(input) {
+	    return (!!input) && (input.constructor === Object);
+	}
+
+	/**
+	 * Validate BBox
+	 *
+	 * @private
+	 * @param {Array<number>} bbox BBox to validate
+	 * @returns {void}
+	 * @throws Error if BBox is not valid
+	 * @example
+	 * validateBBox([-180, -40, 110, 50])
+	 * //=OK
+	 * validateBBox([-180, -40])
+	 * //=Error
+	 * validateBBox('Foo')
+	 * //=Error
+	 * validateBBox(5)
+	 * //=Error
+	 * validateBBox(null)
+	 * //=Error
+	 * validateBBox(undefined)
+	 * //=Error
+	 */
+	function validateBBox(bbox) {
+	    if (!bbox) throw new Error('bbox is required');
+	    if (!Array.isArray(bbox)) throw new Error('bbox must be an Array');
+	    if (bbox.length !== 4 && bbox.length !== 6) throw new Error('bbox must be an Array of 4 or 6 numbers');
+	    bbox.forEach(function (num) {
+	        if (!isNumber(num)) throw new Error('bbox must only contain numbers');
+	    });
+	}
+
+	/**
+	 * Validate Id
+	 *
+	 * @private
+	 * @param {string|number} id Id to validate
+	 * @returns {void}
+	 * @throws Error if Id is not valid
+	 * @example
+	 * validateId([-180, -40, 110, 50])
+	 * //=Error
+	 * validateId([-180, -40])
+	 * //=Error
+	 * validateId('Foo')
+	 * //=OK
+	 * validateId(5)
+	 * //=OK
+	 * validateId(null)
+	 * //=Error
+	 * validateId(undefined)
+	 * //=Error
+	 */
+	function validateId(id) {
+	    if (!id) throw new Error('id is required');
+	    if (['string', 'number'].indexOf(typeof id) === -1) throw new Error('id must be a number or a string');
+	}
+
+	/**
+	 * Callback for geomEach
+	 *
+	 * @callback geomEachCallback
+	 * @param {Geometry} currentGeometry The current Geometry being processed.
+	 * @param {number} featureIndex The current index of the Feature being processed.
+	 * @param {Object} featureProperties The current Feature Properties being processed.
+	 * @param {Array<number>} featureBBox The current Feature BBox being processed.
+	 * @param {number|string} featureId The current Feature Id being processed.
+	 */
+
+	/**
+	 * Iterate over each geometry in any GeoJSON object, similar to Array.forEach()
+	 *
+	 * @name geomEach
+	 * @param {FeatureCollection|Feature|Geometry} geojson any GeoJSON object
+	 * @param {Function} callback a method that takes (currentGeometry, featureIndex, featureProperties, featureBBox, featureId)
+	 * @returns {void}
+	 * @example
+	 * var features = turf.featureCollection([
+	 *     turf.point([26, 37], {foo: 'bar'}),
+	 *     turf.point([36, 53], {hello: 'world'})
+	 * ]);
+	 *
+	 * turf.geomEach(features, function (currentGeometry, featureIndex, featureProperties, featureBBox, featureId) {
+	 *   //=currentGeometry
+	 *   //=featureIndex
+	 *   //=featureProperties
+	 *   //=featureBBox
+	 *   //=featureId
+	 * });
+	 */
+	function geomEach(geojson, callback) {
+	    var i, j, g, geometry, stopG,
+	        geometryMaybeCollection,
+	        isGeometryCollection,
+	        featureProperties,
+	        featureBBox,
+	        featureId,
+	        featureIndex = 0,
+	        isFeatureCollection = geojson.type === 'FeatureCollection',
+	        isFeature = geojson.type === 'Feature',
+	        stop = isFeatureCollection ? geojson.features.length : 1;
+
+	    // This logic may look a little weird. The reason why it is that way
+	    // is because it's trying to be fast. GeoJSON supports multiple kinds
+	    // of objects at its root: FeatureCollection, Features, Geometries.
+	    // This function has the responsibility of handling all of them, and that
+	    // means that some of the `for` loops you see below actually just don't apply
+	    // to certain inputs. For instance, if you give this just a
+	    // Point geometry, then both loops are short-circuited and all we do
+	    // is gradually rename the input until it's called 'geometry'.
+	    //
+	    // This also aims to allocate as few resources as possible: just a
+	    // few numbers and booleans, rather than any temporary arrays as would
+	    // be required with the normalization approach.
+	    for (i = 0; i < stop; i++) {
+
+	        geometryMaybeCollection = (isFeatureCollection ? geojson.features[i].geometry :
+	            (isFeature ? geojson.geometry : geojson));
+	        featureProperties = (isFeatureCollection ? geojson.features[i].properties :
+	            (isFeature ? geojson.properties : {}));
+	        featureBBox = (isFeatureCollection ? geojson.features[i].bbox :
+	            (isFeature ? geojson.bbox : undefined));
+	        featureId = (isFeatureCollection ? geojson.features[i].id :
+	            (isFeature ? geojson.id : undefined));
+	        isGeometryCollection = (geometryMaybeCollection) ? geometryMaybeCollection.type === 'GeometryCollection' : false;
+	        stopG = isGeometryCollection ? geometryMaybeCollection.geometries.length : 1;
+
+	        for (g = 0; g < stopG; g++) {
+	            geometry = isGeometryCollection ?
+	                geometryMaybeCollection.geometries[g] : geometryMaybeCollection;
+
+	            // Handle null Geometry
+	            if (geometry === null) {
+	                if (callback(null, featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+	                continue;
+	            }
+	            switch (geometry.type) {
+	            case 'Point':
+	            case 'LineString':
+	            case 'MultiPoint':
+	            case 'Polygon':
+	            case 'MultiLineString':
+	            case 'MultiPolygon': {
+	                if (callback(geometry, featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+	                break;
+	            }
+	            case 'GeometryCollection': {
+	                for (j = 0; j < geometry.geometries.length; j++) {
+	                    if (callback(geometry.geometries[j], featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+	                }
+	                break;
+	            }
+	            default:
+	                throw new Error('Unknown Geometry Type');
+	            }
+	        }
+	        // Only increase `featureIndex` per each feature
+	        featureIndex++;
+	    }
+	}
+
+	/**
+	 * Callback for geomReduce
+	 *
+	 * The first time the callback function is called, the values provided as arguments depend
+	 * on whether the reduce method has an initialValue argument.
+	 *
+	 * If an initialValue is provided to the reduce method:
+	 *  - The previousValue argument is initialValue.
+	 *  - The currentValue argument is the value of the first element present in the array.
+	 *
+	 * If an initialValue is not provided:
+	 *  - The previousValue argument is the value of the first element present in the array.
+	 *  - The currentValue argument is the value of the second element present in the array.
+	 *
+	 * @callback geomReduceCallback
+	 * @param {*} previousValue The accumulated value previously returned in the last invocation
+	 * of the callback, or initialValue, if supplied.
+	 * @param {Geometry} currentGeometry The current Geometry being processed.
+	 * @param {number} featureIndex The current index of the Feature being processed.
+	 * @param {Object} featureProperties The current Feature Properties being processed.
+	 * @param {Array<number>} featureBBox The current Feature BBox being processed.
+	 * @param {number|string} featureId The current Feature Id being processed.
+	 */
+
+	/**
+	 * Reduce geometry in any GeoJSON object, similar to Array.reduce().
+	 *
+	 * @name geomReduce
+	 * @param {FeatureCollection|Feature|Geometry} geojson any GeoJSON object
+	 * @param {Function} callback a method that takes (previousValue, currentGeometry, featureIndex, featureProperties, featureBBox, featureId)
+	 * @param {*} [initialValue] Value to use as the first argument to the first call of the callback.
+	 * @returns {*} The value that results from the reduction.
+	 * @example
+	 * var features = turf.featureCollection([
+	 *     turf.point([26, 37], {foo: 'bar'}),
+	 *     turf.point([36, 53], {hello: 'world'})
+	 * ]);
+	 *
+	 * turf.geomReduce(features, function (previousValue, currentGeometry, featureIndex, featureProperties, featureBBox, featureId) {
+	 *   //=previousValue
+	 *   //=currentGeometry
+	 *   //=featureIndex
+	 *   //=featureProperties
+	 *   //=featureBBox
+	 *   //=featureId
+	 *   return currentGeometry
+	 * });
+	 */
+	function geomReduce(geojson, callback, initialValue) {
+	    var previousValue = initialValue;
+	    geomEach(geojson, function (currentGeometry, featureIndex, featureProperties, featureBBox, featureId) {
+	        if (featureIndex === 0 && initialValue === undefined) previousValue = currentGeometry;
+	        else previousValue = callback(previousValue, currentGeometry, featureIndex, featureProperties, featureBBox, featureId);
+	    });
+	    return previousValue;
+	}
+
+	/**
+	 * Callback for flattenEach
+	 *
+	 * @callback flattenEachCallback
+	 * @param {Feature} currentFeature The current flattened feature being processed.
+	 * @param {number} featureIndex The current index of the Feature being processed.
+	 * @param {number} multiFeatureIndex The current index of the Multi-Feature being processed.
+	 */
+
+	/**
+	 * Iterate over flattened features in any GeoJSON object, similar to
+	 * Array.forEach.
+	 *
+	 * @name flattenEach
+	 * @param {FeatureCollection|Feature|Geometry} geojson any GeoJSON object
+	 * @param {Function} callback a method that takes (currentFeature, featureIndex, multiFeatureIndex)
+	 * @example
+	 * var features = turf.featureCollection([
+	 *     turf.point([26, 37], {foo: 'bar'}),
+	 *     turf.multiPoint([[40, 30], [36, 53]], {hello: 'world'})
+	 * ]);
+	 *
+	 * turf.flattenEach(features, function (currentFeature, featureIndex, multiFeatureIndex) {
+	 *   //=currentFeature
+	 *   //=featureIndex
+	 *   //=multiFeatureIndex
+	 * });
+	 */
+	function flattenEach(geojson, callback) {
+	    geomEach(geojson, function (geometry, featureIndex, properties, bbox, id) {
+	        // Callback for single geometry
+	        var type = (geometry === null) ? null : geometry.type;
+	        switch (type) {
+	        case null:
+	        case 'Point':
+	        case 'LineString':
+	        case 'Polygon':
+	            if (callback(feature$1(geometry, properties, {bbox: bbox, id: id}), featureIndex, 0) === false) return false;
+	            return;
+	        }
+
+	        var geomType;
+
+	        // Callback for multi-geometry
+	        switch (type) {
+	        case 'MultiPoint':
+	            geomType = 'Point';
+	            break;
+	        case 'MultiLineString':
+	            geomType = 'LineString';
+	            break;
+	        case 'MultiPolygon':
+	            geomType = 'Polygon';
+	            break;
+	        }
+
+	        for (var multiFeatureIndex = 0; multiFeatureIndex < geometry.coordinates.length; multiFeatureIndex++) {
+	            var coordinate = geometry.coordinates[multiFeatureIndex];
+	            var geom = {
+	                type: geomType,
+	                coordinates: coordinate
+	            };
+	            if (callback(feature$1(geom, properties), featureIndex, multiFeatureIndex) === false) return false;
+	        }
+	    });
+	}
+
+	/**
+	 * Takes one or more features and returns their area in square meters.
+	 *
+	 * @name area
+	 * @param {GeoJSON} geojson input GeoJSON feature(s)
+	 * @returns {number} area in square meters
+	 * @example
+	 * var polygon = turf.polygon([[[125, -15], [113, -22], [154, -27], [144, -15], [125, -15]]]);
+	 *
+	 * var area = turf.area(polygon);
+	 *
+	 * //addToMap
+	 * var addToMap = [polygon]
+	 * polygon.properties.area = area
+	 */
+	function area(geojson) {
+	    return geomReduce(geojson, function (value, geom) {
+	        return value + calculateArea(geom);
+	    }, 0);
+	}
+
+	var RADIUS$1 = 6378137;
+	// var FLATTENING_DENOM = 298.257223563;
+	// var FLATTENING = 1 / FLATTENING_DENOM;
+	// var POLAR_RADIUS = RADIUS * (1 - FLATTENING);
+
+	/**
+	 * Calculate Area
+	 *
+	 * @private
+	 * @param {GeoJSON} geojson GeoJSON
+	 * @returns {number} area
+	 */
+	function calculateArea(geojson) {
+	    var area = 0, i;
+	    switch (geojson.type) {
+	    case 'Polygon':
+	        return polygonArea$1(geojson.coordinates);
+	    case 'MultiPolygon':
+	        for (i = 0; i < geojson.coordinates.length; i++) {
+	            area += polygonArea$1(geojson.coordinates[i]);
+	        }
+	        return area;
+	    case 'Point':
+	    case 'MultiPoint':
+	    case 'LineString':
+	    case 'MultiLineString':
+	        return 0;
+	    case 'GeometryCollection':
+	        for (i = 0; i < geojson.geometries.length; i++) {
+	            area += calculateArea(geojson.geometries[i]);
+	        }
+	        return area;
+	    }
+	}
+
+	function polygonArea$1(coords) {
+	    var area = 0;
+	    if (coords && coords.length > 0) {
+	        area += Math.abs(ringArea$1(coords[0]));
+	        for (var i = 1; i < coords.length; i++) {
+	            area -= Math.abs(ringArea$1(coords[i]));
+	        }
+	    }
+	    return area;
+	}
+
+	/**
+	 * @private
+	 * Calculate the approximate area of the polygon were it projected onto the earth.
+	 * Note that this area will be positive if ring is oriented clockwise, otherwise it will be negative.
+	 *
+	 * Reference:
+	 * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
+	 * Laboratory, Pasadena, CA, June 2007 http://trs-new.jpl.nasa.gov/dspace/handle/2014/40409
+	 *
+	 * @param {Array<Array<number>>} coords Ring Coordinates
+	 * @returns {number} The approximate signed geodesic area of the polygon in square meters.
+	 */
+	function ringArea$1(coords) {
+	    var p1;
+	    var p2;
+	    var p3;
+	    var lowerIndex;
+	    var middleIndex;
+	    var upperIndex;
+	    var i;
+	    var area = 0;
+	    var coordsLength = coords.length;
+
+	    if (coordsLength > 2) {
+	        for (i = 0; i < coordsLength; i++) {
+	            if (i === coordsLength - 2) { // i = N-2
+	                lowerIndex = coordsLength - 2;
+	                middleIndex = coordsLength - 1;
+	                upperIndex = 0;
+	            } else if (i === coordsLength - 1) { // i = N-1
+	                lowerIndex = coordsLength - 1;
+	                middleIndex = 0;
+	                upperIndex = 1;
+	            } else { // i = 0 to N-3
+	                lowerIndex = i;
+	                middleIndex = i + 1;
+	                upperIndex = i + 2;
+	            }
+	            p1 = coords[lowerIndex];
+	            p2 = coords[middleIndex];
+	            p3 = coords[upperIndex];
+	            area += (rad$1(p3[0]) - rad$1(p1[0])) * Math.sin(rad$1(p2[1]));
+	        }
+
+	        area = area * RADIUS$1 * RADIUS$1 / 2;
+	    }
+
+	    return area;
+	}
+
+	function rad$1(_) {
+	    return _ * Math.PI / 180;
+	}
+
+	/**
+	 * Get Geometry from Feature or Geometry Object
+	 *
+	 * @param {Feature|Geometry} geojson GeoJSON Feature or Geometry Object
+	 * @returns {Geometry|null} GeoJSON Geometry Object
+	 * @throws {Error} if geojson is not a Feature or Geometry Object
+	 * @example
+	 * var point = {
+	 *   "type": "Feature",
+	 *   "properties": {},
+	 *   "geometry": {
+	 *     "type": "Point",
+	 *     "coordinates": [110, 40]
+	 *   }
+	 * }
+	 * var geom = turf.getGeom(point)
+	 * //={"type": "Point", "coordinates": [110, 40]}
+	 */
+	function getGeom(geojson) {
+	    if (!geojson) throw new Error('geojson is required');
+	    if (geojson.geometry !== undefined) return geojson.geometry;
+	    if (geojson.coordinates || geojson.geometries) return geojson;
+	    throw new Error('geojson must be a valid Feature or Geometry Object');
+	}
+
+	/**
+	 * Finds the difference between two {@link Polygon|polygons} by clipping the second polygon from the first.
+	 *
+	 * @name difference
+	 * @param {Feature<Polygon|MultiPolygon>} polygon1 input Polygon feature
+	 * @param {Feature<Polygon|MultiPolygon>} polygon2 Polygon feature to difference from polygon1
+	 * @returns {Feature<Polygon|MultiPolygon>|null} a Polygon or MultiPolygon feature showing the area of `polygon1` excluding the area of `polygon2` (if empty returns `null`)
+	 * @example
+	 * var polygon1 = turf.polygon([[
+	 *   [128, -26],
+	 *   [141, -26],
+	 *   [141, -21],
+	 *   [128, -21],
+	 *   [128, -26]
+	 * ]], {
+	 *   "fill": "#F00",
+	 *   "fill-opacity": 0.1
+	 * });
+	 * var polygon2 = turf.polygon([[
+	 *   [126, -28],
+	 *   [140, -28],
+	 *   [140, -20],
+	 *   [126, -20],
+	 *   [126, -28]
+	 * ]], {
+	 *   "fill": "#00F",
+	 *   "fill-opacity": 0.1
+	 * });
+	 *
+	 * var difference = turf.difference(polygon1, polygon2);
+	 *
+	 * //addToMap
+	 * var addToMap = [polygon1, polygon2, difference];
+	 */
+	function difference(polygon1, polygon2) {
+	    var geom1 = getGeom(polygon1);
+	    var geom2 = getGeom(polygon2);
+	    var properties = polygon1.properties || {};
+
+	    // Issue #721 - JSTS can't handle empty polygons
+	    geom1 = removeEmptyPolygon(geom1);
+	    geom2 = removeEmptyPolygon(geom2);
+	    if (!geom1) return null;
+	    if (!geom2) return feature$1(geom1, properties);
+
+	    // JSTS difference operation
+	    var reader = new GeoJSONReader();
+	    var a = reader.read(geom1);
+	    var b = reader.read(geom2);
+	    var differenced = OverlayOp.difference(a, b);
+	    if (differenced.isEmpty()) return null;
+	    var writer = new GeoJSONWriter();
+	    var geom = writer.write(differenced);
+
+	    return feature$1(geom, properties);
+	}
+
+	/**
+	 * Detect Empty Polygon
+	 *
+	 * @private
+	 * @param {Geometry<Polygon|MultiPolygon>} geom Geometry Object
+	 * @returns {Geometry<Polygon|MultiPolygon>|null} removed any polygons with no areas
+	 */
+	function removeEmptyPolygon(geom) {
+	    switch (geom.type) {
+	    case 'Polygon':
+	        if (area(geom) > 1) return geom;
+	        return null;
+	    case 'MultiPolygon':
+	        var coordinates = [];
+	        flattenEach(geom, function (feature$$1) {
+	            if (area(feature$$1) > 1) coordinates.push(feature$$1.geometry.coordinates);
+	        });
+	        if (coordinates.length) return {type: 'MultiPolygon', coordinates: coordinates};
+	    }
+	}
+
+	/**
+	 * Takes two or more {@link Polygon|polygons} and returns a combined polygon. If the input polygons are not contiguous, this function returns a {@link MultiPolygon} feature.
+	 *
+	 * @name union
+	 * @param {...Feature<Polygon>} A polygon to combine
+	 * @returns {Feature<(Polygon|MultiPolygon)>} a combined {@link Polygon} or {@link MultiPolygon} feature
+	 * @example
+	 * var poly1 = turf.polygon([[
+	 *     [-82.574787, 35.594087],
+	 *     [-82.574787, 35.615581],
+	 *     [-82.545261, 35.615581],
+	 *     [-82.545261, 35.594087],
+	 *     [-82.574787, 35.594087]
+	 * ]], {"fill": "#0f0"});
+	 * var poly2 = turf.polygon([[
+	 *     [-82.560024, 35.585153],
+	 *     [-82.560024, 35.602602],
+	 *     [-82.52964, 35.602602],
+	 *     [-82.52964, 35.585153],
+	 *     [-82.560024, 35.585153]
+	 * ]], {"fill": "#00f"});
+	 *
+	 * var union = turf.union(poly1, poly2);
+	 *
+	 * //addToMap
+	 * var addToMap = [poly1, poly2, union];
+	 */
+	function union() {
+	    var reader = new GeoJSONReader();
+	    var result = reader.read(JSON.stringify(arguments[0].geometry));
+
+	    for (var i = 1; i < arguments.length; i++) {
+	        result = UnionOp.union(result, reader.read(JSON.stringify(arguments[i].geometry)));
+	    }
+
+	    var writer = new GeoJSONWriter();
+	    result = writer.write(result);
+
+	    return {
+	        type: 'Feature',
+	        geometry: result,
+	        properties: arguments[0].properties
+	    };
+	}
+
 	class index {
+
+	  // constructor
+	  //
+	  // Optionally pass an Object of known GeoJSON features which we can use later
+	  // Each feature must have a filename-like id:  `something.geojson`
+	  // {
+	  //  "philly_metro.geojson": {
+	  //    "type": "Feature",
+	  //    "id": "philly_metro.geojson",
+	  //    "properties": {},
+	  //    "geometry": { ... }
+	  //  }
+	  // }
 	  constructor(features) {
+	    this._cache = {};
 	    this._features = features || {};
+
+	    // Update CountryCoder world geometry to be a polygon covering the world.
+	    // (yes, modifying the internal CountryCoder feature.geometry is hacky, but seems safe)
+	    let world = feature('001');
+	    world.geometry = {
+	      type: 'Polygon',
+	      coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
+	    };
 	  }
 
+
 	  // isValidLocation
-	  // Pass a location identifier
+	  // Pass a `location` identifier
 	  // Returns 'point', 'geojson', or 'countrycoder' if valid, false otherwise
 	  isValidLocation(location) {
 	    if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
@@ -19549,9 +20709,71 @@
 	  }
 
 
+	  // locationToFeature
+	  //
+	  // Pass a `location` identifier
+	  // Returns a GeoJSON feature
+	  locationToFeature(location) {
+	    // a [lon,lat] coordinate pair?
+	    if (Array.isArray(location)) {
+	      if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
+	        location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+	      ) {
+	        const RADIUS = 25000;  // meters
+	        const EDGES = 10;
+	        const id = 'point:' + location.toString();
+	        const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
+
+	        let feature = this._cache[id];
+	        if (!feature) {
+	          feature = this._cache[id] = geojsonPrecision({
+	            type: 'Feature',
+	            id: id,
+	            properties: { id: id, area: Number(area.toFixed(2)) },
+	            geometry: circleToPolygon(location, RADIUS, EDGES)
+	          }, 3);
+	        }
+	        return { type: 'point', feature: feature };
+	      } else {
+	        return null;
+	      }
+
+	     // a .geojson filename?
+	     } else if (/^\S+\.geojson$/i.test(location)) {
+	      let feature = this._features[location];
+	      if (feature) {
+	        feature.properties = feature.properties || {};
+	        if (!feature.properties.area) {                          // ensure area property
+	          let area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
+	          feature.properties.area = Number(area.toFixed(2));
+	        }
+	        return { type: 'geojson', feature: feature };
+	      } else {
+	        return null;
+	      }
+
+	    // a country-coder string?
+	    } else {
+	      let feature$1 = feature(location);
+	      if (feature$1) {
+	        feature$1.properties = feature$1.properties || {};
+	        if (!feature$1.properties.area) {                            // ensure area property
+	          const area = geojsonArea.geometry(feature$1.geometry) / 1e6;  // m² to km²
+	          feature$1.properties.area = Number(area.toFixed(2));
+	        }
+	        return { type: 'countrycoder', feature: feature$1 };
+	      } else {
+	        return null;
+	      }
+
+	    }
+	  }
+
+
 	  // getIdentifier
-	  // Pass a locationSet Object like:
-	  //   { include: [ Array ], exclude: [ Array ] }
+	  //
+	  // Pass a `locationSet` Object like:
+	  //   `{ include: [ Array ], exclude: [ Array ] }`
 	  // Returns a stable identifier string of the form:
 	  //   "+[included]-[excluded]"
 	  getIdentifier(locationSet) {
@@ -19597,75 +20819,108 @@
 	  }
 
 
+	  // resolveLocationSet()
+	  //
+	  // Pass a `locationSet` Object like:
+	  //   `{ include: [ Array ], exclude: [ Array ] }`
+	  // Returns a stable identifier string of the form:
+	  //   "+[included]-[excluded]"
+	  //
+	  resolveLocationSet(locationSet) {
+	    locationSet = locationSet || {};
+	    let include = (locationSet.include || []).filter(l => this.isValidLocation(l));
+	    let exclude = (locationSet.exclude || []).filter(l => this.isValidLocation(l));
+	    let that = this;
 
-	  // locationToFeature
-	  // Pass a location identifier
-	  // Returns a GeoJSON feature
-	  locationToFeature(location) {
-	    // a [lon,lat] coordinate pair?
-	    if (Array.isArray(location)) {
-	      if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-	        location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
-	      ) {
-	        const RADIUS = 25000;  // meters
-	        const EDGES = 10;
-	        const id = 'point:' + location.toString();
-	        const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
-
-	        let feature = {
-	          type: 'Feature',
-	          id: id,
-	          properties: {
-	            id: id,
-	            area: Number(area.toFixed(2))
-	          },
-	          geometry: circleToPolygon(location, RADIUS, EDGES)
-	        };
-	        return { type: 'point', feature: geojsonPrecision(feature, 3) };
-	      } else {
-	        return null;
-	      }
-
-	     // a .geojson filename?
-	     } else if (/^\S+\.geojson$/i.test(location)) {
-	      let feature = this._features[location];
-	      if (feature) {
-	        feature.properties = feature.properties || {};
-	        if (!feature.properties.area) {                          // ensure area property
-	          let area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
-	          feature.properties.area = Number(area.toFixed(2));
-	        }
-	        return { type: 'geojson', feature: feature };
-	      } else {
-	        return null;
-	      }
-
-	    // a country-coder string?
+	    if (include.length) {
+	      include.sort(locationSorter);
 	    } else {
-	      let feature$1;
-	      if (location === '001') {  // the world
-	        feature$1 = feature(location);
-	        feature$1.geometry = {
-	          type: 'Polygon',
-	          coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
-	        };
-	      } else {
-	        feature$1 = aggregateFeature(location);
+	      include = ['001'];   // default to 'the world'
+	    }
+
+	    // exit early if a simple shape..
+	    if (include.length === 1 && exclude.length === 0) {
+	      return this.locationToFeature(include[0]);
+	    }
+
+	    // generate identifier
+	    let id = '+' + JSON.stringify(include).toLowerCase();
+	    if (exclude.length) {
+	      exclude.sort(locationSorter);
+	      id += '-' + JSON.stringify(exclude).toLowerCase();
+	    }
+
+	    // return cached?
+	    if (this._cache[id]) {
+	      return this._cache[id];
+	    }
+
+	    // resolve lists
+	    let includeGeoJSON = include.reduce(locationReducer, null);
+	    let excludeGeoJSON = exclude.reduce(locationReducer, null);
+
+	    // calculate include-exclude, recalc area and return result
+	    let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
+	    const area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
+
+	    resultGeoJSON.id = id;
+	    resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
+	    this._cache[id] = resultGeoJSON;
+
+	    return resultGeoJSON;
+
+
+	    // Reduce the locations into a single GeoJSON feature
+	    function locationReducer(accumulator, location) {
+	      let result = that.locationToFeature(location);
+	      if (!result) {
+	        console.warn(`Warning:  Couldn't resolve location "${location}"`);  // eslint-disable-line no-console
+	        return accumulator;
 	      }
 
-	      if (feature$1) {
-	        feature$1.properties = feature$1.properties || {};
-	        if (!feature$1.properties.area) {                            // ensure area property
-	          const area = geojsonArea.geometry(feature$1.geometry) / 1e6;  // m² to km²
-	          feature$1.properties.area = Number(area.toFixed(2));
-	        }
-	        return { type: 'countrycoder', feature: feature$1 };
-	      } else {
-	        return null;
+	      let feature = result.feature;
+
+	      // -> This block of code is weird and requires some explanation. <-
+	      // CountryCoder includes higher level features which are made up of members.
+	      // These features don't have their own geometry, but CountryCoder provides an
+	      //   `aggregateFeature` method to combine these members into a MultiPolygon.
+	      // BUT, when we try to actually work with these MultiPolygons, Turf/JSTS
+	      //   gets crashy because of topography bugs.
+	      // SO, we'll aggregate the features ourselves by unioning them together,
+	      //   then store the resulting geometry back in the CountryCoder feature itself.
+	      //   (yes, modifying the internal CountryCoder feature geometry is hacky, but seems safe)
+	      if (result.type === 'countrycoder' && !feature.geometry) {
+	        let aggregate = feature.properties.members.reduce(locationReducer, null);
+	        feature.geometry = aggregate.geometry;
+	        const area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
+	        feature.properties.area = Number(area.toFixed(2));
 	      }
 
+	      return !accumulator ? feature : union(accumulator, feature);
+	    }
+
+
+	    // It's ok to sort location lists because they all end up unioned together.
+	    function locationSorter(a, b) {
+	      const rank = { countrycoder: 1, geojson: 2, point: 3 };
+	      const aRank = rank[that.isValidLocation(a)] || 4;
+	      const bRank = rank[that.isValidLocation(b)] || 4;
+
+	      if (aRank > bRank) return 1;
+	      if (aRank < bRank) return -1;
+
+	      // numeric sort point [lon,lat] locations
+	      if (aRank === 3 && bRank === 3) {
+	        return (a[0] - b[0] > 0) ? 1
+	          : (a[0] - b[0] < 0) ? -1
+	          : (a[1] - b[1]);
+	      }
+
+	      // lexical sort other identifiers
+	      return a.localeCompare(b);
 	    }
 	  }
+
 
 	}
 

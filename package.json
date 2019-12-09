@@ -15,7 +15,7 @@
   "module": "index.mjs",
   "scripts": {
     "build": "rollup -c",
-    "lint": "eslint *.js src/*.js test/*.js",
+    "lint": "eslint index.mjs test/*.js",
     "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
   },
   "dependencies": {
