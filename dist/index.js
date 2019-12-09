@@ -20844,10 +20844,10 @@
 	    }
 
 	    // generate identifier
-	    let id = '+' + JSON.stringify(include).toLowerCase();
+	    let id = '+' + toIdString(include);
 	    if (exclude.length) {
 	      exclude.sort(_locationSorter.bind(this));
-	      id += '-' + JSON.stringify(exclude).toLowerCase();
+	      id += '-' + toIdString(exclude);
 	    }
 
 	    // return cached?
@@ -20868,6 +20868,12 @@
 	    this._cache[id] = resultGeoJSON;
 
 	    return resultGeoJSON;
+
+
+	    function toIdString(arr) {
+	      return JSON.stringify(arr).replace(/"/g,'').toLowerCase();
+	    }
+
 	  }
 
 	}

@@ -102,6 +102,7 @@ export default class {
       ) {
         const RADIUS = 25000;  // meters
         const EDGES = 10;
+        const PRECISION = 3;
         const id = 'point:' + location.toString();
         const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
 
@@ -112,7 +113,7 @@ export default class {
             id: id,
             properties: { id: id, area: Number(area.toFixed(2)) },
             geometry: circleToPolygon(location, RADIUS, EDGES)
-          }, 3);
+          }, PRECISION);
         }
         return { type: 'point', feature: feature };
       } else {
@@ -143,10 +144,12 @@ export default class {
         // CountryCoder includes higher level features which are made up of members.
         // These features don't have their own geometry, but CountryCoder provides an
         //   `aggregateFeature` method to combine these members into a MultiPolygon.
-        // BUT, when we try to actually work with these MultiPolygons, Turf/JSTS
-        //   gets crashy because of topography bugs.
+        // BUT, when we try to actually work with these aggregated MultiPolygons,
+        //   Turf/JSTS gets crashy because of topography bugs.
         // SO, we'll aggregate the features ourselves by unioning them together,
         //   then store the resulting geometry back in the CountryCoder feature itself.
+        // This approach also has the benefit of removing all the internal boaders and
+        //   simplifying the regional polygons a lot.
         // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
         if (!feature.geometry) {
           let aggregate = feature.properties.members.reduce(_locationReducer.bind(this), null);
@@ -191,11 +194,11 @@ export default class {
       return result && result.feature;
     }
 
-    // generate identifier
-    let id = '+' + JSON.stringify(include).toLowerCase();
+    // generate stable identifier
+    let id = '+' + toIdString(include);
     if (exclude.length) {
       exclude.sort(_locationSorter.bind(this));
-      id += '-' + JSON.stringify(exclude).toLowerCase();
+      id += '-' + toIdString(exclude);
     }
 
     // return cached?
@@ -216,6 +219,11 @@ export default class {
     this._cache[id] = resultGeoJSON;
 
     return resultGeoJSON;
+
+
+    function toIdString(arr) {
+      return JSON.stringify(arr).replace(/"/g,'').toLowerCase();
+    }
   }
 
 }
