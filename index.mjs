@@ -46,7 +46,7 @@ export default class {
 
   // constructor
   //
-  // Optionally pass an Object of known GeoJSON features which we can use later
+  // Optionally pass an Object of known GeoJSON features which we can refer to later
   // Each feature must have a filename-like id:  `something.geojson`
   // {
   //  "philly_metro.geojson": {
@@ -71,6 +71,7 @@ export default class {
 
 
   // isValidLocation
+  //
   // Pass a `location` identifier
   // Returns 'point', 'geojson', or 'countrycoder' if valid, false otherwise
   isValidLocation(location) {
@@ -170,7 +171,7 @@ export default class {
   }
 
 
-  // resolveLocationSet()
+  // resolveLocationSet
   //
   // Pass a `locationSet` Object like:
   //   `{ include: [ Array ], exclude: [ Array ] }`
