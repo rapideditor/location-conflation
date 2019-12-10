@@ -34,28 +34,28 @@ const loco = new LocationConflation(myFeatures);
 ```js
 let result = loco.resolveLocationSet({ include: ['039'] });   // 039 = Southern Europe
 ```
-<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example1.gif"/>
+<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example1.png"/>
 
 
 #### Southern Europe and Northern Africa:
 ```js
 let result = loco.resolveLocationSet({ include: ['039','015'] });   // 015 = Northern Africa
 ```
-<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example2.gif"/>
+<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example2.png"/>
 
 
 #### Southern Europe and Northern Africa, _excluding_ Egypt and Sudan:
 ```js
 let result = loco.resolveLocationSet({ include: ['039','015'], exclude: ['eg','sd'] });
 ```
-<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example3.gif"/>
+<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example3.png"/>
 
 
 #### The Alps, _excluding_ Liechtenstein and regions around Bern and Zurich
 ```js
 let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
 ```
-<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zurich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example4.gif"/>
+<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zurich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example4.png"/>
 
 
 
