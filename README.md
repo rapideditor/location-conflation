@@ -51,11 +51,11 @@ let result = loco.resolveLocationSet({ include: ['039','015'], exclude: ['eg','s
 <img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example3.png"/>
 
 
-#### The Alps, _excluding_ Liechtenstein and regions around Bern and Zurich
+#### The Alps, _excluding_ Liechtenstein and regions around Bern and Zürich
 ```js
 let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
 ```
-<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zurich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example4.png"/>
+<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/example4.png"/>
 
 
 
