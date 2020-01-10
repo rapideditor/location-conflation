@@ -46,19 +46,31 @@ export default class {
 
   // constructor
   //
-  // Optionally pass an Object of known GeoJSON features which we can refer to later
-  // Each feature must have a filename-like id:  `something.geojson`
+  // Optionally pass a GeoJSON FeatureCollection of known features which we can refer to later.
+  // Each feature must have a filename-like `id`, for example: `something.geojson`
+  //
   // {
-  //  "philly_metro.geojson": {
-  //    "type": "Feature",
-  //    "id": "philly_metro.geojson",
-  //    "properties": {},
-  //    "geometry": { ... }
-  //  }
+  //   "type": "FeatureCollection"
+  //   "features": [
+  //     {
+  //       "type": "Feature",
+  //       "id": "philly_metro.geojson",
+  //       "properties": { … },
+  //       "geometry": { … }
+  //     }
+  //   ]
   // }
-  constructor(features) {
+  constructor(fc) {
     this._cache = {};
-    this._features = features || {};
+    this._features = {};
+
+    // process input FeatureCollection
+    if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
+      fc.features.forEach(f => {
+        if (!f.id || !/^\S+\.geojson$/i.test(f.id)) return;
+        this._features[f.id] = f;
+      });
+    }
 
     // Update CountryCoder world geometry to be a polygon covering the world.
     // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
