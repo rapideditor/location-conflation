@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/%40ideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40ideditor%2Flocation-conflation)
+
 # location-conflation
 
 🧩 Define complex geographic regions by including and excluding country codes and geojson shapes.
