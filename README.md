@@ -73,7 +73,7 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
 
 #### Prerequisites
 
-* [Node.js](https://nodejs.org/) version 8 or newer
+* [Node.js](https://nodejs.org/) version 10 or newer
 * [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
 
 
