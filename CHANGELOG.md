@@ -16,6 +16,10 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+## 0.2.0
+##### 2020-Jan-15
+* Ensure that feature results always have both `id` and `properties.id`
+
 ## 0.1.0
 ##### 2020-Jan-13
 * Initial release
