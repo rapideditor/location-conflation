@@ -20718,9 +20718,25 @@
 
 	    // process input FeatureCollection
 	    if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
-	      fc.features.forEach(f => {
-	        if (!f.id || !/^\S+\.geojson$/i.test(f.id)) return;
-	        this._features[f.id] = f;
+	      fc.features.forEach(feature => {
+	        feature.properties = feature.properties || {};
+	        let props = feature.properties;
+
+	        // get `id` from either `id` or `properties`
+	        const id = feature.id || props.id;
+	        if (!id || !/^\S+\.geojson$/i.test(id)) return;
+
+	        // ensure id
+	        feature.id = id;
+	        props.id = id;
+
+	        // ensure area property
+	        if (!props.area) {
+	          let area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
+	          props.area = Number(area.toFixed(2));
+	        }
+
+	        this._features[id] = feature;
 	      });
 	    }
 
@@ -20781,19 +20797,15 @@
 	          }, PRECISION);
 	        }
 	        return { type: 'point', feature: feature };
+
 	      } else {
 	        return null;
 	      }
 
 	     // a .geojson filename?
 	     } else if (/^\S+\.geojson$/i.test(location)) {
-	      let feature = this._features[location];
+	      const feature = this._features[location];
 	      if (feature) {
-	        feature.properties = feature.properties || {};
-	        if (!feature.properties.area) {                          // ensure area property
-	          let area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
-	          feature.properties.area = Number(area.toFixed(2));
-	        }
 	        return { type: 'geojson', feature: feature };
 	      } else {
 	        return null;
@@ -20829,8 +20841,9 @@
 	        }
 
 	        // ensure id
-	        feature$1.id = (props.iso1A2 || props.iso1N3 || props.m49 || props.M49).toString();
-	        props.id = feature$1.id;
+	        const id = (props.iso1A2 || props.iso1N3 || props.m49 || props.M49).toString();
+	        feature$1.id = id;
+	        props.id = id;
 
 	        return { type: 'countrycoder', feature: feature$1 };
 

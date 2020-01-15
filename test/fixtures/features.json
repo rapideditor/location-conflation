@@ -26,8 +26,9 @@
     },
     {
       "type": "Feature",
-      "id": "philly_metro.geojson",
-      "properties": {},
+      "properties": {
+        "id": "philly_metro.geojson"
+      },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
