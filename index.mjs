@@ -152,6 +152,7 @@ export default class {
       let feature = CountryCoder.feature(location);
       if (feature) {
         feature.properties = feature.properties || {};
+        let props = feature.properties;
 
         // -> This block of code is weird and requires some explanation. <-
         // CountryCoder includes higher level features which are made up of members.
@@ -165,14 +166,19 @@ export default class {
         //   simplifying the regional polygons a lot.
         // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
         if (!feature.geometry) {
-          let aggregate = feature.properties.members.reduce(_locationReducer.bind(this), null);
+          let aggregate = props.members.reduce(_locationReducer.bind(this), null);
           feature.geometry = aggregate.geometry;
         }
 
-        if (!feature.properties.area) {                            // ensure area property
+        // ensure area property
+        if (!props.area) {
           const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
-          feature.properties.area = Number(area.toFixed(2));
+          props.area = Number(area.toFixed(2));
         }
+
+        // ensure id
+        feature.id = (props.iso1A2 || props.iso1N3 || props.m49 || props.M49).toString();
+        props.id = feature.id;
 
         return { type: 'countrycoder', feature: feature };
 

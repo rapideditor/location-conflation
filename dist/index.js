@@ -20804,6 +20804,7 @@
 	      let feature$1 = feature(location);
 	      if (feature$1) {
 	        feature$1.properties = feature$1.properties || {};
+	        let props = feature$1.properties;
 
 	        // -> This block of code is weird and requires some explanation. <-
 	        // CountryCoder includes higher level features which are made up of members.
@@ -20817,14 +20818,19 @@
 	        //   simplifying the regional polygons a lot.
 	        // (yes, modifying the internal CountryCoder geometry is hacky, but seems safe)
 	        if (!feature$1.geometry) {
-	          let aggregate = feature$1.properties.members.reduce(_locationReducer.bind(this), null);
+	          let aggregate = props.members.reduce(_locationReducer.bind(this), null);
 	          feature$1.geometry = aggregate.geometry;
 	        }
 
-	        if (!feature$1.properties.area) {                            // ensure area property
+	        // ensure area property
+	        if (!props.area) {
 	          const area = geojsonArea.geometry(feature$1.geometry) / 1e6;  // m² to km²
-	          feature$1.properties.area = Number(area.toFixed(2));
+	          props.area = Number(area.toFixed(2));
 	        }
+
+	        // ensure id
+	        feature$1.id = (props.iso1A2 || props.iso1N3 || props.m49 || props.M49).toString();
+	        props.id = feature$1.id;
 
 	        return { type: 'countrycoder', feature: feature$1 };
 

@@ -52,6 +52,8 @@ test('locationToFeature', t => {
       t.equal(result.type, 'countrycoder');
       t.type(result.feature, 'object');
       t.type(result.feature.properties, 'object');
+      t.equal(result.feature.id, 'GB');                     // has an id
+      t.equal(result.feature.properties.id, 'GB');          // has an id property
       t.match(result.feature.properties, { area: /\d+/ });  // has a numeric area property
       t.end();
     });
