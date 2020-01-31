@@ -19,7 +19,7 @@
     "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
   },
   "dependencies": {
-    "@ideditor/country-coder": "^3.0.1",
+    "@ideditor/country-coder": "^3.1.0",
     "@mapbox/geojson-area": "^0.2.2",
     "@turf/difference": "^5.1.5",
     "@turf/union": "^5.1.5",
