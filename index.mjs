@@ -2,11 +2,32 @@ import * as CountryCoder from '@ideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
+import martinez from 'martinez-polygon-clipping';
 import precision  from 'geojson-precision';
 
-import difference  from '@turf/difference';
-import { default as union } from '@turf/union';
 
+// Wrap the Martinez clipper and return a GeoJSON feature.
+function _clip(a, b, which) {
+  const operation = { INTERSECTION: 0, UNION: 1, DIFFERENCE: 2, XOR: 3 }[which];
+  const coords = martinez(a.geometry.coordinates, b.geometry.coordinates, operation);
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: whichType(coords),
+      coordinates: coords
+    }
+  };
+
+  // is this a Polygon or a MultiPolygon?
+  function whichType(coords) {
+    const a = Array.isArray(coords);
+    const b = a && Array.isArray(coords[0]);
+    const c = b && Array.isArray(coords[0][0]);
+    const d = c && Array.isArray(coords[0][0][0]);
+    return d ? 'MultiPolygon' : 'Polygon';
+  }
+}
 
 
 // Reduce an array of locations into a single GeoJSON feature
@@ -16,7 +37,7 @@ function _locationReducer(accumulator, location) {
     console.warn(`Warning:  Couldn't resolve location "${location}"`);  // eslint-disable-line no-console
     return accumulator;
   }
-  return !accumulator ? result.feature : union(accumulator, result.feature);
+  return !accumulator ? result.feature : _clip(accumulator, result.feature, 'UNION');
 }
 
 
@@ -122,7 +143,7 @@ export default class {
   // locationToFeature
   //
   // Pass a `location` identifier
-  // Returns a GeoJSON feature
+  // Returns a GeoJSON feature wrapped in a result object
   locationToFeature(location) {
     // a [lon,lat] coordinate pair?
     if (Array.isArray(location)) {
@@ -243,7 +264,7 @@ export default class {
     let excludeGeoJSON = exclude.reduce(_locationReducer.bind(this), null);
 
     // calculate include-exclude, recalc area and return result
-    let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
+    let resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
     const area = calcArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
 
     resultGeoJSON.id = id;
