@@ -21,11 +21,11 @@
   "dependencies": {
     "@ideditor/country-coder": "^3.1.0",
     "@mapbox/geojson-area": "^0.2.2",
+    "@mapbox/geojson-rewind": "^0.4.0",
     "@turf/difference": "^5.1.5",
     "@turf/union": "^5.1.5",
     "circle-to-polygon": "^1.0.2",
     "geojson-precision": "^0.4.0",
-    "geojson-rewind": "^0.3.1",
     "json-stringify-pretty-compact": "^1.1.0"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import * as CountryCoder from '@ideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
+import rewind  from '@mapbox/geojson-rewind';
 import circleToPolygon  from 'circle-to-polygon';
 import precision  from 'geojson-precision';
 
@@ -93,7 +94,7 @@ export default class {
     let world = CountryCoder.feature('001');
     world.geometry = {
       type: 'Polygon',
-      coordinates: [[[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]]]
+      coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
     };
   }
 
@@ -180,6 +181,8 @@ export default class {
         if (!feature.geometry) {
           let aggregate = props.members.reduce(_locationReducer.bind(this), null);
           feature.geometry = aggregate.geometry;
+        } else {
+          feature = rewind(feature);  // watch out - Country Coder features inconsistently wound!
         }
 
         // ensure area property
