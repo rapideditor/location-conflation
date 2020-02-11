@@ -1,7 +1,6 @@
 import * as CountryCoder from '@ideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
-import rewind  from '@mapbox/geojson-rewind';
 import circleToPolygon  from 'circle-to-polygon';
 import precision  from 'geojson-precision';
 
@@ -12,12 +11,23 @@ import { default as union } from '@turf/union';
 
 // Reduce an array of locations into a single GeoJSON feature
 function _locationReducer(accumulator, location) {
-  let result = this.resolveLocation(location);   // eslint-disable-line no-invalid-this
-  if (!result || !result.feature) {
-    console.warn(`Warning:  Couldn't resolve location "${location}"`);  // eslint-disable-line no-console
-    return accumulator;
+  /* eslint-disable no-console, no-invalid-this */
+  let result;
+  try {
+    let resolved = this.resolveLocation(location);
+    if (!resolved || !resolved.feature) {
+      console.warn(`Warning:  Couldn't resolve location "${location}"`);
+      return accumulator;
+    }
+    result = !accumulator ? resolved.feature : union(accumulator, resolved.feature);
+  } catch (e) {
+    console.warn(`Warning:  Error resolving location "${location}"`);
+    console.warn(e);
+    result = accumulator;
   }
-  return !accumulator ? result.feature : union(accumulator, result.feature);
+
+  return result;
+  /* eslint-enable no-console, no-invalid-this */
 }
 
 
@@ -178,11 +188,10 @@ export default class {
       // SO, we'll aggregate the features ourselves by unioning them together.
       // This approach also has the benefit of removing all the internal boaders and
       //   simplifying the regional polygons a lot.
-      if (!feature.geometry) {
-        let aggregate = props.members.reduce(_locationReducer.bind(this), null);
+      if (Array.isArray(props.members)) {
+        let seed = feature.geometry ? feature : null;
+        let aggregate = props.members.reduce(_locationReducer.bind(this), seed);
         feature.geometry = aggregate.geometry;
-      } else {
-        feature = rewind(feature);  // watch out - Country Coder features inconsistently wound!
       }
 
       // ensure area property
