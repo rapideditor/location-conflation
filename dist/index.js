@@ -20796,7 +20796,7 @@
 	  //     location:  the queried location
 	  //     id:        a unique identifier
 	  //   }
-	  //  or `false` if the location is invalid
+	  //  or `null` if the location is invalid
 	  //
 	  validateLocation(location) {
 	    if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
@@ -20823,7 +20823,7 @@
 	      }
 	    }
 
-	    return false;
+	    return null;
 	  }
 
 

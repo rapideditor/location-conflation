@@ -18,14 +18,14 @@ test('validateLocation', t => {
       t.end();
     });
     t.test('an invalid [lon,lat] coordinate pair returns false', t => {
-      t.false(loco.validateLocation([]));
-      t.false(loco.validateLocation(['a']));
-      t.false(loco.validateLocation([0]));
-      t.false(loco.validateLocation([0, 0, 0]));
-      t.false(loco.validateLocation([-181, -90]));
-      t.false(loco.validateLocation([-180, 91]));
-      t.false(loco.validateLocation([181, -90]));
-      t.false(loco.validateLocation([180, 91]));
+      t.notOk(loco.validateLocation([]));
+      t.notOk(loco.validateLocation(['a']));
+      t.notOk(loco.validateLocation([0]));
+      t.notOk(loco.validateLocation([0, 0, 0]));
+      t.notOk(loco.validateLocation([-181, -90]));
+      t.notOk(loco.validateLocation([-180, 91]));
+      t.notOk(loco.validateLocation([181, -90]));
+      t.notOk(loco.validateLocation([180, 91]));
       t.end();
     });
     t.end();
@@ -43,8 +43,8 @@ test('validateLocation', t => {
       t.end();
     });
     t.test('an invalid `.geojson` identifier returns false', t => {
-      t.false(loco.validateLocation('philly_metro'));           // missing .geojson
-      t.false(loco.validateLocation('fake.geojson'));           // fake filename
+      t.notOk(loco.validateLocation('philly_metro'));           // missing .geojson
+      t.notOk(loco.validateLocation('fake.geojson'));           // fake filename
       t.end();
     });
     t.end();
@@ -62,9 +62,9 @@ test('validateLocation', t => {
       t.end();
     });
     t.test('an invalid country coder identifier returns false', t => {
-      t.false(loco.validateLocation(''));
-      t.false(loco.validateLocation('false'));
-      t.false(loco.validateLocation('null'));
+      t.notOk(loco.validateLocation(''));
+      t.notOk(loco.validateLocation('false'));
+      t.notOk(loco.validateLocation('null'));
       t.end();
     });
     t.end();
