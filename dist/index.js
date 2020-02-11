@@ -20765,7 +20765,6 @@
 	  // }
 	  constructor(fc) {
 	    this._cache = {};
-	    this._features = {};
 
 	    // process input FeatureCollection
 	    if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
@@ -20783,11 +20782,11 @@
 
 	        // ensure area property
 	        if (!props.area) {
-	          let area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
+	          const area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
 	          props.area = Number(area.toFixed(2));
 	        }
 
-	        this._features[id] = feature;
+	        this._cache[id] = feature;
 	      });
 	    }
 
@@ -20813,10 +20812,10 @@
 	      ) && 'point';
 
 	    } else if (/^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-	      return !!this._features[location] && 'geojson';
+	      return !!this._cache[location] && 'geojson';
 
 	    } else {    // a country-coder string?
-	      let ccmatch = feature(location);
+	      const ccmatch = feature(location);
 	      return !!ccmatch && 'countrycoder';
 	    }
 	  }
@@ -20855,7 +20854,7 @@
 
 	     // a .geojson filename?
 	     } else if (/^\S+\.geojson$/i.test(location)) {
-	      const feature = this._features[location];
+	      const feature = this._cache[location];
 	      if (feature) {
 	        return { type: 'geojson', feature: feature };
 	      } else {
