@@ -5,20 +5,22 @@ const features = require('./fixtures/features.json');
 const loco = new LocationConflation(features);
 
 
-test('locationToFeature', t => {
+test('resolveLocation', t => {
 
   t.test('points', t => {
     t.test('a valid [lon,lat] coordinate pair returns a feature match', t => {
-      let result = loco.locationToFeature([0, 0]);
+      const result = loco.resolveLocation([0, 0]);
       t.notEqual(result, null);
       t.equal(result.type, 'point');
       t.type(result.feature, 'object');
       t.type(result.feature.properties, 'object');
+      t.equal(result.feature.id, '[0,0]');                  // has an id
+      t.equal(result.feature.properties.id, '[0,0]');       // has an id property
       t.match(result.feature.properties, { area: /\d+/ });  // has a numeric area property
       t.end();
     });
     t.test('an invalid [lon,lat] coordinate pair returns a null match', t => {
-      let result = loco.locationToFeature([]);
+      const result = loco.resolveLocation([]);
       t.equal(result, null);
       t.end();
     });
@@ -28,7 +30,7 @@ test('locationToFeature', t => {
 
   t.test('`.geojson` filenames', t => {
     t.test('a known `.geojson` filename with id returns a feature match', t => {
-      let result = loco.locationToFeature('dc_metro.geojson');
+      const result = loco.resolveLocation('dc_metro.geojson');
       t.notEqual(result, null);
       t.equal(result.type, 'geojson');
       t.type(result.feature, 'object');
@@ -39,7 +41,7 @@ test('locationToFeature', t => {
       t.end();
     });
     t.test('a known `.geojson` filename with id property returns a feature match', t => {
-      let result = loco.locationToFeature('philly_metro.geojson');
+      const result = loco.resolveLocation('philly_metro.geojson');
       t.notEqual(result, null);
       t.equal(result.type, 'geojson');
       t.type(result.feature, 'object');
@@ -50,7 +52,7 @@ test('locationToFeature', t => {
       t.end();
     });
     t.test('an invalid `.geojson` filename returns a null match', t => {
-      let result = loco.locationToFeature('fake.geojson');
+      const result = loco.resolveLocation('fake.geojson');
       t.equal(result, null);
       t.end();
     });
@@ -60,18 +62,18 @@ test('locationToFeature', t => {
 
   t.test('country coder feature identifiers', t => {
     t.test('a valid country coder feature identifier returns a feature match', t => {
-      let result = loco.locationToFeature('gb');
+      const result = loco.resolveLocation('gb');
       t.notEqual(result, null);
       t.equal(result.type, 'countrycoder');
       t.type(result.feature, 'object');
       t.type(result.feature.properties, 'object');
-      t.equal(result.feature.id, 'GB');                     // has an id
-      t.equal(result.feature.properties.id, 'GB');          // has an id property
+      t.equal(result.feature.id, 'q145');                   // has an id
+      t.equal(result.feature.properties.id, 'q145');        // has an id property
       t.match(result.feature.properties, { area: /\d+/ });  // has a numeric area property
       t.end();
     });
     t.test('an invalid country coder feature identifier returns a null match', t => {
-      let result = loco.locationToFeature('fake');
+      const result = loco.resolveLocation('fake');
       t.equal(result, null);
       t.end();
     });
