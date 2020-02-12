@@ -1,5 +1,5 @@
 [![npm version](https://badge.fury.io/js/%40ideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40ideditor%2Flocation-conflation)
-[![Build Status](https://travis-ci.org/ideditor/location-conflation.svg?branch=master)](https://travis-ci.org/ideditor/location-conflation)
+[![Build Status](https://travis-ci.org/ideditor/location-conflation.svg?branch=master)](https://travis-ci.org/ideditor/location-conflation) [![Greenkeeper badge](https://badges.greenkeeper.io/ideditor/location-conflation.svg)](https://greenkeeper.io/)
 
 # location-conflation
 
