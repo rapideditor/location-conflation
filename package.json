@@ -34,12 +34,6 @@
     "rollup-plugin-node-resolve": "^5.0.4",
     "tap": "^14.10.0"
   },
-  "greenkeeper": {
-    "ignore": [
-      "@turf/difference",
-      "@turf/union"
-    ]
-  },
   "engines": {
     "node": ">=10"
   }
