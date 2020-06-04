@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'/>
+<title>Location Conflation</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.js'></script>
+<script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css' rel='stylesheet'/>
+<link href='style.css' rel='stylesheet' type='text/css'/>
+</head>
+
+<body>
+<div id='wrap' class='hasCols'>
+
+  <div id='side' class='hasRows'>
+
+    <div id='title' class='hasCols'>
+      <div class='icon'><i class='fas fa-puzzle-piece fa-2x'></i></div>
+      <div><h2>location-conflation</h2></div>
+    </div>
+
+    <div id='sidebar' class='hasRows'>
+
+      <div id='loco' class='section'>
+        <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/master/README.md#location-conflation' target='_blank' style="font-size: smaller; margin-left: 70px">What's this?</a></p>
+<textarea autofocus id='loco-textarea' name='loco-textarea' rows='5'>
+{
+  include: ['de', 'cz', 'pl']
+}
+</textarea>
+        <div id='button-row' class='hasCols'>
+          <div><button id='loco-view-button'>View it!</button></div>
+          <div><button id='loco-remove-button' class='invisible'>Remove</button></div>
+          <div id='loco-result-icon' class='invisible'>
+            <div id='loco-icon-good' class='hidden'><i class='fas fa-check-circle fa-2x'></i></div>
+            <div id='loco-icon-bad' class='hidden'><i class='fas fa-times-circle fa-2x'></i></div>
+          </div>
+        </div>
+        <p id='loco-result-message' class='invisible'></p>
+      </div>
+
+    </div>
+  </div>
+
+  <div id='viewer' class='hasRows'>
+
+    <div id='controls' class='hasCols'>
+      <div id='control-zoom' class='control'>
+        <label>Zoom: </label>
+        <span id='zoom-value'>1</span>
+      </div>
+      <div id='octocat'>
+        <a href='https://github.com/ideditor/imagery-index' target='_blank'>
+        <i class='fab fa-github fa-2x'></i>
+        </a>
+      </div>
+    </div>
+
+    <div id='maps'>
+      <div id='basemap'></div>
+      <div id='attribution' class='mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right'></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibWlrZWxtYXJvbiIsImEiOiJjaWZlY25lZGQ2cTJjc2trbmdiZDdjYjllIn0.Wx1n0X7aeCQyDTnK6_mrGw';
+
+var map = new mapboxgl.Map({
+  attributionControl: false,
+  container: 'basemap',
+  style: 'mapbox://styles/mapbox/dark-v10',
+  center: [0,0],
+  zoom: 1,
+  minZoom: 0,
+  maxZoom: 24,
+  minPitch: 0,
+  maxPitch: 0,
+  dragRotate: false,
+  renderWorldCopies: false
+});
+
+// ----------------------------------- STATE ------------------------------------
+var _currZoom = 1;
+var _locoReset = true;
+var _loco;
+
+
+// ----------------------------------- DOM ------------------------------------
+// select some elements to use later
+var zoomValue = document.getElementById('zoom-value');
+var controlName = document.getElementById('control-name');
+var locoTextarea = document.getElementById('loco-textarea');
+var locoViewButton = document.getElementById('loco-view-button');
+var locoRemoveButton = document.getElementById('loco-remove-button');
+var locoResultMessage = document.getElementById('loco-result-message');
+var locoResultIcon = document.getElementById('loco-result-icon');
+var locoIconGood = document.getElementById('loco-icon-good');
+var locoIconBad = document.getElementById('loco-icon-bad');
+var attribution = document.getElementById('attribution');
+
+var baseAttribution = ' <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>';
+attribution.innerHTML = baseAttribution;
+
+
+// ------------------------------------ STYLE ------------------------------------
+var LOCO_COLOR = '#f90';
+var LOCO_CLASS = 'orange';
+
+var LOCO_FILL = {
+  id: 'loco-fill-layer',
+  type: 'fill',
+  source: 'loco-source',
+  paint: {
+    'fill-color': LOCO_COLOR,
+    'fill-opacity': 0.1
+  }
+};
+var LOCO_LINE = {
+  id: 'loco-line-layer',
+  type: 'line',
+  source: 'loco-source',
+  paint: {
+    'line-blur': 1,
+    'line-width': 4,
+    'line-color': LOCO_COLOR,
+    'line-opacity': 0.9
+  }
+};
+var LOCO_POINT = {
+  id: 'loco-point-layer',
+  type: 'circle',
+  source: 'loco-source',
+  paint: {
+    'circle-radius': 2.5,
+    'circle-color': LOCO_COLOR,
+    'circle-opacity': 0.9,
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#111',
+    'circle-stroke-opacity': 0.9
+  }
+};
+
+
+// ---------------------------------- HANDLERS ------------------------------------
+
+window.addEventListener('DOMContentLoaded', function(e) {
+  // TODO: fix dist
+  // _loco = new LocationConflation();
+});
+
+// wait for map to load before adjusting it
+map.on('load', function() {
+
+  map.on('zoom', function(e) {
+    var newZoom = Math.round((e.target.transform.zoom + Number.EPSILON) * 100) / 100;
+    if (newZoom !== _currZoom) {
+      _currZoom = newZoom;
+      zoomValue.textContent = '' + newZoom;
+    }
+  });
+
+  locoViewButton.addEventListener('click', function(e) {
+    e.target.blur();
+    locoParseInput();
+  });
+
+  locoRemoveButton.addEventListener('click', function(e) {
+    e.target.blur();
+    locoRemoveData();
+    locoClearResults();
+  });
+
+  locoTextarea.addEventListener('input', locoClearResults);
+});
+
+
+// ---------------------------------- FUNCTIONS ------------------------------------
+
+//
+// Fit to shape bounds - pass a MultiPolygon coordinates array
+//
+function flyTo(multipolygon) {
+  var bounds = multipolygon.reduce(function(bounds, ring) {
+    ring[0].forEach(function(coord) {  // ring[0] is the "outer"
+      if (coord[0] > bounds[0])  bounds[0] = coord[0];
+      if (coord[1] > bounds[1])  bounds[1] = coord[1];
+      if (coord[0] < bounds[2])  bounds[2] = coord[0];
+      if (coord[1] < bounds[3])  bounds[3] = coord[1];
+    });
+    return bounds;
+  }, [-180, -90, 180, 90]);  // W,S,E,N
+
+  map.fitBounds(bounds, { padding: 50 });
+}
+
+//
+// Remove the LocationConflation data from the map..
+//
+function locoRemoveData() {
+  locoRemoveButton.className = locoRemoveButton.className.replace('visible', 'invisible');
+  if (map.getLayer('loco-fill-layer'))   map.removeLayer('loco-fill-layer');
+  if (map.getLayer('loco-line-layer'))   map.removeLayer('loco-line-layer');
+  if (map.getLayer('loco-point-layer'))  map.removeLayer('loco-point-layer');
+  if (map.getSource('loco-source'))      map.removeSource('loco-source');
+}
+
+//
+// Remove the LocationConflation results from the DOM..
+//
+function locoClearResults() {
+  if (_locoReset) return;
+  _locoReset = true;
+  locoResultIcon.className = locoResultIcon.className.replace('visible', 'invisible');
+  locoResultMessage.className = locoResultMessage.className.replace('visible', 'invisible');
+  window.setTimeout(function() {
+    locoIconGood.className = 'hidden';
+    locoIconBad.className = 'hidden';
+    locoResultMessage.innerHTML = '';
+  }, 100);
+}
+
+//
+// Parse the pasted LocationConflation data,
+// then update the map and present results..
+//
+function locoParseInput() {
+  if (locoTextarea.value === '') return;
+  _locoReset = false;
+  locoRemoveData();
+
+  // Lets go!
+  try {
+    var locationSet = JSON5.parse(locoTextarea.value);
+    if (!locationSet.include) {
+      throw 'Missing property "include".';
+    }
+
+    var feature = _loco.resolveLocationSet(locationSet);
+    var props = feature.properties || {};
+
+    // Setup the LocationConflation feature layer
+    map.addSource('loco-source', { type: 'geojson', data: feature });
+    map.addLayer(LOCO_FILL);
+    map.addLayer(LOCO_LINE);
+    map.addLayer(LOCO_POINT);
+
+    var multipolygon;
+    if (feature.geometry.type === 'Polygon') {
+      multipolygon = [ feature.geometry.coordinates ];
+    } else {   // MultiPolygon
+      multipolygon = feature.geometry.coordinates;
+    }
+
+    flyTo(multipolygon);
+
+    // Present results..
+    locoRemoveButton.className = 'visible';
+    locoIconGood.className = '';  // remove 'hidden'
+    locoResultIcon.className = 'visible ' + LOCO_CLASS;
+    locoResultMessage.className = 'visible';
+
+    var messageHTML = '<strong class="' + LOCO_CLASS + '">Valid LocationSet.</strong><br/>' +
+      '<em>id = ' + feature.id + '</em><br/>';
+
+    if (props.nameEn) {
+      messageHTML += '<span class="nameEn">' + props.nameEn + '</span>';
+    }
+    if (props.emojiFlag) {
+      messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
+    }
+    locoResultMessage.innerHTML = messageHTML;
+
+  } catch (err) {
+    locoRemoveButton.className = 'visible';
+    locoIconBad.className = '';  // remove 'hidden'
+    locoResultIcon.className = 'visible red';
+    locoResultMessage.className = 'visible';
+    locoResultMessage.innerHTML = 'Invalid LocationSet.<br/><em>' + err + '</em>';
+  }
+}
+
+</script>
+</body>
+</html>
