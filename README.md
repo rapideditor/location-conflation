@@ -30,7 +30,7 @@ The "locations" can be any of the following:
 ### Usage Examples
 ```js
 const LocationConflation = require('@ideditor/location-conflation');
-const myFeatures = require('./featurecollection.geojson');   // optional
+const myFeatures = require('./FeatureCollection.json');   // optional
 const loco = new LocationConflation(myFeatures);
 ```
 
