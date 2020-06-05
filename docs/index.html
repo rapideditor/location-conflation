@@ -25,7 +25,7 @@
     <div id='sidebar' class='hasRows'>
 
       <div id='loco' class='section'>
-        <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/master/README.md#location-conflation' target='_blank' style="font-size: smaller; margin-left: 70px">What's this?</a></p>
+        <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/master/README.md#location-conflation' target='_blank' style='font-size: smaller; margin-left: 70px'>What's this?</a></p>
 <textarea autofocus id='loco-textarea' name='loco-textarea' rows='5'>
 {
   include: ['de', 'cz', 'pl']
@@ -101,6 +101,14 @@ Oceania excluding Fiji, Tonga<br/>
         <label>Zoom: </label>
         <span id='zoom-value'>1</span>
       </div>
+      <div id='control-toggle' class='control'>
+        <div class='icon'><i class='fas fa-map fa-lg'></i></div>
+        <label id='geojson-toggle' class='switch'>
+          <input id='geojson-checkbox' type='checkbox'>
+          <span class='slider round'></span>
+        </label>
+        <div class='icon'><i class='fas fa-vector-square fa-lg'></i></div>
+      </div>
       <div id='octocat'>
         <a href='https://github.com/ideditor/location-conflation' target='_blank'>
         <i class='fab fa-github fa-2x'></i>
@@ -109,6 +117,9 @@ Oceania excluding Fiji, Tonga<br/>
     </div>
 
     <div id='maps'>
+      <div id='geojson-view' class='invisible'>
+        <textarea id='geojson-container' name='geojson-textarea' readonly>No Data</textarea>
+      </div>
       <div id='basemap'></div>
       <div id='attribution' class='mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right'></div>
     </div>
@@ -135,14 +146,18 @@ var map = new mapboxgl.Map({
 
 // ----------------------------------- STATE ------------------------------------
 var _currZoom = 1;
+var _showMap = true;
 var _locoReset = true;
 var _loco;
 
 
 // ----------------------------------- DOM ------------------------------------
 // select some elements to use later
-var zoomValue = document.getElementById('zoom-value');
-var controlName = document.getElementById('control-name');
+var attribution = document.getElementById('attribution');
+var basemap = document.getElementById('basemap');
+var geojsonView = document.getElementById('geojson-view');
+var geojsonCheckbox = document.getElementById('geojson-checkbox');
+var geojsonContainer = document.getElementById('geojson-container');
 var locoTextarea = document.getElementById('loco-textarea');
 var locoViewButton = document.getElementById('loco-view-button');
 var locoRemoveButton = document.getElementById('loco-remove-button');
@@ -150,7 +165,7 @@ var locoResultMessage = document.getElementById('loco-result-message');
 var locoResultIcon = document.getElementById('loco-result-icon');
 var locoIconGood = document.getElementById('loco-icon-good');
 var locoIconBad = document.getElementById('loco-icon-bad');
-var attribution = document.getElementById('attribution');
+var zoomValue = document.getElementById('zoom-value');
 
 var baseAttribution = ' <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>';
 attribution.innerHTML = baseAttribution;
@@ -212,6 +227,19 @@ map.on('load', function() {
     }
   });
 
+  geojsonCheckbox.addEventListener('change', function(e) {
+    _showMap = !_showMap;
+    if (_showMap) {
+      basemap.className = 'mapboxgl-map visible';
+      geojsonView.className = LOCO_CLASS + ' invisible';
+      attribution.innerHTML = baseAttribution;
+    } else {
+      basemap.className = 'mapboxgl-map obscured';
+      geojsonView.className = LOCO_CLASS + ' visible';
+      attribution.innerHTML = '';
+    }
+  });
+
   locoViewButton.addEventListener('click', function(e) {
     e.target.blur();
     locoParseInput();
@@ -251,6 +279,7 @@ function flyTo(multipolygon) {
 //
 function locoRemoveData() {
   locoRemoveButton.className = locoRemoveButton.className.replace('visible', 'invisible');
+  geojsonContainer.textContent = 'No Data';
   if (map.getLayer('loco-fill-layer'))   map.removeLayer('loco-fill-layer');
   if (map.getLayer('loco-line-layer'))   map.removeLayer('loco-line-layer');
   if (map.getLayer('loco-point-layer'))  map.removeLayer('loco-point-layer');
@@ -322,6 +351,7 @@ function locoParseInput() {
       messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
     }
     locoResultMessage.innerHTML = messageHTML;
+    geojsonContainer.textContent = JSON.stringify(feature);
 
   } catch (err) {
     locoRemoveButton.className = 'visible';
@@ -329,6 +359,7 @@ function locoParseInput() {
     locoResultIcon.className = 'visible red';
     locoResultMessage.className = 'visible';
     locoResultMessage.innerHTML = 'Invalid LocationSet.<br/><em>' + err + '</em>';
+    geojsonContainer.textContent = '';
   }
 }
 
