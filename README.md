@@ -12,6 +12,8 @@
 **Location-conflation** is a tool for generating [GeoJSON](https://geojson.org/) features by
 including and excluding other locations and shapes.
 
+⚡️ Try it now!:  https://ideditor.github.io/location-conflation/
+
 
 You can define a *location set* as an Object with `include` and `exclude` properties:
 ```js
