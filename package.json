@@ -35,7 +35,7 @@
     "@rollup/plugin-commonjs": "^11.0.1",
     "@rollup/plugin-json": "^4.0.1",
     "@rollup/plugin-node-resolve": "^7.0.0",
-    "eslint": "^6.0.0",
+    "eslint": "^7.1.0",
     "npm-run-all": "^4.0.0",
     "rollup": "^1.27.3",
     "tap": "^14.10.0"
