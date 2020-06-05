@@ -27,10 +27,49 @@ The "locations" can be any of the following:
 * Points as `[longitude, latitude]` coordinate pairs.  A 25km radius circle will be computed around the point.<br/>_Example: `[8.67039, 49.41882]`_
 
 
-### Usage Examples
+## Usage
+
+To install location-conflation as a dependency in your project:
+```bash
+$  npm install --save @ideditor/location-conflation
+```
+
+**location-conflation** is distributed in both UMD and ES6 module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
+* `index.mjs`  - ES6 module
+* `dist/index.js` - UMD module, ES6 syntax
+* `dist/index.es5.js` - UMD module, ES5 syntax
+
+Whether you require or import it, it should just work.
+
+```js
+const LocationConflation = require('@ideditor/location-conflation');    // UMD import all
+// or
+import * as LocationConflation from '@ideditor/location-conflation';    // ES6 import all
+```
+
+You can also use **location-conflation** directly in a web browser. A good way to do this is to fetch the file from the [jsDelivr CDN](https://www.jsdelivr.com/), which can even deliver minified versions.
+
+The latest versions of many web browsers now support [ES6 modules in script tags](https://caniuse.com/#feat=es6-module) like this:
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0/index.min.mjs"></script>
+```
+
+Older versions of modern ES6-capable browsers can still load the UMD build:
+```html
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0/dist/index.min.js"></script>
+```
+
+Or if you need to support even older browsers like Internet Explorer, fetch the ES5 version:
+```html
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0/dist/index.es5.min.js"></script>
+```
+
+&nbsp;
+
+### Examples
 ```js
 const LocationConflation = require('@ideditor/location-conflation');
-const myFeatures = require('./FeatureCollection.json');   // optional
+const myFeatures = require('./path/to/FeatureCollection.json');   // optional
 const loco = new LocationConflation(myFeatures);
 ```
 

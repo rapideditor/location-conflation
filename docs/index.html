@@ -7,7 +7,8 @@
 <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.js'></script>
 <script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
 <script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
-<script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.js'></script>
+<!-- <script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.es5.js'></script> -->
+<script defer src='../dist/index.es5.js'></script>
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css' rel='stylesheet'/>
 <link href='style.css' rel='stylesheet' type='text/css'/>
 </head>
@@ -40,6 +41,55 @@
           </div>
         </div>
         <p id='loco-result-message' class='invisible'></p>
+      </div>
+
+      <div id='docs' class='section'>
+        <h3>Try these!</h3>
+<p>
+Germany, Czech Republic, Poland<br/>
+<code>{ include: ['de', 'cz', 'pl'] }</code>
+</p>
+
+<p>
+Metropolitan France<br/>
+<code>{ include: ['fx'] }</code>
+</p>
+
+<p>
+Estonia, Latvia, Lithuania<br/>
+<code>{ include: ['ee', 'lv', 'lt'] }</code>
+</p>
+
+<p>
+Southern Europe<br/>
+<code>{ include: ['039'] }</code>
+</p>
+
+<p>
+Southern Europe and Northern Africa<br/>
+<code>{ include: ['039', '015'] }</code>
+</p>
+
+<p>
+The world excluding New Zealand<br/>
+<code>{ include: ['001'], exclude: ['nz'] }</code>
+</p>
+
+<p>
+Sub-Saharan Africa excluding South Africa<br/>
+<code>{ include: ['202'], exclude: ['za'] }</code>
+</p>
+
+<p>
+North and South Korea<br/>
+<code>{ include: ['kp', 'kr'] }</code>
+</p>
+
+<p>
+Oceania excluding Fiji, Tonga<br/>
+<code>{ include: ['009'], exclude: ['fj', 'to'] }</code>
+</p>
+
       </div>
 
     </div>
@@ -149,8 +199,7 @@ var LOCO_POINT = {
 // ---------------------------------- HANDLERS ------------------------------------
 
 window.addEventListener('DOMContentLoaded', function(e) {
-  // TODO: fix dist
-  // _loco = new LocationConflation();
+  _loco = new LocationConflation();
 });
 
 // wait for map to load before adjusting it
