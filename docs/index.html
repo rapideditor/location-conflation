@@ -8,6 +8,7 @@
 <script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
 <script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
 <script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.es5.js'></script>
+<!-- <script defer src='../dist/index.es5.js'></script> -->
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css' rel='stylesheet'/>
 <link href='style.css' rel='stylesheet' type='text/css'/>
 </head>
@@ -351,7 +352,7 @@ function locoParseInput() {
       messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
     }
     locoResultMessage.innerHTML = messageHTML;
-    geojsonContainer.textContent = JSON.stringify(feature);
+    geojsonContainer.textContent = _loco.stringify(feature, { maxLength: 100 });
 
   } catch (err) {
     locoRemoveButton.className = 'visible';

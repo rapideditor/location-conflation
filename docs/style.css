@@ -156,7 +156,7 @@ textarea#geojson-container {
   resize: none;
 }
 textarea#geojson-container:focus {
-  outline: 0;
+  outline: 1px solid currentColor;
 }
 
 #attribution {

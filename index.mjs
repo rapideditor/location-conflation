@@ -3,7 +3,7 @@ import * as CountryCoder from '@ideditor/country-coder';
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
 import precision  from 'geojson-precision';
-
+import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 import difference  from '@turf/difference';
 import { default as union } from '@turf/union';
 
@@ -278,4 +278,11 @@ export default class {
   cache() {
     return this._cache;
   }
+
+
+  stringify(obj, options) {
+    return prettyStringify(obj, options);
+  }
+
+
 }
