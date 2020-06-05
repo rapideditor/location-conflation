@@ -37,24 +37,24 @@ function quickselectStep(arr, k, left, right, compare) {
         var j = right;
 
         swap(arr, left, k);
-        if (compare(arr[right], t) > 0) swap(arr, left, right);
+        if (compare(arr[right], t) > 0) { swap(arr, left, right); }
 
         while (i < j) {
             swap(arr, i, j);
             i++;
             j--;
-            while (compare(arr[i], t) < 0) i++;
-            while (compare(arr[j], t) > 0) j--;
+            while (compare(arr[i], t) < 0) { i++; }
+            while (compare(arr[j], t) > 0) { j--; }
         }
 
-        if (compare(arr[left], t) === 0) swap(arr, left, j);
+        if (compare(arr[left], t) === 0) { swap(arr, left, j); }
         else {
             j++;
             swap(arr, j, right);
         }
 
-        if (j <= k) left = j + 1;
-        if (k <= j) right = j - 1;
+        if (j <= k) { left = j + 1; }
+        if (k <= j) { right = j - 1; }
     }
 }
 
@@ -79,7 +79,7 @@ var _default = rbush;
 
 
 function rbush(maxEntries, format) {
-    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
+    if (!(this instanceof rbush)) { return new rbush(maxEntries, format); }
 
     // max entries in a node is 9 by default; min node fill is 40% for best performance
     this._maxEntries = Math.max(4, maxEntries || 9);
@@ -104,7 +104,7 @@ rbush.prototype = {
             result = [],
             toBBox = this.toBBox;
 
-        if (!intersects(bbox, node)) return result;
+        if (!intersects(bbox, node)) { return result; }
 
         var nodesToSearch = [],
             i, len, child, childBBox;
@@ -116,9 +116,9 @@ rbush.prototype = {
                 childBBox = node.leaf ? toBBox(child) : child;
 
                 if (intersects(bbox, childBBox)) {
-                    if (node.leaf) result.push(child);
-                    else if (contains(bbox, childBBox)) this._all(child, result);
-                    else nodesToSearch.push(child);
+                    if (node.leaf) { result.push(child); }
+                    else if (contains(bbox, childBBox)) { this._all(child, result); }
+                    else { nodesToSearch.push(child); }
                 }
             }
             node = nodesToSearch.pop();
@@ -132,7 +132,7 @@ rbush.prototype = {
         var node = this.data,
             toBBox = this.toBBox;
 
-        if (!intersects(bbox, node)) return false;
+        if (!intersects(bbox, node)) { return false; }
 
         var nodesToSearch = [],
             i, len, child, childBBox;
@@ -144,7 +144,7 @@ rbush.prototype = {
                 childBBox = node.leaf ? toBBox(child) : child;
 
                 if (intersects(bbox, childBBox)) {
-                    if (node.leaf || contains(bbox, childBBox)) return true;
+                    if (node.leaf || contains(bbox, childBBox)) { return true; }
                     nodesToSearch.push(child);
                 }
             }
@@ -155,7 +155,7 @@ rbush.prototype = {
     },
 
     load: function (data) {
-        if (!(data && data.length)) return this;
+        if (!(data && data.length)) { return this; }
 
         if (data.length < this._minEntries) {
             for (var i = 0, len = data.length; i < len; i++) {
@@ -191,7 +191,7 @@ rbush.prototype = {
     },
 
     insert: function (item) {
-        if (item) this._insert(item, this.data.height - 1);
+        if (item) { this._insert(item, this.data.height - 1); }
         return this;
     },
 
@@ -201,7 +201,7 @@ rbush.prototype = {
     },
 
     remove: function (item, equalsFn) {
-        if (!item) return this;
+        if (!item) { return this; }
 
         var node = this.data,
             bbox = this.toBBox(item),
@@ -243,7 +243,7 @@ rbush.prototype = {
                 node = parent.children[i];
                 goingUp = false;
 
-            } else node = null; // nothing found
+            } else { node = null; } // nothing found
         }
 
         return this;
@@ -264,8 +264,8 @@ rbush.prototype = {
     _all: function (node, result) {
         var nodesToSearch = [];
         while (node) {
-            if (node.leaf) result.push.apply(result, node.children);
-            else nodesToSearch.push.apply(nodesToSearch, node.children);
+            if (node.leaf) { result.push.apply(result, node.children); }
+            else { nodesToSearch.push.apply(nodesToSearch, node.children); }
 
             node = nodesToSearch.pop();
         }
@@ -332,7 +332,7 @@ rbush.prototype = {
         while (true) {
             path.push(node);
 
-            if (node.leaf || path.length - 1 === level) break;
+            if (node.leaf || path.length - 1 === level) { break; }
 
             minArea = minEnlargement = Infinity;
 
@@ -380,7 +380,7 @@ rbush.prototype = {
             if (insertPath[level].children.length > this._maxEntries) {
                 this._split(insertPath, level);
                 level--;
-            } else break;
+            } else { break; }
         }
 
         // adjust bboxes along the insertion path
@@ -405,8 +405,8 @@ rbush.prototype = {
         calcBBox(node, this.toBBox);
         calcBBox(newNode, this.toBBox);
 
-        if (level) insertPath[level - 1].children.push(newNode);
-        else this._splitRoot(node, newNode);
+        if (level) { insertPath[level - 1].children.push(newNode); }
+        else { this._splitRoot(node, newNode); }
     },
 
     _splitRoot: function (node, newNode) {
@@ -459,7 +459,7 @@ rbush.prototype = {
 
         // if total distributions margin value is minimal for x, sort by minX,
         // otherwise it's already sorted by minY
-        if (xMargin < yMargin) node.children.sort(compareMinX);
+        if (xMargin < yMargin) { node.children.sort(compareMinX); }
     },
 
     // total margin of all possible split distributions where each node is at least m full
@@ -503,9 +503,9 @@ rbush.prototype = {
                     siblings = path[i - 1].children;
                     siblings.splice(siblings.indexOf(path[i]), 1);
 
-                } else this.clear();
+                } else { this.clear(); }
 
-            } else calcBBox(path[i], this.toBBox);
+            } else { calcBBox(path[i], this.toBBox); }
         }
     },
 
@@ -530,10 +530,10 @@ rbush.prototype = {
 };
 
 function findItem(item, items, equalsFn) {
-    if (!equalsFn) return items.indexOf(item);
+    if (!equalsFn) { return items.indexOf(item); }
 
     for (var i = 0; i < items.length; i++) {
-        if (equalsFn(item, items[i])) return i;
+        if (equalsFn(item, items[i])) { return i; }
     }
     return -1;
 }
@@ -545,7 +545,7 @@ function calcBBox(node, toBBox) {
 
 // min bounding rectangle of node children from k to p-1
 function distBBox(node, k, p, toBBox, destNode) {
-    if (!destNode) destNode = createNode(null);
+    if (!destNode) { destNode = createNode(null); }
     destNode.minX = Infinity;
     destNode.minY = Infinity;
     destNode.maxX = -Infinity;
@@ -625,7 +625,7 @@ function multiSelect(arr, left, right, n, compare) {
         right = stack.pop();
         left = stack.pop();
 
-        if (right - left <= n) continue;
+        if (right - left <= n) { continue; }
 
         mid = left + Math.ceil((right - left) / n / 2) * n;
         quickselect(arr, mid, left, right, compare);
@@ -651,7 +651,7 @@ function lineclip(points, bbox, result) {
         part = [],
         i, a, b, codeB, lastCode;
 
-    if (!result) result = [];
+    if (!result) { result = []; }
 
     for (i = 1; i < len; i++) {
         a = points[i - 1];
@@ -691,7 +691,7 @@ function lineclip(points, bbox, result) {
         codeA = lastCode;
     }
 
-    if (part.length) result.push(part);
+    if (part.length) { result.push(part); }
 
     return result;
 }
@@ -713,9 +713,9 @@ function polygonclip(points, bbox) {
             inside = !(bitCode(p, bbox) & edge);
 
             // if segment goes through the clip window, add an intersection
-            if (inside !== prevInside) result.push(intersect(prev, p, edge, bbox));
+            if (inside !== prevInside) { result.push(intersect(prev, p, edge, bbox)); }
 
-            if (inside) result.push(p); // add a point if it's inside
+            if (inside) { result.push(p); } // add a point if it's inside
 
             prev = p;
             prevInside = inside;
@@ -723,7 +723,7 @@ function polygonclip(points, bbox) {
 
         points = result;
 
-        if (!points.length) break;
+        if (!points.length) { break; }
     }
 
     return result;
@@ -749,11 +749,11 @@ function intersect(a, b, edge, bbox) {
 function bitCode(p, bbox) {
     var code = 0;
 
-    if (p[0] < bbox[0]) code |= 1; // left
-    else if (p[0] > bbox[2]) code |= 2; // right
+    if (p[0] < bbox[0]) { code |= 1; } // left
+    else if (p[0] > bbox[2]) { code |= 2; } // right
 
-    if (p[1] < bbox[1]) code |= 4; // bottom
-    else if (p[1] > bbox[3]) code |= 8; // top
+    if (p[1] < bbox[1]) { code |= 4; } // bottom
+    else if (p[1] > bbox[3]) { code |= 8; } // top
 
     return code;
 }
@@ -789,9 +789,9 @@ function whichPolygon(data) {
         for (var i = 0; i < result.length; i++) {
             if (insidePolygon(result[i].coords, p)) {
                 if (multi)
-                    output.push(result[i].props);
+                    { output.push(result[i].props); }
                 else
-                    return result[i].props;
+                    { return result[i].props; }
             }
         }
         return multi && output.length ? output : null;
@@ -822,9 +822,9 @@ function polygonIntersectsBBox(polygon, bbox) {
         (bbox[0] + bbox[2]) / 2,
         (bbox[1] + bbox[3]) / 2
     ];
-    if (insidePolygon(polygon, bboxCenter)) return true;
+    if (insidePolygon(polygon, bboxCenter)) { return true; }
     for (var i = 0; i < polygon.length; i++) {
-        if (lineclip_1(polygon[i], bbox).length > 0) return true;
+        if (lineclip_1(polygon[i], bbox).length > 0) { return true; }
     }
     return false;
 }
@@ -835,7 +835,7 @@ function insidePolygon(rings, p) {
     for (var i = 0, len = rings.length; i < len; i++) {
         var ring = rings[i];
         for (var j = 0, len2 = ring.length, k = len2 - 1; j < len2; k = j++) {
-            if (rayIntersect(p, ring[j], ring[k])) inside = !inside;
+            if (rayIntersect(p, ring[j], ring[k])) { inside = !inside; }
         }
     }
     return inside;
@@ -872,11 +872,11 @@ type: type,
 features: features
 };
 
-let borders = rawBorders;
-let whichPolygonGetter = {};
-let featuresByCode = {};
-let idFilterRegex = /\bThe\b|\bthe\b|\band\b|\bof\b|[-_ .,()&[\]/]/g;
-let levels = [
+var borders = rawBorders;
+var whichPolygonGetter = {};
+var featuresByCode = {};
+var idFilterRegex = /\bThe\b|\bthe\b|\band\b|\bof\b|[-_ .,()&[\]/]/g;
+var levels = [
   'subterritory',
   'territory',
   'country',
@@ -888,10 +888,10 @@ let levels = [
 ];
 loadDerivedDataAndCaches(borders);
 function loadDerivedDataAndCaches(borders) {
-  let identifierProps = ['iso1A2', 'iso1A3', 'm49', 'wikidata', 'emojiFlag', 'nameEn'];
-  let geometryFeatures = [];
-  for (let i in borders.features) {
-    let feature = borders.features[i];
+  var identifierProps = ['iso1A2', 'iso1A3', 'm49', 'wikidata', 'emojiFlag', 'nameEn'];
+  var geometryFeatures = [];
+  for (var i in borders.features) {
+    var feature = borders.features[i];
     feature.properties.id = feature.properties.iso1A2 || feature.properties.m49;
     loadM49(feature);
     loadIsoStatus(feature);
@@ -901,25 +901,25 @@ function loadDerivedDataAndCaches(borders) {
     loadDriveSide(feature);
     loadFlag(feature);
     cacheFeatureByIDs(feature);
-    if (feature.geometry) geometryFeatures.push(feature);
+    if (feature.geometry) { geometryFeatures.push(feature); }
   }
-  for (let i in borders.features) {
-    let feature = borders.features[i];
-    feature.properties.groups.sort(function(groupID1, groupID2) {
+  for (var i$1 in borders.features) {
+    var feature$1 = borders.features[i$1];
+    feature$1.properties.groups.sort(function(groupID1, groupID2) {
       return (
         levels.indexOf(featuresByCode[groupID1].properties.level) -
         levels.indexOf(featuresByCode[groupID2].properties.level)
       );
     });
-    loadMembersForGroupsOf(feature);
+    loadMembersForGroupsOf(feature$1);
   }
-  let geometryOnlyCollection = {
+  var geometryOnlyCollection = {
     type: 'RegionFeatureCollection',
     features: geometryFeatures
   };
   whichPolygonGetter = whichPolygon_1(geometryOnlyCollection);
   function loadGroups(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.groups) {
       props.groups = [];
     }
@@ -931,20 +931,20 @@ function loadDerivedDataAndCaches(borders) {
     }
   }
   function loadM49(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.m49 && props.iso1N3) {
       props.m49 = props.iso1N3;
     }
   }
   function loadIsoStatus(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.isoStatus && props.iso1A2) {
       props.isoStatus = 'official';
     }
   }
   function loadLevel(feature) {
-    let props = feature.properties;
-    if (props.level) return;
+    var props = feature.properties;
+    if (props.level) { return; }
     if (!props.country) {
       props.level = 'country';
     } else if (props.isoStatus === 'official') {
@@ -954,30 +954,30 @@ function loadDerivedDataAndCaches(borders) {
     }
   }
   function loadRoadSpeedUnit(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (props.roadSpeedUnit === undefined && props.iso1A2 && props.iso1A2 !== 'EU') {
       props.roadSpeedUnit = 'km/h';
     }
   }
   function loadDriveSide(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (props.driveSide === undefined && props.iso1A2 && props.iso1A2 !== 'EU') {
       props.driveSide = 'right';
     }
   }
   function loadFlag(feature) {
-    if (!feature.properties.iso1A2) return;
-    let flag = feature.properties.iso1A2.replace(/./g, function(char) {
+    if (!feature.properties.iso1A2) { return; }
+    var flag = feature.properties.iso1A2.replace(/./g, function(char) {
       return String.fromCodePoint(char.charCodeAt(0) + 127397);
     });
     feature.properties.emojiFlag = flag;
   }
   function loadMembersForGroupsOf(feature) {
-    let featureID = feature.properties.id;
-    let standardizedGroupIDs = [];
-    for (let j in feature.properties.groups) {
-      let groupID = feature.properties.groups[j];
-      let groupFeature = featuresByCode[groupID];
+    var featureID = feature.properties.id;
+    var standardizedGroupIDs = [];
+    for (var j in feature.properties.groups) {
+      var groupID = feature.properties.groups[j];
+      var groupFeature = featuresByCode[groupID];
       standardizedGroupIDs.push(groupFeature.properties.id);
       if (groupFeature.properties.members) {
         groupFeature.properties.members.push(featureID);
@@ -988,17 +988,17 @@ function loadDerivedDataAndCaches(borders) {
     feature.properties.groups = standardizedGroupIDs;
   }
   function cacheFeatureByIDs(feature) {
-    for (let k in identifierProps) {
-      let prop = identifierProps[k];
-      let id = prop && feature.properties[prop];
+    for (var k in identifierProps) {
+      var prop = identifierProps[k];
+      var id = prop && feature.properties[prop];
       if (id) {
         id = id.replace(idFilterRegex, '').toUpperCase();
         featuresByCode[id] = feature;
       }
     }
     if (feature.properties.aliases) {
-      for (let j in feature.properties.aliases) {
-        let alias = feature.properties.aliases[j].replace(idFilterRegex, '').toUpperCase();
+      for (var j in feature.properties.aliases) {
+        var alias = feature.properties.aliases[j].replace(idFilterRegex, '').toUpperCase();
         featuresByCode[alias] = feature;
       }
     }
@@ -1013,25 +1013,25 @@ function locArray(loc) {
   return loc.geometry.coordinates;
 }
 function smallestFeature(loc) {
-  let query = locArray(loc);
-  let featureProperties = whichPolygonGetter(query);
-  if (!featureProperties) return null;
+  var query = locArray(loc);
+  var featureProperties = whichPolygonGetter(query);
+  if (!featureProperties) { return null; }
   return featuresByCode[featureProperties.id];
 }
 function countryFeature(loc) {
-  let feature = smallestFeature(loc);
-  if (!feature) return null;
-  let countryCode = feature.properties.country || feature.properties.iso1A2;
+  var feature = smallestFeature(loc);
+  if (!feature) { return null; }
+  var countryCode = feature.properties.country || feature.properties.iso1A2;
   return featuresByCode[countryCode];
 }
 function featureForLoc(loc, opts) {
   if (opts && opts.level && opts.level !== 'country') {
-    let features = featuresContaining(loc);
-    let targetLevel = opts.level;
-    let targetLevelIndex = levels.indexOf(targetLevel);
-    if (targetLevelIndex === -1) return null;
-    for (let i in features) {
-      let feature = features[i];
+    var features = featuresContaining(loc);
+    var targetLevel = opts.level;
+    var targetLevelIndex = levels.indexOf(targetLevel);
+    if (targetLevelIndex === -1) { return null; }
+    for (var i in features) {
+      var feature = features[i];
       if (
         feature.properties.level === targetLevel ||
         levels.indexOf(feature.properties.level) > targetLevelIndex
@@ -1044,7 +1044,7 @@ function featureForLoc(loc, opts) {
   return countryFeature(loc);
 }
 function featureForID(id) {
-  let stringID;
+  var stringID;
   if (typeof id === 'number') {
     stringID = id.toString();
     if (stringID.length === 1) {
@@ -1070,15 +1070,15 @@ function feature(query, opts) {
   return featureForID(query);
 }
 function featuresContaining(query, strict) {
-  let feature = smallestOrMatchingFeature(query);
-  if (!feature) return [];
-  let features = [];
+  var feature = smallestOrMatchingFeature(query);
+  if (!feature) { return []; }
+  var features = [];
   if (!strict || typeof query === 'object') {
     features.push(feature);
   }
-  let properties = feature.properties;
-  for (let i in properties.groups) {
-    let groupID = properties.groups[i];
+  var properties = feature.properties;
+  for (var i in properties.groups) {
+    var groupID = properties.groups[i];
     features.push(featuresByCode[groupID]);
   }
   return features;
@@ -1213,25 +1213,26 @@ function offset(c1, distance, bearing) {
 }
 
 function validateCenter(center) {
-  const validCenterLengths = [2, 3];
+  var validCenterLengths = [2, 3];
   if (!Array.isArray(center) || !validCenterLengths.includes(center.length)) {
     throw new Error("ERROR! Center has to be an array of length two or three");
   }
-  const [lng, lat] = center;
+  var lng = center[0];
+  var lat = center[1];
   if (typeof lng !== "number" || typeof lat !== "number") {
     throw new Error(
-      `ERROR! Longitude and Latitude has to be numbers but where ${typeof lng} and ${typeof lat}`
+      ("ERROR! Longitude and Latitude has to be numbers but where " + (typeof lng) + " and " + (typeof lat))
     );
   }
   if (lng > 180 || lng < -180) {
     throw new Error(
-      `ERROR! Longitude has to be between -180 and 180 but was ${lng}`
+      ("ERROR! Longitude has to be between -180 and 180 but was " + lng)
     );
   }
 
   if (lat > 90 || lat < -90) {
     throw new Error(
-      `ERROR! Latitude has to be between -90 and 90 but was ${lat}`
+      ("ERROR! Latitude has to be between -90 and 90 but was " + lat)
     );
   }
 }
@@ -1239,13 +1240,13 @@ function validateCenter(center) {
 function validateRadius(radius) {
   if (typeof radius !== "number") {
     throw new Error(
-      `ERROR! Radius has to be a positive number but was: ${typeof radius}`
+      ("ERROR! Radius has to be a positive number but was: " + (typeof radius))
     );
   }
 
   if (radius <= 0) {
     throw new Error(
-      `ERROR! Radius has to be a positive number but was: ${radius}`
+      ("ERROR! Radius has to be a positive number but was: " + radius)
     );
   }
 }
@@ -1253,18 +1254,22 @@ function validateRadius(radius) {
 function validateNumberOfSegments(numberOfSegments) {
   if (typeof numberOfSegments !== "number" && numberOfSegments !== undefined) {
     throw new Error(
-      `ERROR! Number of segments has to be a number but was: ${typeof numberOfSegments}`
+      ("ERROR! Number of segments has to be a number but was: " + (typeof numberOfSegments))
     );
   }
 
   if (numberOfSegments < 3) {
     throw new Error(
-      `ERROR! Number of segments has to be at least 3 but was: ${numberOfSegments}`
+      ("ERROR! Number of segments has to be at least 3 but was: " + numberOfSegments)
     );
   }
 }
 
-function validateInput({ center, radius, numberOfSegments }) {
+function validateInput(ref) {
+  var center = ref.center;
+  var radius = ref.radius;
+  var numberOfSegments = ref.numberOfSegments;
+
   validateCenter(center);
   validateRadius(radius);
   validateNumberOfSegments(numberOfSegments);
@@ -1274,7 +1279,7 @@ var circleToPolygon = function circleToPolygon(center, radius, numberOfSegments)
   var n = numberOfSegments ? numberOfSegments : 32;
 
   // validateInput() throws error on invalid input and do nothing on valid input
-  validateInput({ center, radius, numberOfSegments });
+  validateInput({ center: center, radius: radius, numberOfSegments: numberOfSegments });
 
   var coordinates = [];
   for (var i = 0; i < n; ++i) {
@@ -1472,7 +1477,7 @@ var IllegalArgumentException = (function (Error) {
 		this.stack = (new Error()).stack;
 	}
 
-	if ( Error ) IllegalArgumentException.__proto__ = Error;
+	if ( Error ) { IllegalArgumentException.__proto__ = Error; }
 	IllegalArgumentException.prototype = Object.create( Error && Error.prototype );
 	IllegalArgumentException.prototype.constructor = IllegalArgumentException;
 
@@ -2602,7 +2607,7 @@ var NotRepresentableException = (function (Exception$$1) {
     Exception$$1.call(this, 'Projective point not representable on the Cartesian plane.');
   }
 
-  if ( Exception$$1 ) NotRepresentableException.__proto__ = Exception$$1;
+  if ( Exception$$1 ) { NotRepresentableException.__proto__ = Exception$$1; }
   NotRepresentableException.prototype = Object.create( Exception$$1 && Exception$$1.prototype );
   NotRepresentableException.prototype.constructor = NotRepresentableException;
   NotRepresentableException.prototype.interfaces_ = function interfaces_ () {
@@ -3553,7 +3558,7 @@ var RuntimeException = (function (Error) {
     this.stack = (new Error()).stack;
   }
 
-  if ( Error ) RuntimeException.__proto__ = Error;
+  if ( Error ) { RuntimeException.__proto__ = Error; }
   RuntimeException.prototype = Object.create( Error && Error.prototype );
   RuntimeException.prototype.constructor = RuntimeException;
 
@@ -3571,7 +3576,7 @@ var AssertionFailedException = (function (RuntimeException$$1) {
     }
   }
 
-  if ( RuntimeException$$1 ) AssertionFailedException.__proto__ = RuntimeException$$1;
+  if ( RuntimeException$$1 ) { AssertionFailedException.__proto__ = RuntimeException$$1; }
   AssertionFailedException.prototype = Object.create( RuntimeException$$1 && RuntimeException$$1.prototype );
   AssertionFailedException.prototype.constructor = AssertionFailedException;
   AssertionFailedException.prototype.interfaces_ = function interfaces_ () {
@@ -3799,7 +3804,7 @@ var RobustLineIntersector = (function (LineIntersector$$1) {
     LineIntersector$$1.apply(this, arguments);
   }
 
-  if ( LineIntersector$$1 ) RobustLineIntersector.__proto__ = LineIntersector$$1;
+  if ( LineIntersector$$1 ) { RobustLineIntersector.__proto__ = LineIntersector$$1; }
   RobustLineIntersector.prototype = Object.create( LineIntersector$$1 && LineIntersector$$1.prototype );
   RobustLineIntersector.prototype.constructor = RobustLineIntersector;
 
@@ -4898,7 +4903,7 @@ var List = (function (Collection$$1) {
     Collection$$1.apply(this, arguments);
   }
 
-  if ( Collection$$1 ) List.__proto__ = Collection$$1;
+  if ( Collection$$1 ) { List.__proto__ = Collection$$1; }
   List.prototype = Object.create( Collection$$1 && Collection$$1.prototype );
   List.prototype.constructor = List;
 
@@ -4956,7 +4961,7 @@ var ArrayList = (function (List$$1) {
     }
   }
 
-  if ( List$$1 ) ArrayList.__proto__ = List$$1;
+  if ( List$$1 ) { ArrayList.__proto__ = List$$1; }
   ArrayList.prototype = Object.create( List$$1 && List$$1.prototype );
   ArrayList.prototype.constructor = ArrayList;
 
@@ -5090,7 +5095,7 @@ var Iterator_ = (function (Iterator$$1) {
     this.position_ = 0;
   }
 
-  if ( Iterator$$1 ) Iterator_.__proto__ = Iterator$$1;
+  if ( Iterator$$1 ) { Iterator_.__proto__ = Iterator$$1; }
   Iterator_.prototype = Object.create( Iterator$$1 && Iterator$$1.prototype );
   Iterator_.prototype.constructor = Iterator_;
 
@@ -5148,7 +5153,7 @@ var CoordinateList = (function (ArrayList$$1) {
     }
   }
 
-  if ( ArrayList$$1 ) CoordinateList.__proto__ = ArrayList$$1;
+  if ( ArrayList$$1 ) { CoordinateList.__proto__ = ArrayList$$1; }
   CoordinateList.prototype = Object.create( ArrayList$$1 && ArrayList$$1.prototype );
   CoordinateList.prototype.constructor = CoordinateList;
 
@@ -5577,7 +5582,7 @@ Map$1.prototype.entrySet = function entrySet () {};
 var SortedMap = (function (Map) {
 	function SortedMap () {
 		Map.apply(this, arguments);
-	}if ( Map ) SortedMap.__proto__ = Map;
+	}if ( Map ) { SortedMap.__proto__ = Map; }
 	SortedMap.prototype = Object.create( Map && Map.prototype );
 	SortedMap.prototype.constructor = SortedMap;
 
@@ -5639,7 +5644,7 @@ var HashSet = (function (Set$$1) {
     }
   }
 
-  if ( Set$$1 ) HashSet.__proto__ = Set$$1;
+  if ( Set$$1 ) { HashSet.__proto__ = Set$$1; }
   HashSet.prototype = Object.create( Set$$1 && Set$$1.prototype );
   HashSet.prototype.constructor = HashSet;
 
@@ -5751,7 +5756,7 @@ var Iterator_$1 = (function (Iterator$$1) {
     this.position_ = 0;
   }
 
-  if ( Iterator$$1 ) Iterator_.__proto__ = Iterator$$1;
+  if ( Iterator$$1 ) { Iterator_.__proto__ = Iterator$$1; }
   Iterator_.prototype = Object.create( Iterator$$1 && Iterator$$1.prototype );
   Iterator_.prototype.constructor = Iterator_;
 
@@ -6362,7 +6367,7 @@ var GeometryCollection = (function (Geometry$$1) {
     }
   }
 
-  if ( Geometry$$1 ) GeometryCollection.__proto__ = Geometry$$1;
+  if ( Geometry$$1 ) { GeometryCollection.__proto__ = Geometry$$1; }
   GeometryCollection.prototype = Object.create( Geometry$$1 && Geometry$$1.prototype );
   GeometryCollection.prototype.constructor = GeometryCollection;
 
@@ -6601,7 +6606,7 @@ var MultiLineString = (function (GeometryCollection$$1) {
     GeometryCollection$$1.apply(this, arguments);
   }
 
-  if ( GeometryCollection$$1 ) MultiLineString.__proto__ = GeometryCollection$$1;
+  if ( GeometryCollection$$1 ) { MultiLineString.__proto__ = GeometryCollection$$1; }
   MultiLineString.prototype = Object.create( GeometryCollection$$1 && GeometryCollection$$1.prototype );
   MultiLineString.prototype.constructor = MultiLineString;
 
@@ -6984,7 +6989,7 @@ var LineString = (function (Geometry$$1) {
     this.init(points);
   }
 
-  if ( Geometry$$1 ) LineString.__proto__ = Geometry$$1;
+  if ( Geometry$$1 ) { LineString.__proto__ = Geometry$$1; }
   LineString.prototype = Object.create( Geometry$$1 && Geometry$$1.prototype );
   LineString.prototype.constructor = LineString;
 
@@ -7212,7 +7217,7 @@ var Point = (function (Geometry$$1) {
     this.init(this._coordinates);
   }
 
-  if ( Geometry$$1 ) Point.__proto__ = Geometry$$1;
+  if ( Geometry$$1 ) { Point.__proto__ = Geometry$$1; }
   Point.prototype = Object.create( Geometry$$1 && Geometry$$1.prototype );
   Point.prototype.constructor = Point;
 
@@ -7380,7 +7385,7 @@ var Polygon = (function (Geometry$$1) {
     this._holes = holes;
   }
 
-  if ( Geometry$$1 ) Polygon.__proto__ = Geometry$$1;
+  if ( Geometry$$1 ) { Polygon.__proto__ = Geometry$$1; }
   Polygon.prototype = Object.create( Geometry$$1 && Geometry$$1.prototype );
   Polygon.prototype.constructor = Polygon;
 
@@ -7668,7 +7673,7 @@ var MultiPoint = (function (GeometryCollection$$1) {
     GeometryCollection$$1.apply(this, arguments);
   }
 
-  if ( GeometryCollection$$1 ) MultiPoint.__proto__ = GeometryCollection$$1;
+  if ( GeometryCollection$$1 ) { MultiPoint.__proto__ = GeometryCollection$$1; }
   MultiPoint.prototype = Object.create( GeometryCollection$$1 && GeometryCollection$$1.prototype );
   MultiPoint.prototype.constructor = MultiPoint;
 
@@ -7739,7 +7744,7 @@ var LinearRing = (function (LineString$$1) {
     this.validateConstruction();
   }
 
-  if ( LineString$$1 ) LinearRing.__proto__ = LineString$$1;
+  if ( LineString$$1 ) { LinearRing.__proto__ = LineString$$1; }
   LinearRing.prototype = Object.create( LineString$$1 && LineString$$1.prototype );
   LinearRing.prototype.constructor = LinearRing;
 
@@ -7795,7 +7800,7 @@ var MultiPolygon = (function (GeometryCollection$$1) {
     GeometryCollection$$1.apply(this, arguments);
   }
 
-  if ( GeometryCollection$$1 ) MultiPolygon.__proto__ = GeometryCollection$$1;
+  if ( GeometryCollection$$1 ) { MultiPolygon.__proto__ = GeometryCollection$$1; }
   MultiPolygon.prototype = Object.create( GeometryCollection$$1 && GeometryCollection$$1.prototype );
   MultiPolygon.prototype.constructor = MultiPolygon;
 
@@ -8232,7 +8237,7 @@ var HashMap = (function (MapInterface) {
     this.map_ = new Map();
   }
 
-  if ( MapInterface ) HashMap.__proto__ = MapInterface;
+  if ( MapInterface ) { HashMap.__proto__ = MapInterface; }
   HashMap.prototype = Object.create( MapInterface && MapInterface.prototype );
   HashMap.prototype.constructor = HashMap;
   /**
@@ -9484,7 +9489,7 @@ var TopologyException = (function (RuntimeException$$1) {
     this.name = 'TopologyException';
   }
 
-  if ( RuntimeException$$1 ) TopologyException.__proto__ = RuntimeException$$1;
+  if ( RuntimeException$$1 ) { TopologyException.__proto__ = RuntimeException$$1; }
   TopologyException.prototype = Object.create( RuntimeException$$1 && RuntimeException$$1.prototype );
   TopologyException.prototype.constructor = TopologyException;
   TopologyException.prototype.getCoordinate = function getCoordinate () {
@@ -10117,7 +10122,7 @@ var MinimalEdgeRing = (function (EdgeRing$$1) {
     EdgeRing$$1.call(this, start, geometryFactory);
   }
 
-  if ( EdgeRing$$1 ) MinimalEdgeRing.__proto__ = EdgeRing$$1;
+  if ( EdgeRing$$1 ) { MinimalEdgeRing.__proto__ = EdgeRing$$1; }
   MinimalEdgeRing.prototype = Object.create( EdgeRing$$1 && EdgeRing$$1.prototype );
   MinimalEdgeRing.prototype.constructor = MinimalEdgeRing;
   MinimalEdgeRing.prototype.setEdgeRing = function setEdgeRing (de, er) {
@@ -10143,7 +10148,7 @@ var MaximalEdgeRing = (function (EdgeRing$$1) {
     EdgeRing$$1.call(this, start, geometryFactory);
   }
 
-  if ( EdgeRing$$1 ) MaximalEdgeRing.__proto__ = EdgeRing$$1;
+  if ( EdgeRing$$1 ) { MaximalEdgeRing.__proto__ = EdgeRing$$1; }
   MaximalEdgeRing.prototype = Object.create( EdgeRing$$1 && EdgeRing$$1.prototype );
   MaximalEdgeRing.prototype.constructor = MaximalEdgeRing;
   MaximalEdgeRing.prototype.buildMinimalRings = function buildMinimalRings () {
@@ -10248,7 +10253,7 @@ var Node = (function (GraphComponent$$1) {
     this._label = new Label(0, Location.NONE);
   }
 
-  if ( GraphComponent$$1 ) Node.__proto__ = GraphComponent$$1;
+  if ( GraphComponent$$1 ) { Node.__proto__ = GraphComponent$$1; }
   Node.prototype = Object.create( GraphComponent$$1 && GraphComponent$$1.prototype );
   Node.prototype.constructor = Node;
   Node.prototype.isIncidentEdgeInResult = function isIncidentEdgeInResult () {
@@ -10580,7 +10585,7 @@ var DirectedEdge = (function (EdgeEnd$$1) {
     this.computeDirectedLabel();
   }
 
-  if ( EdgeEnd$$1 ) DirectedEdge.__proto__ = EdgeEnd$$1;
+  if ( EdgeEnd$$1 ) { DirectedEdge.__proto__ = EdgeEnd$$1; }
   DirectedEdge.prototype = Object.create( EdgeEnd$$1 && EdgeEnd$$1.prototype );
   DirectedEdge.prototype.constructor = DirectedEdge;
   DirectedEdge.prototype.getNextMin = function getNextMin () {
@@ -11596,7 +11601,7 @@ var STRtree = (function (AbstractSTRtree$$1) {
     AbstractSTRtree$$1.call(this, nodeCapacity);
   }
 
-  if ( AbstractSTRtree$$1 ) STRtree.__proto__ = AbstractSTRtree$$1;
+  if ( AbstractSTRtree$$1 ) { STRtree.__proto__ = AbstractSTRtree$$1; }
   STRtree.prototype = Object.create( AbstractSTRtree$$1 && AbstractSTRtree$$1.prototype );
   STRtree.prototype.constructor = STRtree;
 
@@ -11800,7 +11805,7 @@ var STRtreeNode = (function (AbstractNode$$1) {
     AbstractNode$$1.call(this, level);
   }
 
-  if ( AbstractNode$$1 ) STRtreeNode.__proto__ = AbstractNode$$1;
+  if ( AbstractNode$$1 ) { STRtreeNode.__proto__ = AbstractNode$$1; }
   STRtreeNode.prototype = Object.create( AbstractNode$$1 && AbstractNode$$1.prototype );
   STRtreeNode.prototype.constructor = STRtreeNode;
   STRtreeNode.prototype.computeBounds = function computeBounds () {
@@ -12792,7 +12797,7 @@ var MCIndexNoder = (function (SinglePassNoder$$1) {
     this._nOverlaps = 0;
   }
 
-  if ( SinglePassNoder$$1 ) MCIndexNoder.__proto__ = SinglePassNoder$$1;
+  if ( SinglePassNoder$$1 ) { MCIndexNoder.__proto__ = SinglePassNoder$$1; }
   MCIndexNoder.prototype = Object.create( SinglePassNoder$$1 && SinglePassNoder$$1.prototype );
   MCIndexNoder.prototype.constructor = MCIndexNoder;
 
@@ -12864,7 +12869,7 @@ var SegmentOverlapAction = (function (MonotoneChainOverlapAction$$1) {
     this._si = si;
   }
 
-  if ( MonotoneChainOverlapAction$$1 ) SegmentOverlapAction.__proto__ = MonotoneChainOverlapAction$$1;
+  if ( MonotoneChainOverlapAction$$1 ) { SegmentOverlapAction.__proto__ = MonotoneChainOverlapAction$$1; }
   SegmentOverlapAction.prototype = Object.create( MonotoneChainOverlapAction$$1 && MonotoneChainOverlapAction$$1.prototype );
   SegmentOverlapAction.prototype.constructor = SegmentOverlapAction;
   SegmentOverlapAction.prototype.overlap = function overlap () {
@@ -14358,7 +14363,7 @@ var DirectedEdgeStar = (function (EdgeEndStar$$1) {
     this._LINKING_TO_OUTGOING = 2;
   }
 
-  if ( EdgeEndStar$$1 ) DirectedEdgeStar.__proto__ = EdgeEndStar$$1;
+  if ( EdgeEndStar$$1 ) { DirectedEdgeStar.__proto__ = EdgeEndStar$$1; }
   DirectedEdgeStar.prototype = Object.create( EdgeEndStar$$1 && EdgeEndStar$$1.prototype );
   DirectedEdgeStar.prototype.constructor = DirectedEdgeStar;
   DirectedEdgeStar.prototype.linkResultDirectedEdges = function linkResultDirectedEdges () {
@@ -14600,7 +14605,7 @@ var OverlayNodeFactory = (function (NodeFactory$$1) {
     NodeFactory$$1.apply(this, arguments);
   }
 
-  if ( NodeFactory$$1 ) OverlayNodeFactory.__proto__ = NodeFactory$$1;
+  if ( NodeFactory$$1 ) { OverlayNodeFactory.__proto__ = NodeFactory$$1; }
   OverlayNodeFactory.prototype = Object.create( NodeFactory$$1 && NodeFactory$$1.prototype );
   OverlayNodeFactory.prototype.constructor = OverlayNodeFactory;
 
@@ -15188,7 +15193,7 @@ var Edge = (function (GraphComponent$$1) {
     }
   }
 
-  if ( GraphComponent$$1 ) Edge.__proto__ = GraphComponent$$1;
+  if ( GraphComponent$$1 ) { Edge.__proto__ = GraphComponent$$1; }
   Edge.prototype = Object.create( GraphComponent$$1 && GraphComponent$$1.prototype );
   Edge.prototype.constructor = Edge;
   Edge.prototype.getDepth = function getDepth () {
@@ -15902,7 +15907,7 @@ var HotPixelSnapAction = (function (MonotoneChainSelectAction$$1) {
     this._hotPixelVertexIndex = hotPixelVertexIndex;
   }
 
-  if ( MonotoneChainSelectAction$$1 ) HotPixelSnapAction.__proto__ = MonotoneChainSelectAction$$1;
+  if ( MonotoneChainSelectAction$$1 ) { HotPixelSnapAction.__proto__ = MonotoneChainSelectAction$$1; }
   HotPixelSnapAction.prototype = Object.create( MonotoneChainSelectAction$$1 && MonotoneChainSelectAction$$1.prototype );
   HotPixelSnapAction.prototype.constructor = HotPixelSnapAction;
   HotPixelSnapAction.prototype.isNodeAdded = function isNodeAdded () {
@@ -18111,7 +18116,7 @@ var SnapTransformer = (function (GeometryTransformer$$1) {
     this._isSelfSnap = (isSelfSnap !== undefined) ? isSelfSnap : false;
   }
 
-  if ( GeometryTransformer$$1 ) SnapTransformer.__proto__ = GeometryTransformer$$1;
+  if ( GeometryTransformer$$1 ) { SnapTransformer.__proto__ = GeometryTransformer$$1; }
   SnapTransformer.prototype = Object.create( GeometryTransformer$$1 && GeometryTransformer$$1.prototype );
   SnapTransformer.prototype.constructor = SnapTransformer;
   SnapTransformer.prototype.snapLine = function snapLine (srcPts, snapPts) {
@@ -18367,10 +18372,10 @@ SnapIfNeededOverlayOp.prototype.getResultGeometry = function getResultGeometry (
   if (!isSuccess) {
     try {
       result = SnapOverlayOp.overlayOp(this._geom[0], this._geom[1], opCode);
-    } catch (ex) {
-      if (ex instanceof RuntimeException) {
+    } catch (ex$1) {
+      if (ex$1 instanceof RuntimeException) {
         throw savedException
-      } else { throw ex }
+      } else { throw ex$1 }
     } finally {}
   }
   return result
@@ -18612,7 +18617,7 @@ var SimpleMCSweepLineIntersector = (function (EdgeSetIntersector$$1) {
     this.nOverlaps = null;
   }
 
-  if ( EdgeSetIntersector$$1 ) SimpleMCSweepLineIntersector.__proto__ = EdgeSetIntersector$$1;
+  if ( EdgeSetIntersector$$1 ) { SimpleMCSweepLineIntersector.__proto__ = EdgeSetIntersector$$1; }
   SimpleMCSweepLineIntersector.prototype = Object.create( EdgeSetIntersector$$1 && EdgeSetIntersector$$1.prototype );
   SimpleMCSweepLineIntersector.prototype.constructor = SimpleMCSweepLineIntersector;
   SimpleMCSweepLineIntersector.prototype.prepareEvents = function prepareEvents () {
@@ -18773,7 +18778,7 @@ var IntervalRTreeLeafNode = (function (IntervalRTreeNode$$1) {
     this._item = item;
   }
 
-  if ( IntervalRTreeNode$$1 ) IntervalRTreeLeafNode.__proto__ = IntervalRTreeNode$$1;
+  if ( IntervalRTreeNode$$1 ) { IntervalRTreeLeafNode.__proto__ = IntervalRTreeNode$$1; }
   IntervalRTreeLeafNode.prototype = Object.create( IntervalRTreeNode$$1 && IntervalRTreeNode$$1.prototype );
   IntervalRTreeLeafNode.prototype.constructor = IntervalRTreeLeafNode;
   IntervalRTreeLeafNode.prototype.query = function query (queryMin, queryMax, visitor) {
@@ -18802,7 +18807,7 @@ var IntervalRTreeBranchNode = (function (IntervalRTreeNode$$1) {
     this.buildExtent(this._node1, this._node2);
   }
 
-  if ( IntervalRTreeNode$$1 ) IntervalRTreeBranchNode.__proto__ = IntervalRTreeNode$$1;
+  if ( IntervalRTreeNode$$1 ) { IntervalRTreeBranchNode.__proto__ = IntervalRTreeNode$$1; }
   IntervalRTreeBranchNode.prototype = Object.create( IntervalRTreeNode$$1 && IntervalRTreeNode$$1.prototype );
   IntervalRTreeBranchNode.prototype.constructor = IntervalRTreeBranchNode;
   IntervalRTreeBranchNode.prototype.buildExtent = function buildExtent (n1, n2) {
@@ -19025,7 +19030,7 @@ var GeometryGraph = (function (PlanarGraph$$1) {
     }
   }
 
-  if ( PlanarGraph$$1 ) GeometryGraph.__proto__ = PlanarGraph$$1;
+  if ( PlanarGraph$$1 ) { GeometryGraph.__proto__ = PlanarGraph$$1; }
   GeometryGraph.prototype = Object.create( PlanarGraph$$1 && PlanarGraph$$1.prototype );
   GeometryGraph.prototype.constructor = GeometryGraph;
   GeometryGraph.prototype.insertBoundaryPoint = function insertBoundaryPoint (argIndex, coord) {
@@ -19323,7 +19328,7 @@ var OverlayOp = (function (GeometryGraphOp) {
     this._geomFact = g0.getFactory();
   }
 
-  if ( GeometryGraphOp ) OverlayOp.__proto__ = GeometryGraphOp;
+  if ( GeometryGraphOp ) { OverlayOp.__proto__ = GeometryGraphOp; }
   OverlayOp.prototype = Object.create( GeometryGraphOp && GeometryGraphOp.prototype );
   OverlayOp.prototype.constructor = OverlayOp;
   OverlayOp.prototype.insertUniqueEdge = function insertUniqueEdge (e) {
@@ -20125,20 +20130,20 @@ UnionOp.union = function union (g, other) {
 function feature$1(geometry, properties, options) {
     // Optional Parameters
     options = options || {};
-    if (!isObject(options)) throw new Error('options is invalid');
+    if (!isObject(options)) { throw new Error('options is invalid'); }
     var bbox = options.bbox;
     var id = options.id;
 
     // Validation
-    if (geometry === undefined) throw new Error('geometry is required');
-    if (properties && properties.constructor !== Object) throw new Error('properties must be an Object');
-    if (bbox) validateBBox(bbox);
-    if (id) validateId(id);
+    if (geometry === undefined) { throw new Error('geometry is required'); }
+    if (properties && properties.constructor !== Object) { throw new Error('properties must be an Object'); }
+    if (bbox) { validateBBox(bbox); }
+    if (id) { validateId(id); }
 
     // Main
     var feat = {type: 'Feature'};
-    if (id) feat.id = id;
-    if (bbox) feat.bbox = bbox;
+    if (id) { feat.id = id; }
+    if (bbox) { feat.bbox = bbox; }
     feat.properties = properties || {};
     feat.geometry = geometry;
     return feat;
@@ -20196,11 +20201,11 @@ function isObject(input) {
  * //=Error
  */
 function validateBBox(bbox) {
-    if (!bbox) throw new Error('bbox is required');
-    if (!Array.isArray(bbox)) throw new Error('bbox must be an Array');
-    if (bbox.length !== 4 && bbox.length !== 6) throw new Error('bbox must be an Array of 4 or 6 numbers');
+    if (!bbox) { throw new Error('bbox is required'); }
+    if (!Array.isArray(bbox)) { throw new Error('bbox must be an Array'); }
+    if (bbox.length !== 4 && bbox.length !== 6) { throw new Error('bbox must be an Array of 4 or 6 numbers'); }
     bbox.forEach(function (num) {
-        if (!isNumber(num)) throw new Error('bbox must only contain numbers');
+        if (!isNumber(num)) { throw new Error('bbox must only contain numbers'); }
     });
 }
 
@@ -20226,8 +20231,8 @@ function validateBBox(bbox) {
  * //=Error
  */
 function validateId(id) {
-    if (!id) throw new Error('id is required');
-    if (['string', 'number'].indexOf(typeof id) === -1) throw new Error('id must be a number or a string');
+    if (!id) { throw new Error('id is required'); }
+    if (['string', 'number'].indexOf(typeof id) === -1) { throw new Error('id must be a number or a string'); }
 }
 
 /**
@@ -20305,7 +20310,7 @@ function geomEach(geojson, callback) {
 
             // Handle null Geometry
             if (geometry === null) {
-                if (callback(null, featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+                if (callback(null, featureIndex, featureProperties, featureBBox, featureId) === false) { return false; }
                 continue;
             }
             switch (geometry.type) {
@@ -20315,12 +20320,12 @@ function geomEach(geojson, callback) {
             case 'Polygon':
             case 'MultiLineString':
             case 'MultiPolygon': {
-                if (callback(geometry, featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+                if (callback(geometry, featureIndex, featureProperties, featureBBox, featureId) === false) { return false; }
                 break;
             }
             case 'GeometryCollection': {
                 for (j = 0; j < geometry.geometries.length; j++) {
-                    if (callback(geometry.geometries[j], featureIndex, featureProperties, featureBBox, featureId) === false) return false;
+                    if (callback(geometry.geometries[j], featureIndex, featureProperties, featureBBox, featureId) === false) { return false; }
                 }
                 break;
             }
@@ -20384,8 +20389,8 @@ function geomEach(geojson, callback) {
 function geomReduce(geojson, callback, initialValue) {
     var previousValue = initialValue;
     geomEach(geojson, function (currentGeometry, featureIndex, featureProperties, featureBBox, featureId) {
-        if (featureIndex === 0 && initialValue === undefined) previousValue = currentGeometry;
-        else previousValue = callback(previousValue, currentGeometry, featureIndex, featureProperties, featureBBox, featureId);
+        if (featureIndex === 0 && initialValue === undefined) { previousValue = currentGeometry; }
+        else { previousValue = callback(previousValue, currentGeometry, featureIndex, featureProperties, featureBBox, featureId); }
     });
     return previousValue;
 }
@@ -20427,7 +20432,7 @@ function flattenEach(geojson, callback) {
         case 'Point':
         case 'LineString':
         case 'Polygon':
-            if (callback(feature$1(geometry, properties, {bbox: bbox, id: id}), featureIndex, 0) === false) return false;
+            if (callback(feature$1(geometry, properties, {bbox: bbox, id: id}), featureIndex, 0) === false) { return false; }
             return;
         }
 
@@ -20452,7 +20457,7 @@ function flattenEach(geojson, callback) {
                 type: geomType,
                 coordinates: coordinate
             };
-            if (callback(feature$1(geom, properties), featureIndex, multiFeatureIndex) === false) return false;
+            if (callback(feature$1(geom, properties), featureIndex, multiFeatureIndex) === false) { return false; }
         }
     });
 }
@@ -20597,9 +20602,9 @@ function rad$1(_) {
  * //={"type": "Point", "coordinates": [110, 40]}
  */
 function getGeom(geojson) {
-    if (!geojson) throw new Error('geojson is required');
-    if (geojson.geometry !== undefined) return geojson.geometry;
-    if (geojson.coordinates || geojson.geometries) return geojson;
+    if (!geojson) { throw new Error('geojson is required'); }
+    if (geojson.geometry !== undefined) { return geojson.geometry; }
+    if (geojson.coordinates || geojson.geometries) { return geojson; }
     throw new Error('geojson must be a valid Feature or Geometry Object');
 }
 
@@ -20645,15 +20650,15 @@ function difference(polygon1, polygon2) {
     // Issue #721 - JSTS can't handle empty polygons
     geom1 = removeEmptyPolygon(geom1);
     geom2 = removeEmptyPolygon(geom2);
-    if (!geom1) return null;
-    if (!geom2) return feature$1(geom1, properties);
+    if (!geom1) { return null; }
+    if (!geom2) { return feature$1(geom1, properties); }
 
     // JSTS difference operation
     var reader = new GeoJSONReader();
     var a = reader.read(geom1);
     var b = reader.read(geom2);
     var differenced = OverlayOp.difference(a, b);
-    if (differenced.isEmpty()) return null;
+    if (differenced.isEmpty()) { return null; }
     var writer = new GeoJSONWriter();
     var geom = writer.write(differenced);
 
@@ -20670,14 +20675,14 @@ function difference(polygon1, polygon2) {
 function removeEmptyPolygon(geom) {
     switch (geom.type) {
     case 'Polygon':
-        if (area(geom) > 1) return geom;
+        if (area(geom) > 1) { return geom; }
         return null;
     case 'MultiPolygon':
         var coordinates = [];
         flattenEach(geom, function (feature$$1) {
-            if (area(feature$$1) > 1) coordinates.push(feature$$1.geometry.coordinates);
+            if (area(feature$$1) > 1) { coordinates.push(feature$$1.geometry.coordinates); }
         });
-        if (coordinates.length) return {type: 'MultiPolygon', coordinates: coordinates};
+        if (coordinates.length) { return {type: 'MultiPolygon', coordinates: coordinates}; }
     }
 }
 
@@ -20709,11 +20714,13 @@ function removeEmptyPolygon(geom) {
  * var addToMap = [poly1, poly2, union];
  */
 function union() {
+    var arguments$1 = arguments;
+
     var reader = new GeoJSONReader();
     var result = reader.read(JSON.stringify(arguments[0].geometry));
 
     for (var i = 1; i < arguments.length; i++) {
-        result = UnionOp.union(result, reader.read(JSON.stringify(arguments[i].geometry)));
+        result = UnionOp.union(result, reader.read(JSON.stringify(arguments$1[i].geometry)));
     }
 
     var writer = new GeoJSONWriter();
@@ -20729,16 +20736,16 @@ function union() {
 // Reduce an array of locations into a single GeoJSON feature
 function _locationReducer(accumulator, location) {
   /* eslint-disable no-console, no-invalid-this */
-  let result;
+  var result;
   try {
-    let resolved = this.resolveLocation(location);
+    var resolved = this.resolveLocation(location);
     if (!resolved || !resolved.feature) {
-      console.warn(`Warning:  Couldn't resolve location "${location}"`);
+      console.warn(("Warning:  Couldn't resolve location \"" + location + "\""));
       return accumulator;
     }
     result = !accumulator ? resolved.feature : union(accumulator, resolved.feature);
   } catch (e) {
-    console.warn(`Warning:  Error resolving location "${location}"`);
+    console.warn(("Warning:  Error resolving location \"" + location + "\""));
     console.warn(e);
     result = accumulator;
   }
@@ -20754,245 +20761,228 @@ function _cloneDeep(obj) {
 }
 
 
-class index {
+var defaultExport = function defaultExport(fc) {
+  var this$1 = this;
 
-  // constructor
-  //
-  // Optionally pass a GeoJSON FeatureCollection of known features which we can refer to later.
-  // Each feature must have a filename-like `id`, for example: `something.geojson`
-  //
-  // {
-  //   "type": "FeatureCollection"
-  //   "features": [
-  //     {
-  //       "type": "Feature",
-  //       "id": "philly_metro.geojson",
-  //       "properties": { … },
-  //       "geometry": { … }
-  //     }
-  //   ]
-  // }
-  constructor(fc) {
-    this._cache = {};
+  this._cache = {};
 
-    // process input FeatureCollection
-    if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
-      fc.features.forEach(feature => {
-        feature.properties = feature.properties || {};
-        let props = feature.properties;
+  // process input FeatureCollection
+  if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
+    fc.features.forEach(function (feature) {
+      feature.properties = feature.properties || {};
+      var props = feature.properties;
 
-        // get `id` from either `id` or `properties`
-        let id = feature.id || props.id;
-        if (!id || !/^\S+\.geojson$/i.test(id)) return;
+      // get `id` from either `id` or `properties`
+      var id = feature.id || props.id;
+      if (!id || !/^\S+\.geojson$/i.test(id)) { return; }
 
-        // ensure id exists and is lowercase
-        id = id.toLowerCase();
-        feature.id = id;
-        props.id = id;
-
-        // ensure area property exists
-        if (!props.area) {
-          const area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
-          props.area = Number(area.toFixed(2));
-        }
-
-        this._cache[id] = feature;
-      });
-    }
-
-    // Replace CountryCoder world geometry to have a polygon covering the world.
-    let world = _cloneDeep(feature('Q2'));
-    world.geometry = {
-      type: 'Polygon',
-      coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
-    };
-    world.id = 'Q2';
-    world.properties.id = 'Q2';
-    world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;  // m² to km²
-    this._cache.Q2 = world;
-  }
-
-
-  // validateLocation
-  //
-  // Pass a `location` identifier
-  // Returns a result like
-  //   {
-  //     type:     'point', 'geojson', or 'countrycoder'
-  //     location:  the queried location
-  //     id:        a unique identifier
-  //   }
-  //  or `null` if the location is invalid
-  //
-  validateLocation(location) {
-    if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
-      if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-        location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
-      ) {
-        const id = '[' + location.toString() + ']';
-        return { type: 'point', location: location, id: id };
-      }
-
-    } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-      const id = location.toLowerCase();
-      if (this._cache[id]) {
-        return { type: 'geojson', location: location, id: id };
-      }
-
-    } else if (typeof location === 'string' || typeof location === 'number') {   // a country-coder value?
-      const feature$1 = feature(location);
-      if (feature$1) {
-        // Use wikidata QID as the identifier, since that seems to be the only
-        // property that everything in CountryCoder is guaranteed to have.
-        const id = feature$1.properties.wikidata;
-        return { type: 'countrycoder', location: location, id: id };
-      }
-    }
-
-    return null;
-  }
-
-
-  // resolveLocation
-  //
-  // Pass a `location` identifier
-  // Returns a result like
-  //   {
-  //     type:      'point', 'geojson', or 'countrycoder'
-  //     location:  the queried location
-  //     id:        a unique identifier
-  //     feature:   the geojson feature
-  //   }
-  //  or `null` if the location is invalid
-  //
-  resolveLocation(location) {
-    const valid = this.validateLocation(location);
-    if (!valid) return null;
-
-    // return a result from cache if we can
-    if (this._cache[valid.id]) {
-      return Object.assign(valid, { feature: this._cache[valid.id] });
-    }
-
-    // a [lon,lat] coordinate pair?
-    if (valid.type === 'point') {
-      const RADIUS = 25000;  // meters
-      const EDGES = 10;
-      const PRECISION = 3;
-      const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
-      const feature = this._cache[valid.id] = geojsonPrecision({
-        type: 'Feature',
-        id: valid.id,
-        properties: { id: valid.id, area: Number(area.toFixed(2)) },
-        geometry: circleToPolygon(location, RADIUS, EDGES)
-      }, PRECISION);
-      return Object.assign(valid, { feature: feature });
-
-    // a .geojson filename?
-    } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
-      let feature$1 = _cloneDeep(feature(valid.id));
-      let props = feature$1.properties;
-
-      // -> This block of code is weird and requires some explanation. <-
-      // CountryCoder includes higher level features which are made up of members.
-      // These features don't have their own geometry, but CountryCoder provides an
-      //   `aggregateFeature` method to combine these members into a MultiPolygon.
-      // BUT, when we try to actually work with these aggregated MultiPolygons,
-      //   Turf/JSTS gets crashy because of topography bugs.
-      // SO, we'll aggregate the features ourselves by unioning them together.
-      // This approach also has the benefit of removing all the internal boaders and
-      //   simplifying the regional polygons a lot.
-      if (Array.isArray(props.members)) {
-        let seed = feature$1.geometry ? feature$1 : null;
-        let aggregate = props.members.reduce(_locationReducer.bind(this), seed);
-        feature$1.geometry = aggregate.geometry;
-      }
+      // ensure id exists and is lowercase
+      id = id.toLowerCase();
+      feature.id = id;
+      props.id = id;
 
       // ensure area property exists
       if (!props.area) {
-        const area = geojsonArea.geometry(feature$1.geometry) / 1e6;  // m² to km²
+        var area = geojsonArea.geometry(feature.geometry) / 1e6;// m² to km²
         props.area = Number(area.toFixed(2));
       }
 
-      // ensure id property exists
-      feature$1.id = valid.id;
-      props.id = valid.id;
-
-      this._cache[valid.id] = feature$1;
-      return Object.assign(valid, { feature: feature$1 });
-    }
-
-    return null;
+      this$1._cache[id] = feature;
+    });
   }
 
+  // Replace CountryCoder world geometry to have a polygon covering the world.
+  var world = _cloneDeep(feature('Q2'));
+  world.geometry = {
+    type: 'Polygon',
+    coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
+  };
+  world.id = 'Q2';
+  world.properties.id = 'Q2';
+  world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;// m² to km²
+  this._cache.Q2 = world;
+};
 
-  // resolveLocationSet
-  //
-  // Pass a `locationSet` Object like:
-  //   `{ include: [ Array ], exclude: [ Array ] }`
-  // Returns a stable identifier string of the form:
-  //   "+[included]-[excluded]"
-  //
-  resolveLocationSet(locationSet) {
-    locationSet = locationSet || {};
-    const resolve = this.resolveLocation.bind(this);
-    let include = (locationSet.include || []).map(resolve).filter(Boolean);
-    let exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
 
-    if (!include.length) {
-      include = [resolve('Q2')];   // default to 'the world'
+// validateLocation
+//
+// Pass a `location` identifier
+// Returns a result like
+// {
+//   type:   'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      a unique identifier
+// }
+//or `null` if the location is invalid
+//
+defaultExport.prototype.validateLocation = function validateLocation (location) {
+  if (Array.isArray(location)) { // a [lon,lat] coordinate pair?
+    if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
+      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+    ) {
+      var id = '[' + location.toString() + ']';
+      return { type: 'point', location: location, id: id };
     }
 
-    // return quickly if it's a single included location..
-    if (include.length === 1 && exclude.length === 0) {
-      return include[0].feature;
+  } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) { // a .geojson filename?
+    var id$1 = location.toLowerCase();
+    if (this._cache[id$1]) {
+      return { type: 'geojson', location: location, id: id$1 };
     }
 
-    // generate stable identifier
-    include.sort(sortFeatures);
-    let id = '+[' + include.map(d => d.id).join(',') + ']';
-    if (exclude.length) {
-      exclude.sort(sortFeatures);
-      id += '-[' + exclude.map(d => d.id).join(',') + ']';
-    }
-
-    // return cached?
-    if (this._cache[id]) {
-      return this._cache[id];
-    }
-
-    // calculate unions
-    let includeGeoJSON = include.map(d => d.location).reduce(_locationReducer.bind(this), null);
-    let excludeGeoJSON = exclude.map(d => d.location).reduce(_locationReducer.bind(this), null);
-
-    // calculate difference, update area and return result
-    let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
-    const area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
-    resultGeoJSON.id = id;
-    resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
-
-    return this._cache[id] = resultGeoJSON;
-
-
-    // Sorting the location lists is ok because they end up unioned together.
-    // This sorting makes it possible to generate a deterministic id.
-    function sortFeatures(a, b) {
-      const rank = { countrycoder: 1, geojson: 2, point: 3 };
-      const aRank = rank[a.type];
-      const bRank = rank[b.type];
-
-      return (aRank > bRank) ? 1
-        : (aRank < bRank) ? -1
-        : a.id.localeCompare(b.id);
+  } else if (typeof location === 'string' || typeof location === 'number') { // a country-coder value?
+    var feature$1 = feature(location);
+    if (feature$1) {
+      // Use wikidata QID as the identifier, since that seems to be the only
+      // property that everything in CountryCoder is guaranteed to have.
+      var id$2 = feature$1.properties.wikidata;
+      return { type: 'countrycoder', location: location, id: id$2 };
     }
   }
 
+  return null;
+};
 
-  cache() {
-    return this._cache;
+
+// resolveLocation
+//
+// Pass a `location` identifier
+// Returns a result like
+// {
+//   type:    'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      a unique identifier
+//   feature: the geojson feature
+// }
+//or `null` if the location is invalid
+//
+defaultExport.prototype.resolveLocation = function resolveLocation (location) {
+  var valid = this.validateLocation(location);
+  if (!valid) { return null; }
+
+  // return a result from cache if we can
+  if (this._cache[valid.id]) {
+    return Object.assign(valid, { feature: this._cache[valid.id] });
   }
-}
 
-return index;
+  // a [lon,lat] coordinate pair?
+  if (valid.type === 'point') {
+    var RADIUS = 25000;// meters
+    var EDGES = 10;
+    var PRECISION = 3;
+    var area = Math.PI * RADIUS * RADIUS / 1e6;   // m² to km²
+    var feature$1 = this._cache[valid.id] = geojsonPrecision({
+      type: 'Feature',
+      id: valid.id,
+      properties: { id: valid.id, area: Number(area.toFixed(2)) },
+      geometry: circleToPolygon(location, RADIUS, EDGES)
+    }, PRECISION);
+    return Object.assign(valid, { feature: feature$1 });
+
+  // a .geojson filename?
+  } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
+    var feature$1$1 = _cloneDeep(feature(valid.id));
+    var props = feature$1$1.properties;
+
+    // -> This block of code is weird and requires some explanation. <-
+    // CountryCoder includes higher level features which are made up of members.
+    // These features don't have their own geometry, but CountryCoder provides an
+    // `aggregateFeature` method to combine these members into a MultiPolygon.
+    // BUT, when we try to actually work with these aggregated MultiPolygons,
+    // Turf/JSTS gets crashy because of topography bugs.
+    // SO, we'll aggregate the features ourselves by unioning them together.
+    // This approach also has the benefit of removing all the internal boaders and
+    // simplifying the regional polygons a lot.
+    if (Array.isArray(props.members)) {
+      var seed = feature$1$1.geometry ? feature$1$1 : null;
+      var aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+      feature$1$1.geometry = aggregate.geometry;
+    }
+
+    // ensure area property exists
+    if (!props.area) {
+      var area$1 = geojsonArea.geometry(feature$1$1.geometry) / 1e6;// m² to km²
+      props.area = Number(area$1.toFixed(2));
+    }
+
+    // ensure id property exists
+    feature$1$1.id = valid.id;
+    props.id = valid.id;
+
+    this._cache[valid.id] = feature$1$1;
+    return Object.assign(valid, { feature: feature$1$1 });
+  }
+
+  return null;
+};
+
+
+// resolveLocationSet
+//
+// Pass a `locationSet` Object like:
+// `{ include: [ Array ], exclude: [ Array ] }`
+// Returns a stable identifier string of the form:
+// "+[included]-[excluded]"
+//
+defaultExport.prototype.resolveLocationSet = function resolveLocationSet (locationSet) {
+  locationSet = locationSet || {};
+  var resolve = this.resolveLocation.bind(this);
+  var include = (locationSet.include || []).map(resolve).filter(Boolean);
+  var exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
+
+  if (!include.length) {
+    include = [resolve('Q2')]; // default to 'the world'
+  }
+
+  // return quickly if it's a single included location..
+  if (include.length === 1 && exclude.length === 0) {
+    return include[0].feature;
+  }
+
+  // generate stable identifier
+  include.sort(sortFeatures);
+  var id = '+[' + include.map(function (d) { return d.id; }).join(',') + ']';
+  if (exclude.length) {
+    exclude.sort(sortFeatures);
+    id += '-[' + exclude.map(function (d) { return d.id; }).join(',') + ']';
+  }
+
+  // return cached?
+  if (this._cache[id]) {
+    return this._cache[id];
+  }
+
+  // calculate unions
+  var includeGeoJSON = include.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+  var excludeGeoJSON = exclude.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+
+  // calculate difference, update area and return result
+  var resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
+  var area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;// m² to km²
+  resultGeoJSON.id = id;
+  resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
+
+  return this._cache[id] = resultGeoJSON;
+
+
+  // Sorting the location lists is ok because they end up unioned together.
+  // This sorting makes it possible to generate a deterministic id.
+  function sortFeatures(a, b) {
+    var rank = { countrycoder: 1, geojson: 2, point: 3 };
+    var aRank = rank[a.type];
+    var bRank = rank[b.type];
+
+    return (aRank > bRank) ? 1
+      : (aRank < bRank) ? -1
+      : a.id.localeCompare(b.id);
+  }
+};
+
+
+defaultExport.prototype.cache = function cache () {
+  return this._cache;
+};
+
+return defaultExport;
 
 })));

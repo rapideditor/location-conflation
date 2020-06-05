@@ -7,6 +7,7 @@
   "description": "Define complex geographic regions by including and excluding country codes and geojson shapes",
   "keywords": [
     "location",
+    "locationset",
     "include",
     "exclude",
     "geojson"
@@ -14,7 +15,10 @@
   "main": "dist/index.js",
   "module": "index.mjs",
   "scripts": {
-    "build": "rollup -c",
+    "all": "npm run build",
+    "build": "npm-run-all -s dist:**",
+    "dist:js": "rollup --config config/rollup.config.js",
+    "dist:es5": "rollup --config config/rollup.config.es5.js",
     "lint": "eslint index.mjs test/*.js",
     "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
   },
@@ -27,11 +31,13 @@
     "geojson-precision": "^1.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-buble": "^0.21.0",
+    "@rollup/plugin-commonjs": "^11.0.1",
+    "@rollup/plugin-json": "^4.0.1",
+    "@rollup/plugin-node-resolve": "^7.0.0",
     "eslint": "^6.0.0",
+    "npm-run-all": "^4.0.0",
     "rollup": "^1.27.3",
-    "rollup-plugin-commonjs": "^10.0.0",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.0.4",
     "tap": "^14.10.0"
   },
   "engines": {
