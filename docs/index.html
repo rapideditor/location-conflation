@@ -28,9 +28,7 @@
       <div id='loco' class='section'>
         <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/master/README.md#location-conflation' target='_blank' style='font-size: smaller; margin-left: 70px'>What's this?</a></p>
 <textarea autofocus id='loco-textarea' name='loco-textarea' rows='5'>
-{
-  include: ['de', 'cz', 'pl']
-}
+{ include: ['de', 'cz', 'pl'] }
 </textarea>
         <div id='button-row' class='hasCols'>
           <div><button id='loco-view-button'>View it!</button></div>
@@ -171,6 +169,12 @@ var zoomValue = document.getElementById('zoom-value');
 var baseAttribution = ' <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>';
 attribution.innerHTML = baseAttribution;
 
+// handle locationSet in url querystring
+var qs = window.location.search ? utilStringQs(window.location.search) : {};
+if (qs.locationSet) {
+  locoTextarea.value = qs.locationSet;
+}
+
 
 // ------------------------------------ STYLE ------------------------------------
 var LOCO_COLOR = '#f90';
@@ -217,6 +221,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   _loco = new LocationConflation();
 });
 
+
 // wait for map to load before adjusting it
 map.on('load', function() {
 
@@ -253,6 +258,11 @@ map.on('load', function() {
   });
 
   locoTextarea.addEventListener('input', locoClearResults);
+
+  // If we got a locationSet in the URL querystring, display it.
+  if (qs.locationSet) {
+    locoParseInput();
+  }
 });
 
 
@@ -281,6 +291,9 @@ function flyTo(multipolygon) {
 function locoRemoveData() {
   locoRemoveButton.className = locoRemoveButton.className.replace('visible', 'invisible');
   geojsonContainer.textContent = 'No Data';
+  history.replaceState('{}', '', '?');
+  document.title = 'Location Conflation';
+
   if (map.getLayer('loco-fill-layer'))   map.removeLayer('loco-fill-layer');
   if (map.getLayer('loco-line-layer'))   map.removeLayer('loco-line-layer');
   if (map.getLayer('loco-point-layer'))  map.removeLayer('loco-point-layer');
@@ -353,6 +366,8 @@ function locoParseInput() {
     }
     locoResultMessage.innerHTML = messageHTML;
     geojsonContainer.textContent = _loco.stringify(feature, { maxLength: 100 });
+    history.replaceState(locationSet, locoTextarea.value, '?locationSet=' + encodeURIComponent(locoTextarea.value));
+    document.title = 'LocationConflation - ' + JSON.stringify(locationSet);
 
   } catch (err) {
     locoRemoveButton.className = 'visible';
@@ -360,8 +375,25 @@ function locoParseInput() {
     locoResultIcon.className = 'visible red';
     locoResultMessage.className = 'visible';
     locoResultMessage.innerHTML = 'Invalid LocationSet.<br/><em>' + err + '</em>';
-    geojsonContainer.textContent = '';
+    geojsonContainer.textContent = 'No Data';
+    history.replaceState('{}', '', '?');
+    document.title = 'Location Conflation';
   }
+}
+
+
+function utilStringQs(str) {
+  var i = 0;  // advance past any leading '?' or '#' characters
+  while (i < str.length && (str[i] === '?' || str[i] === '#')) i++;
+  str = str.slice(i);
+
+  return str.split('&').reduce(function(obj, pair){
+    var parts = pair.split('=');
+    if (parts.length === 2) {
+      obj[parts[0]] = (null === parts[1]) ? '' : decodeURIComponent(parts[1]);
+    }
+    return obj;
+  }, {});
 }
 
 </script>
