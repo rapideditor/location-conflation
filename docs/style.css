@@ -253,8 +253,9 @@ span.emojiFlag {
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 20px;
+  width: 50px;
+  height: 10px;
+  margin-bottom: 3px;
   vertical-align: middle;
 }
 
@@ -281,10 +282,10 @@ span.emojiFlag {
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: -3px;
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: -5px;
   background-color: #ddd;
   -webkit-transition: .4s;
   transition: .4s;
@@ -306,7 +307,7 @@ input:checked + .slider:before {
 
 /* Rounded sliders */
 .slider.round {
-  border-radius: 34px;
+  border-radius: 10px;
 }
 
 .slider.round:before {
