@@ -42,52 +42,7 @@
       </div>
 
       <div id='docs' class='section'>
-        <h3>Try these!</h3>
-<p>
-Germany, Czech Republic, Poland<br/>
-<code>{ include: ['de', 'cz', 'pl'] }</code>
-</p>
-
-<p>
-Metropolitan France<br/>
-<code>{ include: ['fx'] }</code>
-</p>
-
-<p>
-Estonia, Latvia, Lithuania<br/>
-<code>{ include: ['ee', 'lv', 'lt'] }</code>
-</p>
-
-<p>
-Southern Europe<br/>
-<code>{ include: ['039'] }</code>
-</p>
-
-<p>
-Southern Europe and Northern Africa<br/>
-<code>{ include: ['039', '015'] }</code>
-</p>
-
-<p>
-The world excluding New Zealand<br/>
-<code>{ include: ['001'], exclude: ['nz'] }</code>
-</p>
-
-<p>
-Sub-Saharan Africa excluding South Africa<br/>
-<code>{ include: ['202'], exclude: ['za'] }</code>
-</p>
-
-<p>
-North and South Korea<br/>
-<code>{ include: ['kp', 'kr'] }</code>
-</p>
-
-<p>
-Oceania excluding Fiji, Tonga<br/>
-<code>{ include: ['009'], exclude: ['fj', 'to'] }</code>
-</p>
-
+         <h3>Try these!</h3>
       </div>
 
     </div>
@@ -154,6 +109,7 @@ var _loco;
 // select some elements to use later
 var attribution = document.getElementById('attribution');
 var basemap = document.getElementById('basemap');
+var docs = document.getElementById('docs');
 var geojsonView = document.getElementById('geojson-view');
 var geojsonCheckbox = document.getElementById('geojson-checkbox');
 var geojsonContainer = document.getElementById('geojson-container');
@@ -214,11 +170,40 @@ var LOCO_POINT = {
   }
 };
 
+// ---------------------------------- EXAMPLES ------------------------------------
+var examples = [
+  [ "Germany, Czech Republic, Poland",            "{ include: ['de', 'cz', 'pl'] }" ],
+  [ "Metropolitan France",                        "{ include: ['fx'] }" ],
+  [ "Estonia, Latvia, Lithuania",                 "{ include: ['ee', 'lv', 'lt'] }" ],
+  [ "Southern Europe",                            "{ include: ['039'] }" ],
+  [ "Southern Europe and Northern Africa",        "{ include: ['039', '015'] }" ],
+  [ "The world excluding New Zealand",            "{ include: ['001'], exclude: ['nz'] }" ],
+  [ "Sub-Saharan Africa excluding South Africa",  "{ include: ['202'], exclude: ['za'] }" ],
+  [ "North and South Korea",                      "{ include: ['kp', 'kr'] }" ],
+  [ "Oceania excluding Fiji, Tonga",              "{ include: ['009'], exclude: ['fj', 'to'] }" ]
+];
+
 
 // ---------------------------------- HANDLERS ------------------------------------
 
 window.addEventListener('DOMContentLoaded', function(e) {
   _loco = new LocationConflation();
+
+  // append examples
+  examples.forEach(function(example) {
+    var p = document.createElement('p');
+    var a = document.createElement('a');
+    a.appendChild(document.createTextNode(example[0]));
+    a.setAttribute('href', 'javascript:locoSetInput("' + example[1] + '")');
+    var br = document.createElement('br');
+    var code = document.createElement('code');
+    code.appendChild(document.createTextNode(example[1]));
+
+    p.appendChild(a);
+    p.appendChild(br);
+    p.appendChild(code);
+    docs.appendChild(p);
+  });
 });
 
 
@@ -313,6 +298,15 @@ function locoClearResults() {
     locoIconBad.className = 'hidden';
     locoResultMessage.innerHTML = '';
   }, 100);
+}
+
+//
+// This just sets the loctionSet textBox and parses it.
+// (same as if the user had typed it themselves and clicked the button)
+//
+function locoSetInput(str) {
+  locoTextarea.value = str;
+  locoParseInput();
 }
 
 //

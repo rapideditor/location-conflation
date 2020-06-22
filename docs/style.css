@@ -237,6 +237,10 @@ textarea#geojson-container:focus {
   flex: 0 0 40px;
 }
 
+#loco-result-message {
+  min-height: 60px;
+}
+
 #loco-remove-button,
 #loco-result-icon,
 #loco-result-message {
