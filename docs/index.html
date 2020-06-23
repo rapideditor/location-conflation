@@ -356,6 +356,7 @@ function locoParseInput() {
       messageHTML += '<span class="nameEn">' + props.nameEn + '</span>';
     }
     if (props.emojiFlag) {
+      if (props.emojiFlag === '🇫🇽') props.emojiFlag = '🇫🇷';   // https://github.com/ideditor/country-coder/issues/25
       messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
     }
     locoResultMessage.innerHTML = messageHTML;
