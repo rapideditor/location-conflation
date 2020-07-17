@@ -6,6 +6,8 @@
 <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
 <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.js'></script>
 <script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/whatwg-fetch@3.2.0/dist/fetch.umd.min.js'></script>
 <script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
 <script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.es5.js'></script>
 <!-- <script defer src='../dist/index.es5.js'></script> -->
@@ -103,6 +105,8 @@ var _currZoom = 1;
 var _showMap = true;
 var _locoReset = true;
 var _loco;
+var _locoPromise;
+var _fcPromise;
 
 
 // ----------------------------------- DOM ------------------------------------
@@ -125,8 +129,10 @@ var zoomValue = document.getElementById('zoom-value');
 var baseAttribution = ' <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>';
 attribution.innerHTML = baseAttribution;
 
-// handle locationSet in url querystring
+// pull params out of the query string, if any
 var qs = window.location.search ? utilStringQs(window.location.search) : {};
+
+// handle locationSet in url querystring
 if (qs.locationSet) {
   locoTextarea.value = qs.locationSet;
 }
@@ -187,7 +193,30 @@ var examples = [
 // ---------------------------------- HANDLERS ------------------------------------
 
 window.addEventListener('DOMContentLoaded', function(e) {
-  _loco = new LocationConflation();
+  // If we were referred here from another site, fetch the appropriate featureCollection for that site.
+  if (qs.referrer === 'oci') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/osm-community-index@master/dist/features.min.json');
+  } else if (qs.referrer === 'nsi') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/name-suggestion-index@master/dist/featureCollection.min.json');
+  } else if (qs.referrer === 'ii') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/ideditor/imagery-index@master/dist/featureCollection.min.json');
+  } else {
+    _fcPromise = Promise.resolve({ ok: true, json: function() { return {}; } });  // fake response
+  }
+
+  // Settle once the file has been fetched
+  _locoPromise = _fcPromise
+    .then(function(response) {
+      if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+      return response.json();
+    })
+    .then(function(featureCollection) {
+      return _loco = new LocationConflation(featureCollection);
+    })
+    .catch(function(err) {
+      return _loco = new LocationConflation();
+    });
+
 
   // append examples
   examples.forEach(function(example) {
@@ -276,7 +305,8 @@ function flyTo(multipolygon) {
 function locoRemoveData() {
   locoRemoveButton.className = locoRemoveButton.className.replace('visible', 'invisible');
   geojsonContainer.textContent = 'No Data';
-  history.replaceState('{}', '', '?');
+  delete qs.locationSet;
+  history.replaceState('{}', '', '?' + utilQsString(qs));
   document.title = 'Location Conflation';
 
   if (map.getLayer('loco-fill-layer'))   map.removeLayer('loco-fill-layer');
@@ -309,11 +339,19 @@ function locoSetInput(str) {
   locoParseInput();
 }
 
+
+// Wait for the `LocationConflation` to be ready (`_locoPromise` settled)
+// before continuing.  We may be waiting for a featureCollection file.
+function locoParseInput() {
+  _locoPromise.then(locoParseInputWhenReady);
+};
+
+
 //
 // Parse the pasted LocationConflation data,
 // then update the map and present results..
 //
-function locoParseInput() {
+function locoParseInputWhenReady() {
   if (locoTextarea.value === '') return;
   _locoReset = false;
   locoRemoveData();
@@ -361,7 +399,8 @@ function locoParseInput() {
     }
     locoResultMessage.innerHTML = messageHTML;
     geojsonContainer.textContent = _loco.stringify(feature, { maxLength: 100 });
-    history.replaceState(locationSet, locoTextarea.value, '?locationSet=' + encodeURIComponent(locoTextarea.value));
+    qs.locationSet = locoTextarea.value;
+    history.replaceState(locationSet, locoTextarea.value,  '?' + utilQsString(qs));
     document.title = 'LocationConflation - ' + JSON.stringify(locationSet);
 
   } catch (err) {
@@ -371,7 +410,8 @@ function locoParseInput() {
     locoResultMessage.className = 'visible';
     locoResultMessage.innerHTML = 'Invalid LocationSet.<br/><em>' + err + '</em>';
     geojsonContainer.textContent = 'No Data';
-    history.replaceState('{}', '', '?');
+    delete qs.locationSet;
+    history.replaceState('{}', '', '?' + utilQsString(qs));
     document.title = 'Location Conflation';
   }
 }
@@ -389,6 +429,12 @@ function utilStringQs(str) {
     }
     return obj;
   }, {});
+}
+
+function utilQsString(obj) {
+  return Object.keys(obj).sort().map(function(key) {
+    return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+  }).join('&');
 }
 
 </script>
