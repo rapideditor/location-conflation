@@ -2,14 +2,14 @@ import * as CountryCoder from '@ideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
-import martinez from 'martinez-polygon-clipping';
+import { union, diff } from 'martinez-polygon-clipping';
 import precision  from 'geojson-precision';
 import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 
 // Wrap the Martinez clipper and return a GeoJSON feature.
 function _clip(a, b, which) {
-  const operation = { INTERSECTION: 0, UNION: 1, DIFFERENCE: 2, XOR: 3 }[which];
-  const coords = martinez(a.geometry.coordinates, b.geometry.coordinates, operation);
+  const fn = { UNION: union, DIFFERENCE: diff }[which];
+  const coords = fn(a.geometry.coordinates, b.geometry.coordinates);
   return {
     type: 'Feature',
     properties: {},

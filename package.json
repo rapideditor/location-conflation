@@ -31,7 +31,7 @@
     "circle-to-polygon": "^2.0.1",
     "geojson-precision": "^1.0.0",
     "json-stringify-pretty-compact": "^1.1.0",
-    "martinez-polygon-clipping": "0.6.0"
+    "martinez-polygon-clipping": "0.7.0"
   },
   "devDependencies": {
     "@rollup/plugin-buble": "^0.21.0",
