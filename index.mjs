@@ -4,7 +4,7 @@ import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
 import martinez from 'martinez-polygon-clipping';
 import precision  from 'geojson-precision';
-
+import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 
 // Wrap the Martinez clipper and return a GeoJSON feature.
 function _clip(a, b, which) {
@@ -85,14 +85,15 @@ export default class {
         let props = feature.properties;
 
         // get `id` from either `id` or `properties`
-        const id = feature.id || props.id;
+        let id = feature.id || props.id;
         if (!id || !/^\S+\.geojson$/i.test(id)) return;
 
-        // ensure id
+        // ensure id exists and is lowercase
+        id = id.toLowerCase();
         feature.id = id;
         props.id = id;
 
-        // ensure area property
+        // ensure area property exists
         if (!props.area) {
           const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
           props.area = Number(area.toFixed(2));
@@ -103,15 +104,15 @@ export default class {
     }
 
     // Replace CountryCoder world geometry to have a polygon covering the world.
-    let world = _cloneDeep(CountryCoder.feature('q2'));
+    let world = _cloneDeep(CountryCoder.feature('Q2'));
     world.geometry = {
       type: 'Polygon',
       coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
     };
-    world.id = 'q2';
-    world.properties.id = 'q2';
+    world.id = 'Q2';
+    world.properties.id = 'Q2';
     world.properties.area = calcArea.geometry(world.geometry) / 1e6;  // m² to km²
-    this._cache.q2 = world;
+    this._cache.Q2 = world;
   }
 
 
@@ -146,7 +147,7 @@ export default class {
       if (feature) {
         // Use wikidata QID as the identifier, since that seems to be the only
         // property that everything in CountryCoder is guaranteed to have.
-        const id = feature.properties.wikidata.toLowerCase();
+        const id = feature.properties.wikidata;
         return { type: 'countrycoder', location: location, id: id };
       }
     }
@@ -214,13 +215,13 @@ export default class {
         feature.geometry = aggregate.geometry;
       }
 
-      // ensure area property
+      // ensure area property exists
       if (!props.area) {
         const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
         props.area = Number(area.toFixed(2));
       }
 
-      // ensure id property
+      // ensure id property exists
       feature.id = valid.id;
       props.id = valid.id;
 
@@ -246,7 +247,7 @@ export default class {
     let exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
 
     if (!include.length) {
-      include = [resolve('q2')];   // default to 'the world'
+      include = [resolve('Q2')];   // default to 'the world'
     }
 
     // return quickly if it's a single included location..
@@ -297,4 +298,11 @@ export default class {
   cache() {
     return this._cache;
   }
+
+
+  stringify(obj, options) {
+    return prettyStringify(obj, options);
+  }
+
+
 }

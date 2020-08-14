@@ -1,12 +1,15 @@
 {
   "name": "@ideditor/location-conflation",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "ISC",
   "repository": "ideditor/location-conflation",
-  "author": "Bryan Housel <bhousel@gmail.com>",
+  "contributors": [
+    "Bryan Housel <bhousel@gmail.com> (https://github.com/bhousel)"
+  ],
   "description": "Define complex geographic regions by including and excluding country codes and geojson shapes",
   "keywords": [
     "location",
+    "locationset",
     "include",
     "exclude",
     "geojson"
@@ -14,24 +17,30 @@
   "main": "dist/index.js",
   "module": "index.mjs",
   "scripts": {
-    "build": "rollup -c",
+    "all": "npm run build",
+    "build": "npm-run-all -s dist:**",
+    "dist:js": "rollup --config config/rollup.config.js",
+    "dist:es5": "rollup --config config/rollup.config.es5.js",
     "lint": "eslint index.mjs test/*.js",
     "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
   },
   "dependencies": {
+    "@aitodotai/json-stringify-pretty-compact": "^1.3.0",
     "@ideditor/country-coder": "^3.1.0",
     "@mapbox/geojson-area": "^0.2.2",
-    "circle-to-polygon": "^1.0.2",
-    "geojson-precision": "^0.4.0",
+    "circle-to-polygon": "^2.0.1",
+    "geojson-precision": "^1.0.0",
     "json-stringify-pretty-compact": "^1.1.0",
     "martinez-polygon-clipping": "0.6.0"
   },
   "devDependencies": {
-    "eslint": "^6.0.0",
-    "rollup": "^1.27.3",
-    "rollup-plugin-commonjs": "^10.0.0",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.0.4",
+    "@rollup/plugin-buble": "^0.21.0",
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-json": "^4.0.1",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "eslint": "^7.2.0",
+    "npm-run-all": "^4.0.0",
+    "rollup": "^2.25.0",
     "tap": "^14.10.0"
   },
   "engines": {

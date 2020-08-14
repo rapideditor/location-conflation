@@ -47,6 +47,13 @@ test('validateLocation', t => {
       t.notOk(loco.validateLocation('fake.geojson'));           // fake filename
       t.end();
     });
+    t.test('`.geojson` identifiers compare as lowercase', t => {
+      const result = loco.validateLocation('PHiLLy_MeTRo.GeoJSoN');
+      t.type(result, 'object');
+      t.equal(result.type, 'geojson');
+      t.equal(result.id, 'philly_metro.geojson');
+      t.end();
+    });
     t.end();
   });
 
@@ -57,7 +64,7 @@ test('validateLocation', t => {
         const result = loco.validateLocation(val);
         t.type(result, 'object');
         t.equal(result.type, 'countrycoder');
-        t.equal(result.id, 'q145');
+        t.equal(result.id, 'Q145');
       });
       t.end();
     });

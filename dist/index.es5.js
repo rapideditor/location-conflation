@@ -47,24 +47,24 @@ function quickselectStep(arr, k, left, right, compare) {
         var j = right;
 
         swap(arr, left, k);
-        if (compare(arr[right], t) > 0) swap(arr, left, right);
+        if (compare(arr[right], t) > 0) { swap(arr, left, right); }
 
         while (i < j) {
             swap(arr, i, j);
             i++;
             j--;
-            while (compare(arr[i], t) < 0) i++;
-            while (compare(arr[j], t) > 0) j--;
+            while (compare(arr[i], t) < 0) { i++; }
+            while (compare(arr[j], t) > 0) { j--; }
         }
 
-        if (compare(arr[left], t) === 0) swap(arr, left, j);
+        if (compare(arr[left], t) === 0) { swap(arr, left, j); }
         else {
             j++;
             swap(arr, j, right);
         }
 
-        if (j <= k) left = j + 1;
-        if (k <= j) right = j - 1;
+        if (j <= k) { left = j + 1; }
+        if (k <= j) { right = j - 1; }
     }
 }
 
@@ -89,7 +89,7 @@ var _default = rbush;
 
 
 function rbush(maxEntries, format) {
-    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
+    if (!(this instanceof rbush)) { return new rbush(maxEntries, format); }
 
     // max entries in a node is 9 by default; min node fill is 40% for best performance
     this._maxEntries = Math.max(4, maxEntries || 9);
@@ -114,7 +114,7 @@ rbush.prototype = {
             result = [],
             toBBox = this.toBBox;
 
-        if (!intersects(bbox, node)) return result;
+        if (!intersects(bbox, node)) { return result; }
 
         var nodesToSearch = [],
             i, len, child, childBBox;
@@ -126,9 +126,9 @@ rbush.prototype = {
                 childBBox = node.leaf ? toBBox(child) : child;
 
                 if (intersects(bbox, childBBox)) {
-                    if (node.leaf) result.push(child);
-                    else if (contains(bbox, childBBox)) this._all(child, result);
-                    else nodesToSearch.push(child);
+                    if (node.leaf) { result.push(child); }
+                    else if (contains(bbox, childBBox)) { this._all(child, result); }
+                    else { nodesToSearch.push(child); }
                 }
             }
             node = nodesToSearch.pop();
@@ -142,7 +142,7 @@ rbush.prototype = {
         var node = this.data,
             toBBox = this.toBBox;
 
-        if (!intersects(bbox, node)) return false;
+        if (!intersects(bbox, node)) { return false; }
 
         var nodesToSearch = [],
             i, len, child, childBBox;
@@ -154,7 +154,7 @@ rbush.prototype = {
                 childBBox = node.leaf ? toBBox(child) : child;
 
                 if (intersects(bbox, childBBox)) {
-                    if (node.leaf || contains(bbox, childBBox)) return true;
+                    if (node.leaf || contains(bbox, childBBox)) { return true; }
                     nodesToSearch.push(child);
                 }
             }
@@ -165,7 +165,7 @@ rbush.prototype = {
     },
 
     load: function (data) {
-        if (!(data && data.length)) return this;
+        if (!(data && data.length)) { return this; }
 
         if (data.length < this._minEntries) {
             for (var i = 0, len = data.length; i < len; i++) {
@@ -201,7 +201,7 @@ rbush.prototype = {
     },
 
     insert: function (item) {
-        if (item) this._insert(item, this.data.height - 1);
+        if (item) { this._insert(item, this.data.height - 1); }
         return this;
     },
 
@@ -211,7 +211,7 @@ rbush.prototype = {
     },
 
     remove: function (item, equalsFn) {
-        if (!item) return this;
+        if (!item) { return this; }
 
         var node = this.data,
             bbox = this.toBBox(item),
@@ -253,7 +253,7 @@ rbush.prototype = {
                 node = parent.children[i];
                 goingUp = false;
 
-            } else node = null; // nothing found
+            } else { node = null; } // nothing found
         }
 
         return this;
@@ -274,8 +274,8 @@ rbush.prototype = {
     _all: function (node, result) {
         var nodesToSearch = [];
         while (node) {
-            if (node.leaf) result.push.apply(result, node.children);
-            else nodesToSearch.push.apply(nodesToSearch, node.children);
+            if (node.leaf) { result.push.apply(result, node.children); }
+            else { nodesToSearch.push.apply(nodesToSearch, node.children); }
 
             node = nodesToSearch.pop();
         }
@@ -342,7 +342,7 @@ rbush.prototype = {
         while (true) {
             path.push(node);
 
-            if (node.leaf || path.length - 1 === level) break;
+            if (node.leaf || path.length - 1 === level) { break; }
 
             minArea = minEnlargement = Infinity;
 
@@ -390,7 +390,7 @@ rbush.prototype = {
             if (insertPath[level].children.length > this._maxEntries) {
                 this._split(insertPath, level);
                 level--;
-            } else break;
+            } else { break; }
         }
 
         // adjust bboxes along the insertion path
@@ -415,8 +415,8 @@ rbush.prototype = {
         calcBBox(node, this.toBBox);
         calcBBox(newNode, this.toBBox);
 
-        if (level) insertPath[level - 1].children.push(newNode);
-        else this._splitRoot(node, newNode);
+        if (level) { insertPath[level - 1].children.push(newNode); }
+        else { this._splitRoot(node, newNode); }
     },
 
     _splitRoot: function (node, newNode) {
@@ -469,7 +469,7 @@ rbush.prototype = {
 
         // if total distributions margin value is minimal for x, sort by minX,
         // otherwise it's already sorted by minY
-        if (xMargin < yMargin) node.children.sort(compareMinX);
+        if (xMargin < yMargin) { node.children.sort(compareMinX); }
     },
 
     // total margin of all possible split distributions where each node is at least m full
@@ -513,9 +513,9 @@ rbush.prototype = {
                     siblings = path[i - 1].children;
                     siblings.splice(siblings.indexOf(path[i]), 1);
 
-                } else this.clear();
+                } else { this.clear(); }
 
-            } else calcBBox(path[i], this.toBBox);
+            } else { calcBBox(path[i], this.toBBox); }
         }
     },
 
@@ -540,10 +540,10 @@ rbush.prototype = {
 };
 
 function findItem(item, items, equalsFn) {
-    if (!equalsFn) return items.indexOf(item);
+    if (!equalsFn) { return items.indexOf(item); }
 
     for (var i = 0; i < items.length; i++) {
-        if (equalsFn(item, items[i])) return i;
+        if (equalsFn(item, items[i])) { return i; }
     }
     return -1;
 }
@@ -555,7 +555,7 @@ function calcBBox(node, toBBox) {
 
 // min bounding rectangle of node children from k to p-1
 function distBBox(node, k, p, toBBox, destNode) {
-    if (!destNode) destNode = createNode(null);
+    if (!destNode) { destNode = createNode(null); }
     destNode.minX = Infinity;
     destNode.minY = Infinity;
     destNode.maxX = -Infinity;
@@ -635,7 +635,7 @@ function multiSelect(arr, left, right, n, compare) {
         right = stack.pop();
         left = stack.pop();
 
-        if (right - left <= n) continue;
+        if (right - left <= n) { continue; }
 
         mid = left + Math.ceil((right - left) / n / 2) * n;
         quickselect(arr, mid, left, right, compare);
@@ -661,7 +661,7 @@ function lineclip(points, bbox, result) {
         part = [],
         i, a, b, codeB, lastCode;
 
-    if (!result) result = [];
+    if (!result) { result = []; }
 
     for (i = 1; i < len; i++) {
         a = points[i - 1];
@@ -701,7 +701,7 @@ function lineclip(points, bbox, result) {
         codeA = lastCode;
     }
 
-    if (part.length) result.push(part);
+    if (part.length) { result.push(part); }
 
     return result;
 }
@@ -723,9 +723,9 @@ function polygonclip(points, bbox) {
             inside = !(bitCode(p, bbox) & edge);
 
             // if segment goes through the clip window, add an intersection
-            if (inside !== prevInside) result.push(intersect(prev, p, edge, bbox));
+            if (inside !== prevInside) { result.push(intersect(prev, p, edge, bbox)); }
 
-            if (inside) result.push(p); // add a point if it's inside
+            if (inside) { result.push(p); } // add a point if it's inside
 
             prev = p;
             prevInside = inside;
@@ -733,7 +733,7 @@ function polygonclip(points, bbox) {
 
         points = result;
 
-        if (!points.length) break;
+        if (!points.length) { break; }
     }
 
     return result;
@@ -759,11 +759,11 @@ function intersect(a, b, edge, bbox) {
 function bitCode(p, bbox) {
     var code = 0;
 
-    if (p[0] < bbox[0]) code |= 1; // left
-    else if (p[0] > bbox[2]) code |= 2; // right
+    if (p[0] < bbox[0]) { code |= 1; } // left
+    else if (p[0] > bbox[2]) { code |= 2; } // right
 
-    if (p[1] < bbox[1]) code |= 4; // bottom
-    else if (p[1] > bbox[3]) code |= 8; // top
+    if (p[1] < bbox[1]) { code |= 4; } // bottom
+    else if (p[1] > bbox[3]) { code |= 8; } // top
 
     return code;
 }
@@ -799,9 +799,9 @@ function whichPolygon(data) {
         for (var i = 0; i < result.length; i++) {
             if (insidePolygon(result[i].coords, p)) {
                 if (multi)
-                    output.push(result[i].props);
+                    { output.push(result[i].props); }
                 else
-                    return result[i].props;
+                    { return result[i].props; }
             }
         }
         return multi && output.length ? output : null;
@@ -832,9 +832,9 @@ function polygonIntersectsBBox(polygon, bbox) {
         (bbox[0] + bbox[2]) / 2,
         (bbox[1] + bbox[3]) / 2
     ];
-    if (insidePolygon(polygon, bboxCenter)) return true;
+    if (insidePolygon(polygon, bboxCenter)) { return true; }
     for (var i = 0; i < polygon.length; i++) {
-        if (lineclip_1(polygon[i], bbox).length > 0) return true;
+        if (lineclip_1(polygon[i], bbox).length > 0) { return true; }
     }
     return false;
 }
@@ -845,7 +845,7 @@ function insidePolygon(rings, p) {
     for (var i = 0, len = rings.length; i < len; i++) {
         var ring = rings[i];
         for (var j = 0, len2 = ring.length, k = len2 - 1; j < len2; k = j++) {
-            if (rayIntersect(p, ring[j], ring[k])) inside = !inside;
+            if (rayIntersect(p, ring[j], ring[k])) { inside = !inside; }
         }
     }
     return inside;
@@ -882,11 +882,11 @@ type: type,
 features: features
 };
 
-let borders = rawBorders;
-let whichPolygonGetter = {};
-let featuresByCode = {};
-let idFilterRegex = /\bThe\b|\bthe\b|\band\b|\bof\b|[-_ .,()&[\]/]/g;
-let levels = [
+var borders = rawBorders;
+var whichPolygonGetter = {};
+var featuresByCode = {};
+var idFilterRegex = /\bThe\b|\bthe\b|\band\b|\bof\b|[-_ .,()&[\]/]/g;
+var levels = [
   'subterritory',
   'territory',
   'country',
@@ -898,10 +898,10 @@ let levels = [
 ];
 loadDerivedDataAndCaches(borders);
 function loadDerivedDataAndCaches(borders) {
-  let identifierProps = ['iso1A2', 'iso1A3', 'm49', 'wikidata', 'emojiFlag', 'nameEn'];
-  let geometryFeatures = [];
-  for (let i in borders.features) {
-    let feature = borders.features[i];
+  var identifierProps = ['iso1A2', 'iso1A3', 'm49', 'wikidata', 'emojiFlag', 'nameEn'];
+  var geometryFeatures = [];
+  for (var i in borders.features) {
+    var feature = borders.features[i];
     feature.properties.id = feature.properties.iso1A2 || feature.properties.m49;
     loadM49(feature);
     loadIsoStatus(feature);
@@ -911,25 +911,25 @@ function loadDerivedDataAndCaches(borders) {
     loadDriveSide(feature);
     loadFlag(feature);
     cacheFeatureByIDs(feature);
-    if (feature.geometry) geometryFeatures.push(feature);
+    if (feature.geometry) { geometryFeatures.push(feature); }
   }
-  for (let i in borders.features) {
-    let feature = borders.features[i];
-    feature.properties.groups.sort(function(groupID1, groupID2) {
+  for (var i$1 in borders.features) {
+    var feature$1 = borders.features[i$1];
+    feature$1.properties.groups.sort(function(groupID1, groupID2) {
       return (
         levels.indexOf(featuresByCode[groupID1].properties.level) -
         levels.indexOf(featuresByCode[groupID2].properties.level)
       );
     });
-    loadMembersForGroupsOf(feature);
+    loadMembersForGroupsOf(feature$1);
   }
-  let geometryOnlyCollection = {
+  var geometryOnlyCollection = {
     type: 'RegionFeatureCollection',
     features: geometryFeatures
   };
   whichPolygonGetter = whichPolygon_1(geometryOnlyCollection);
   function loadGroups(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.groups) {
       props.groups = [];
     }
@@ -941,20 +941,20 @@ function loadDerivedDataAndCaches(borders) {
     }
   }
   function loadM49(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.m49 && props.iso1N3) {
       props.m49 = props.iso1N3;
     }
   }
   function loadIsoStatus(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (!props.isoStatus && props.iso1A2) {
       props.isoStatus = 'official';
     }
   }
   function loadLevel(feature) {
-    let props = feature.properties;
-    if (props.level) return;
+    var props = feature.properties;
+    if (props.level) { return; }
     if (!props.country) {
       props.level = 'country';
     } else if (props.isoStatus === 'official') {
@@ -964,30 +964,30 @@ function loadDerivedDataAndCaches(borders) {
     }
   }
   function loadRoadSpeedUnit(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (props.roadSpeedUnit === undefined && props.iso1A2 && props.iso1A2 !== 'EU') {
       props.roadSpeedUnit = 'km/h';
     }
   }
   function loadDriveSide(feature) {
-    let props = feature.properties;
+    var props = feature.properties;
     if (props.driveSide === undefined && props.iso1A2 && props.iso1A2 !== 'EU') {
       props.driveSide = 'right';
     }
   }
   function loadFlag(feature) {
-    if (!feature.properties.iso1A2) return;
-    let flag = feature.properties.iso1A2.replace(/./g, function(char) {
+    if (!feature.properties.iso1A2) { return; }
+    var flag = feature.properties.iso1A2.replace(/./g, function(char) {
       return String.fromCodePoint(char.charCodeAt(0) + 127397);
     });
     feature.properties.emojiFlag = flag;
   }
   function loadMembersForGroupsOf(feature) {
-    let featureID = feature.properties.id;
-    let standardizedGroupIDs = [];
-    for (let j in feature.properties.groups) {
-      let groupID = feature.properties.groups[j];
-      let groupFeature = featuresByCode[groupID];
+    var featureID = feature.properties.id;
+    var standardizedGroupIDs = [];
+    for (var j in feature.properties.groups) {
+      var groupID = feature.properties.groups[j];
+      var groupFeature = featuresByCode[groupID];
       standardizedGroupIDs.push(groupFeature.properties.id);
       if (groupFeature.properties.members) {
         groupFeature.properties.members.push(featureID);
@@ -998,17 +998,17 @@ function loadDerivedDataAndCaches(borders) {
     feature.properties.groups = standardizedGroupIDs;
   }
   function cacheFeatureByIDs(feature) {
-    for (let k in identifierProps) {
-      let prop = identifierProps[k];
-      let id = prop && feature.properties[prop];
+    for (var k in identifierProps) {
+      var prop = identifierProps[k];
+      var id = prop && feature.properties[prop];
       if (id) {
         id = id.replace(idFilterRegex, '').toUpperCase();
         featuresByCode[id] = feature;
       }
     }
     if (feature.properties.aliases) {
-      for (let j in feature.properties.aliases) {
-        let alias = feature.properties.aliases[j].replace(idFilterRegex, '').toUpperCase();
+      for (var j in feature.properties.aliases) {
+        var alias = feature.properties.aliases[j].replace(idFilterRegex, '').toUpperCase();
         featuresByCode[alias] = feature;
       }
     }
@@ -1023,25 +1023,25 @@ function locArray(loc) {
   return loc.geometry.coordinates;
 }
 function smallestFeature(loc) {
-  let query = locArray(loc);
-  let featureProperties = whichPolygonGetter(query);
-  if (!featureProperties) return null;
+  var query = locArray(loc);
+  var featureProperties = whichPolygonGetter(query);
+  if (!featureProperties) { return null; }
   return featuresByCode[featureProperties.id];
 }
 function countryFeature(loc) {
-  let feature = smallestFeature(loc);
-  if (!feature) return null;
-  let countryCode = feature.properties.country || feature.properties.iso1A2;
+  var feature = smallestFeature(loc);
+  if (!feature) { return null; }
+  var countryCode = feature.properties.country || feature.properties.iso1A2;
   return featuresByCode[countryCode];
 }
 function featureForLoc(loc, opts) {
   if (opts && opts.level && opts.level !== 'country') {
-    let features = featuresContaining(loc);
-    let targetLevel = opts.level;
-    let targetLevelIndex = levels.indexOf(targetLevel);
-    if (targetLevelIndex === -1) return null;
-    for (let i in features) {
-      let feature = features[i];
+    var features = featuresContaining(loc);
+    var targetLevel = opts.level;
+    var targetLevelIndex = levels.indexOf(targetLevel);
+    if (targetLevelIndex === -1) { return null; }
+    for (var i in features) {
+      var feature = features[i];
       if (
         feature.properties.level === targetLevel ||
         levels.indexOf(feature.properties.level) > targetLevelIndex
@@ -1054,7 +1054,7 @@ function featureForLoc(loc, opts) {
   return countryFeature(loc);
 }
 function featureForID(id) {
-  let stringID;
+  var stringID;
   if (typeof id === 'number') {
     stringID = id.toString();
     if (stringID.length === 1) {
@@ -1080,15 +1080,15 @@ function feature(query, opts) {
   return featureForID(query);
 }
 function featuresContaining(query, strict) {
-  let feature = smallestOrMatchingFeature(query);
-  if (!feature) return [];
-  let features = [];
+  var feature = smallestOrMatchingFeature(query);
+  if (!feature) { return []; }
+  var features = [];
   if (!strict || typeof query === 'object') {
     features.push(feature);
   }
-  let properties = feature.properties;
-  for (let i in properties.groups) {
-    let groupID = properties.groups[i];
+  var properties = feature.properties;
+  for (var i in properties.groups) {
+    var groupID = properties.groups[i];
     features.push(featuresByCode[groupID]);
   }
   return features;
@@ -1223,25 +1223,26 @@ function offset(c1, distance, bearing) {
 }
 
 function validateCenter(center) {
-  const validCenterLengths = [2, 3];
+  var validCenterLengths = [2, 3];
   if (!Array.isArray(center) || !validCenterLengths.includes(center.length)) {
     throw new Error("ERROR! Center has to be an array of length two or three");
   }
-  const [lng, lat] = center;
+  var lng = center[0];
+  var lat = center[1];
   if (typeof lng !== "number" || typeof lat !== "number") {
     throw new Error(
-      `ERROR! Longitude and Latitude has to be numbers but where ${typeof lng} and ${typeof lat}`
+      ("ERROR! Longitude and Latitude has to be numbers but where " + (typeof lng) + " and " + (typeof lat))
     );
   }
   if (lng > 180 || lng < -180) {
     throw new Error(
-      `ERROR! Longitude has to be between -180 and 180 but was ${lng}`
+      ("ERROR! Longitude has to be between -180 and 180 but was " + lng)
     );
   }
 
   if (lat > 90 || lat < -90) {
     throw new Error(
-      `ERROR! Latitude has to be between -90 and 90 but was ${lat}`
+      ("ERROR! Latitude has to be between -90 and 90 but was " + lat)
     );
   }
 }
@@ -1249,13 +1250,13 @@ function validateCenter(center) {
 function validateRadius(radius) {
   if (typeof radius !== "number") {
     throw new Error(
-      `ERROR! Radius has to be a positive number but was: ${typeof radius}`
+      ("ERROR! Radius has to be a positive number but was: " + (typeof radius))
     );
   }
 
   if (radius <= 0) {
     throw new Error(
-      `ERROR! Radius has to be a positive number but was: ${radius}`
+      ("ERROR! Radius has to be a positive number but was: " + radius)
     );
   }
 }
@@ -1263,18 +1264,22 @@ function validateRadius(radius) {
 function validateNumberOfSegments(numberOfSegments) {
   if (typeof numberOfSegments !== "number" && numberOfSegments !== undefined) {
     throw new Error(
-      `ERROR! Number of segments has to be a number but was: ${typeof numberOfSegments}`
+      ("ERROR! Number of segments has to be a number but was: " + (typeof numberOfSegments))
     );
   }
 
   if (numberOfSegments < 3) {
     throw new Error(
-      `ERROR! Number of segments has to be at least 3 but was: ${numberOfSegments}`
+      ("ERROR! Number of segments has to be at least 3 but was: " + numberOfSegments)
     );
   }
 }
 
-function validateInput({ center, radius, numberOfSegments }) {
+function validateInput(ref) {
+  var center = ref.center;
+  var radius = ref.radius;
+  var numberOfSegments = ref.numberOfSegments;
+
   validateCenter(center);
   validateRadius(radius);
   validateNumberOfSegments(numberOfSegments);
@@ -1284,7 +1289,7 @@ var circleToPolygon = function circleToPolygon(center, radius, numberOfSegments)
   var n = numberOfSegments ? numberOfSegments : 32;
 
   // validateInput() throws error on invalid input and do nothing on valid input
-  validateInput({ center, radius, numberOfSegments });
+  validateInput({ center: center, radius: radius, numberOfSegments: numberOfSegments });
 
   var coordinates = [];
   for (var i = 0; i < n; ++i) {
@@ -1300,578 +1305,590 @@ var circleToPolygon = function circleToPolygon(center, radius, numberOfSegments)
 
 function DEFAULT_COMPARE (a, b) { return a > b ? 1 : a < b ? -1 : 0; }
 
-class SplayTree {
+var SplayTree = function SplayTree(compare, noDuplicates) {
+  if ( compare === void 0 ) compare = DEFAULT_COMPARE;
+  if ( noDuplicates === void 0 ) noDuplicates = false;
 
-  constructor(compare = DEFAULT_COMPARE, noDuplicates = false) {
-    this._compare = compare;
-    this._root = null;
-    this._size = 0;
-    this._noDuplicates = !!noDuplicates;
+  this._compare = compare;
+  this._root = null;
+  this._size = 0;
+  this._noDuplicates = !!noDuplicates;
+};
+
+var prototypeAccessors = { size: { configurable: true } };
+
+
+SplayTree.prototype.rotateLeft = function rotateLeft (x) {
+  var y = x.right;
+  if (y) {
+    x.right = y.left;
+    if (y.left) { y.left.parent = x; }
+    y.parent = x.parent;
   }
 
+  if (!x.parent)              { this._root = y; }
+  else if (x === x.parent.left) { x.parent.left = y; }
+  else                        { x.parent.right = y; }
+  if (y) { y.left = x; }
+  x.parent = y;
+};
 
-  rotateLeft(x) {
-    var y = x.right;
-    if (y) {
-      x.right = y.left;
-      if (y.left) y.left.parent = x;
-      y.parent = x.parent;
-    }
 
-    if (!x.parent)                this._root = y;
-    else if (x === x.parent.left) x.parent.left = y;
-    else                          x.parent.right = y;
-    if (y) y.left = x;
-    x.parent = y;
+SplayTree.prototype.rotateRight = function rotateRight (x) {
+  var y = x.left;
+  if (y) {
+    x.left = y.right;
+    if (y.right) { y.right.parent = x; }
+    y.parent = x.parent;
   }
 
-
-  rotateRight(x) {
-    var y = x.left;
-    if (y) {
-      x.left = y.right;
-      if (y.right) y.right.parent = x;
-      y.parent = x.parent;
-    }
-
-    if (!x.parent)               this._root = y;
-    else if(x === x.parent.left) x.parent.left = y;
-    else                         x.parent.right = y;
-    if (y) y.right = x;
-    x.parent = y;
-  }
+  if (!x.parent)             { this._root = y; }
+  else if(x === x.parent.left) { x.parent.left = y; }
+  else                       { x.parent.right = y; }
+  if (y) { y.right = x; }
+  x.parent = y;
+};
 
 
-  _splay(x) {
-    while (x.parent) {
-      var p = x.parent;
-      if (!p.parent) {
-        if (p.left === x) this.rotateRight(p);
-        else              this.rotateLeft(p);
-      } else if (p.left === x && p.parent.left === p) {
-        this.rotateRight(p.parent);
-        this.rotateRight(p);
-      } else if (p.right === x && p.parent.right === p) {
-        this.rotateLeft(p.parent);
-        this.rotateLeft(p);
-      } else if (p.left === x && p.parent.right === p) {
-        this.rotateRight(p);
-        this.rotateLeft(p);
-      } else {
-        this.rotateLeft(p);
-        this.rotateRight(p);
-      }
-    }
-  }
-
-
-  splay(x) {
-    var p, gp, ggp, l, r;
-
-    while (x.parent) {
-      p = x.parent;
-      gp = p.parent;
-
-      if (gp && gp.parent) {
-        ggp = gp.parent;
-        if (ggp.left === gp) ggp.left  = x;
-        else                 ggp.right = x;
-        x.parent = ggp;
-      } else {
-        x.parent = null;
-        this._root = x;
-      }
-
-      l = x.left; r = x.right;
-
-      if (x === p.left) { // left
-        if (gp) {
-          if (gp.left === p) {
-            /* zig-zig */
-            if (p.right) {
-              gp.left = p.right;
-              gp.left.parent = gp;
-            } else gp.left = null;
-
-            p.right   = gp;
-            gp.parent = p;
-          } else {
-            /* zig-zag */
-            if (l) {
-              gp.right = l;
-              l.parent = gp;
-            } else gp.right = null;
-
-            x.left    = gp;
-            gp.parent = x;
-          }
-        }
-        if (r) {
-          p.left = r;
-          r.parent = p;
-        } else p.left = null;
-
-        x.right  = p;
-        p.parent = x;
-      } else { // right
-        if (gp) {
-          if (gp.right === p) {
-            /* zig-zig */
-            if (p.left) {
-              gp.right = p.left;
-              gp.right.parent = gp;
-            } else gp.right = null;
-
-            p.left = gp;
-            gp.parent = p;
-          } else {
-            /* zig-zag */
-            if (r) {
-              gp.left = r;
-              r.parent = gp;
-            } else gp.left = null;
-
-            x.right   = gp;
-            gp.parent = x;
-          }
-        }
-        if (l) {
-          p.right = l;
-          l.parent = p;
-        } else p.right = null;
-
-        x.left   = p;
-        p.parent = x;
-      }
-    }
-  }
-
-
-  replace(u, v) {
-    if (!u.parent) this._root = v;
-    else if (u === u.parent.left) u.parent.left = v;
-    else u.parent.right = v;
-    if (v) v.parent = u.parent;
-  }
-
-
-  minNode(u = this._root) {
-    if (u) while (u.left) u = u.left;
-    return u;
-  }
-
-
-  maxNode(u = this._root) {
-    if (u) while (u.right) u = u.right;
-    return u;
-  }
-
-
-  insert(key, data) {
-    var z = this._root;
-    var p = null;
-    var comp = this._compare;
-    var cmp;
-
-    if (this._noDuplicates) {
-      while (z) {
-        p = z;
-        cmp = comp(z.key, key);
-        if (cmp === 0) return;
-        else if (comp(z.key, key) < 0) z = z.right;
-        else z = z.left;
-      }
+SplayTree.prototype._splay = function _splay (x) {
+  while (x.parent) {
+    var p = x.parent;
+    if (!p.parent) {
+      if (p.left === x) { this.rotateRight(p); }
+      else            { this.rotateLeft(p); }
+    } else if (p.left === x && p.parent.left === p) {
+      this.rotateRight(p.parent);
+      this.rotateRight(p);
+    } else if (p.right === x && p.parent.right === p) {
+      this.rotateLeft(p.parent);
+      this.rotateLeft(p);
+    } else if (p.left === x && p.parent.right === p) {
+      this.rotateRight(p);
+      this.rotateLeft(p);
     } else {
-      while (z) {
-        p = z;
-        if (comp(z.key, key) < 0) z = z.right;
-        else z = z.left;
-      }
+      this.rotateLeft(p);
+      this.rotateRight(p);
+    }
+  }
+};
+
+
+SplayTree.prototype.splay = function splay (x) {
+  var p, gp, ggp, l, r;
+
+  while (x.parent) {
+    p = x.parent;
+    gp = p.parent;
+
+    if (gp && gp.parent) {
+      ggp = gp.parent;
+      if (ggp.left === gp) { ggp.left= x; }
+      else               { ggp.right = x; }
+      x.parent = ggp;
+    } else {
+      x.parent = null;
+      this._root = x;
     }
 
-    z = { key, data, left: null, right: null, parent: p };
+    l = x.left; r = x.right;
 
-    if (!p)                          this._root = z;
-    else if (comp(p.key, z.key) < 0) p.right = z;
-    else                             p.left  = z;
+    if (x === p.left) { // left
+      if (gp) {
+        if (gp.left === p) {
+          /* zig-zig */
+          if (p.right) {
+            gp.left = p.right;
+            gp.left.parent = gp;
+          } else { gp.left = null; }
 
-    this.splay(z);
-    this._size++;
-    return z;
+          p.right = gp;
+          gp.parent = p;
+        } else {
+          /* zig-zag */
+          if (l) {
+            gp.right = l;
+            l.parent = gp;
+          } else { gp.right = null; }
+
+          x.left  = gp;
+          gp.parent = x;
+        }
+      }
+      if (r) {
+        p.left = r;
+        r.parent = p;
+      } else { p.left = null; }
+
+      x.right= p;
+      p.parent = x;
+    } else { // right
+      if (gp) {
+        if (gp.right === p) {
+          /* zig-zig */
+          if (p.left) {
+            gp.right = p.left;
+            gp.right.parent = gp;
+          } else { gp.right = null; }
+
+          p.left = gp;
+          gp.parent = p;
+        } else {
+          /* zig-zag */
+          if (r) {
+            gp.left = r;
+            r.parent = gp;
+          } else { gp.left = null; }
+
+          x.right = gp;
+          gp.parent = x;
+        }
+      }
+      if (l) {
+        p.right = l;
+        l.parent = p;
+      } else { p.right = null; }
+
+      x.left = p;
+      p.parent = x;
+    }
   }
+};
 
 
-  find (key) {
-    var z    = this._root;
-    var comp = this._compare;
+SplayTree.prototype.replace = function replace (u, v) {
+  if (!u.parent) { this._root = v; }
+  else if (u === u.parent.left) { u.parent.left = v; }
+  else { u.parent.right = v; }
+  if (v) { v.parent = u.parent; }
+};
+
+
+SplayTree.prototype.minNode = function minNode (u) {
+    if ( u === void 0 ) u = this._root;
+
+  if (u) { while (u.left) { u = u.left; } }
+  return u;
+};
+
+
+SplayTree.prototype.maxNode = function maxNode (u) {
+    if ( u === void 0 ) u = this._root;
+
+  if (u) { while (u.right) { u = u.right; } }
+  return u;
+};
+
+
+SplayTree.prototype.insert = function insert (key, data) {
+  var z = this._root;
+  var p = null;
+  var comp = this._compare;
+  var cmp;
+
+  if (this._noDuplicates) {
     while (z) {
-      var cmp = comp(z.key, key);
-      if      (cmp < 0) z = z.right;
-      else if (cmp > 0) z = z.left;
-      else              return z;
+      p = z;
+      cmp = comp(z.key, key);
+      if (cmp === 0) { return; }
+      else if (comp(z.key, key) < 0) { z = z.right; }
+      else { z = z.left; }
     }
-    return null;
+  } else {
+    while (z) {
+      p = z;
+      if (comp(z.key, key) < 0) { z = z.right; }
+      else { z = z.left; }
+    }
   }
 
-  /**
-   * Whether the tree contains a node with the given key
-   * @param  {Key} key
-   * @return {boolean} true/false
-   */
-  contains (key) {
-    var node       = this._root;
-    var comparator = this._compare;
-    while (node)  {
-      var cmp = comparator(key, node.key);
-      if      (cmp === 0) return true;
-      else if (cmp < 0)   node = node.left;
-      else                node = node.right;
-    }
+  z = { key: key, data: data, left: null, right: null, parent: p };
 
-    return false;
+  if (!p)                        { this._root = z; }
+  else if (comp(p.key, z.key) < 0) { p.right = z; }
+  else                           { p.left= z; }
+
+  this.splay(z);
+  this._size++;
+  return z;
+};
+
+
+SplayTree.prototype.find = function find (key) {
+  var z  = this._root;
+  var comp = this._compare;
+  while (z) {
+    var cmp = comp(z.key, key);
+    if    (cmp < 0) { z = z.right; }
+    else if (cmp > 0) { z = z.left; }
+    else            { return z; }
+  }
+  return null;
+};
+
+/**
+ * Whether the tree contains a node with the given key
+ * @param{Key} key
+ * @return {boolean} true/false
+ */
+SplayTree.prototype.contains = function contains (key) {
+  var node     = this._root;
+  var comparator = this._compare;
+  while (node){
+    var cmp = comparator(key, node.key);
+    if    (cmp === 0) { return true; }
+    else if (cmp < 0) { node = node.left; }
+    else              { node = node.right; }
   }
 
+  return false;
+};
 
-  remove (key) {
-    var z = this.find(key);
 
-    if (!z) return false;
+SplayTree.prototype.remove = function remove (key) {
+  var z = this.find(key);
 
-    this.splay(z);
+  if (!z) { return false; }
 
-    if (!z.left) this.replace(z, z.right);
-    else if (!z.right) this.replace(z, z.left);
-    else {
-      var y = this.minNode(z.right);
-      if (y.parent !== z) {
-        this.replace(y, y.right);
-        y.right = z.right;
-        y.right.parent = y;
+  this.splay(z);
+
+  if (!z.left) { this.replace(z, z.right); }
+  else if (!z.right) { this.replace(z, z.left); }
+  else {
+    var y = this.minNode(z.right);
+    if (y.parent !== z) {
+      this.replace(y, y.right);
+      y.right = z.right;
+      y.right.parent = y;
+    }
+    this.replace(z, y);
+    y.left = z.left;
+    y.left.parent = y;
+  }
+
+  this._size--;
+  return true;
+};
+
+
+SplayTree.prototype.removeNode = function removeNode (z) {
+  if (!z) { return false; }
+
+  this.splay(z);
+
+  if (!z.left) { this.replace(z, z.right); }
+  else if (!z.right) { this.replace(z, z.left); }
+  else {
+    var y = this.minNode(z.right);
+    if (y.parent !== z) {
+      this.replace(y, y.right);
+      y.right = z.right;
+      y.right.parent = y;
+    }
+    this.replace(z, y);
+    y.left = z.left;
+    y.left.parent = y;
+  }
+
+  this._size--;
+  return true;
+};
+
+
+SplayTree.prototype.erase = function erase (key) {
+  var z = this.find(key);
+  if (!z) { return; }
+
+  this.splay(z);
+
+  var s = z.left;
+  var t = z.right;
+
+  var sMax = null;
+  if (s) {
+    s.parent = null;
+    sMax = this.maxNode(s);
+    this.splay(sMax);
+    this._root = sMax;
+  }
+  if (t) {
+    if (s) { sMax.right = t; }
+    else { this._root = t; }
+    t.parent = sMax;
+  }
+
+  this._size--;
+};
+
+/**
+ * Removes and returns the node with smallest key
+ * @return {?Node}
+ */
+SplayTree.prototype.pop = function pop () {
+  var node = this._root, returnValue = null;
+  if (node) {
+    while (node.left) { node = node.left; }
+    returnValue = { key: node.key, data: node.data };
+    this.remove(node.key);
+  }
+  return returnValue;
+};
+
+
+/* eslint-disable class-methods-use-this */
+
+/**
+ * Successor node
+ * @param{Node} node
+ * @return {?Node}
+ */
+SplayTree.prototype.next = function next (node) {
+  var successor = node;
+  if (successor) {
+    if (successor.right) {
+      successor = successor.right;
+      while (successor && successor.left) { successor = successor.left; }
+    } else {
+      successor = node.parent;
+      while (successor && successor.right === node) {
+        node = successor; successor = successor.parent;
       }
-      this.replace(z, y);
-      y.left = z.left;
-      y.left.parent = y;
     }
-
-    this._size--;
-    return true;
   }
+  return successor;
+};
 
 
-  removeNode(z) {
-    if (!z) return false;
-
-    this.splay(z);
-
-    if (!z.left) this.replace(z, z.right);
-    else if (!z.right) this.replace(z, z.left);
-    else {
-      var y = this.minNode(z.right);
-      if (y.parent !== z) {
-        this.replace(y, y.right);
-        y.right = z.right;
-        y.right.parent = y;
+/**
+ * Predecessor node
+ * @param{Node} node
+ * @return {?Node}
+ */
+SplayTree.prototype.prev = function prev (node) {
+  var predecessor = node;
+  if (predecessor) {
+    if (predecessor.left) {
+      predecessor = predecessor.left;
+      while (predecessor && predecessor.right) { predecessor = predecessor.right; }
+    } else {
+      predecessor = node.parent;
+      while (predecessor && predecessor.left === node) {
+        node = predecessor;
+        predecessor = predecessor.parent;
       }
-      this.replace(z, y);
-      y.left = z.left;
-      y.left.parent = y;
     }
-
-    this._size--;
-    return true;
   }
+  return predecessor;
+};
+/* eslint-enable class-methods-use-this */
 
 
-  erase (key) {
-    var z = this.find(key);
-    if (!z) return;
+/**
+ * @param{forEachCallback} callback
+ * @return {SplayTree}
+ */
+SplayTree.prototype.forEach = function forEach (callback) {
+  var current = this._root;
+  var s = [], done = false, i = 0;
 
-    this.splay(z);
+  while (!done) {
+    // Reach the left most Node of the current Node
+    if (current) {
+      // Place pointer to a tree node on the stack
+      // before traversing the node's left subtree
+      s.push(current);
+      current = current.left;
+    } else {
+      // BackTrack from the empty subtree and visit the Node
+      // at the top of the stack; however, if the stack is
+      // empty you are done
+      if (s.length > 0) {
+        current = s.pop();
+        callback(current, i++);
 
-    var s = z.left;
-    var t = z.right;
-
-    var sMax = null;
-    if (s) {
-      s.parent = null;
-      sMax = this.maxNode(s);
-      this.splay(sMax);
-      this._root = sMax;
+        // We have visited the node and its left
+        // subtree. Now, it's right subtree's turn
+        current = current.right;
+      } else { done = true; }
     }
-    if (t) {
-      if (s) sMax.right = t;
-      else   this._root = t;
-      t.parent = sMax;
-    }
-
-    this._size--;
   }
+  return this;
+};
 
-  /**
-   * Removes and returns the node with smallest key
-   * @return {?Node}
-   */
-  pop () {
-    var node = this._root, returnValue = null;
+
+/**
+ * Walk key range from `low` to `high`. Stops if `fn` returns a value.
+ * @param{Key}    low
+ * @param{Key}    high
+ * @param{Function} fn
+ * @param{*?}     ctx
+ * @return {SplayTree}
+ */
+SplayTree.prototype.range = function range (low, high, fn, ctx) {
+  var Q = [];
+  var compare = this._compare;
+  var node = this._root, cmp;
+
+  while (Q.length !== 0 || node) {
     if (node) {
-      while (node.left) node = node.left;
-      returnValue = { key: node.key, data: node.data };
-      this.remove(node.key);
-    }
-    return returnValue;
-  }
-
-
-  /* eslint-disable class-methods-use-this */
-
-  /**
-   * Successor node
-   * @param  {Node} node
-   * @return {?Node}
-   */
-  next (node) {
-    var successor = node;
-    if (successor) {
-      if (successor.right) {
-        successor = successor.right;
-        while (successor && successor.left) successor = successor.left;
-      } else {
-        successor = node.parent;
-        while (successor && successor.right === node) {
-          node = successor; successor = successor.parent;
-        }
+      Q.push(node);
+      node = node.left;
+    } else {
+      node = Q.pop();
+      cmp = compare(node.key, high);
+      if (cmp > 0) {
+        break;
+      } else if (compare(node.key, low) >= 0) {
+        if (fn.call(ctx, node)) { return this; } // stop if smth is returned
       }
+      node = node.right;
     }
-    return successor;
   }
+  return this;
+};
 
+/**
+ * Returns all keys in order
+ * @return {Array<Key>}
+ */
+SplayTree.prototype.keys = function keys () {
+  var current = this._root;
+  var s = [], r = [], done = false;
 
-  /**
-   * Predecessor node
-   * @param  {Node} node
-   * @return {?Node}
-   */
-  prev (node) {
-    var predecessor = node;
-    if (predecessor) {
-      if (predecessor.left) {
-        predecessor = predecessor.left;
-        while (predecessor && predecessor.right) predecessor = predecessor.right;
-      } else {
-        predecessor = node.parent;
-        while (predecessor && predecessor.left === node) {
-          node = predecessor;
-          predecessor = predecessor.parent;
-        }
-      }
+  while (!done) {
+    if (current) {
+      s.push(current);
+      current = current.left;
+    } else {
+      if (s.length > 0) {
+        current = s.pop();
+        r.push(current.key);
+        current = current.right;
+      } else { done = true; }
     }
-    return predecessor;
   }
-  /* eslint-enable class-methods-use-this */
+  return r;
+};
 
 
-  /**
-   * @param  {forEachCallback} callback
-   * @return {SplayTree}
-   */
-  forEach(callback) {
-    var current = this._root;
-    var s = [], done = false, i = 0;
+/**
+ * Returns `data` fields of all nodes in order.
+ * @return {Array<Value>}
+ */
+SplayTree.prototype.values = function values () {
+  var current = this._root;
+  var s = [], r = [], done = false;
 
-    while (!done) {
-      // Reach the left most Node of the current Node
-      if (current) {
-        // Place pointer to a tree node on the stack
-        // before traversing the node's left subtree
-        s.push(current);
-        current = current.left;
-      } else {
-        // BackTrack from the empty subtree and visit the Node
-        // at the top of the stack; however, if the stack is
-        // empty you are done
-        if (s.length > 0) {
-          current = s.pop();
-          callback(current, i++);
-
-          // We have visited the node and its left
-          // subtree. Now, it's right subtree's turn
-          current = current.right;
-        } else done = true;
-      }
+  while (!done) {
+    if (current) {
+      s.push(current);
+      current = current.left;
+    } else {
+      if (s.length > 0) {
+        current = s.pop();
+        r.push(current.data);
+        current = current.right;
+      } else { done = true; }
     }
-    return this;
   }
+  return r;
+};
 
 
-  /**
-   * Walk key range from `low` to `high`. Stops if `fn` returns a value.
-   * @param  {Key}      low
-   * @param  {Key}      high
-   * @param  {Function} fn
-   * @param  {*?}       ctx
-   * @return {SplayTree}
-   */
-  range(low, high, fn, ctx) {
-    const Q = [];
-    const compare = this._compare;
-    let node = this._root, cmp;
+/**
+ * Returns node at given index
+ * @param{number} index
+ * @return {?Node}
+ */
+SplayTree.prototype.at = function at (index) {
+  // removed after a consideration, more misleading than useful
+  // index = index % this.size;
+  // if (index < 0) index = this.size - index;
 
-    while (Q.length !== 0 || node) {
-      if (node) {
-        Q.push(node);
-        node = node.left;
-      } else {
-        node = Q.pop();
-        cmp = compare(node.key, high);
-        if (cmp > 0) {
-          break;
-        } else if (compare(node.key, low) >= 0) {
-          if (fn.call(ctx, node)) return this; // stop if smth is returned
-        }
-        node = node.right;
-      }
+  var current = this._root;
+  var s = [], done = false, i = 0;
+
+  while (!done) {
+    if (current) {
+      s.push(current);
+      current = current.left;
+    } else {
+      if (s.length > 0) {
+        current = s.pop();
+        if (i === index) { return current; }
+        i++;
+        current = current.right;
+      } else { done = true; }
     }
-    return this;
   }
+  return null;
+};
 
-  /**
-   * Returns all keys in order
-   * @return {Array<Key>}
-   */
-  keys () {
-    var current = this._root;
-    var s = [], r = [], done = false;
+/**
+ * Bulk-load items. Both array have to be same size
+ * @param{Array<Key>}  keys
+ * @param{Array<Value>}[values]
+ * @param{Boolean}     [presort=false] Pre-sort keys and values, using
+ *                                       tree's comparator. Sorting is done
+ *                                       in-place
+ * @return {AVLTree}
+ */
+SplayTree.prototype.load = function load (keys, values, presort) {
+    if ( keys === void 0 ) keys = [];
+    if ( values === void 0 ) values = [];
+    if ( presort === void 0 ) presort = false;
 
-    while (!done) {
-      if (current) {
-        s.push(current);
-        current = current.left;
-      } else {
-        if (s.length > 0) {
-          current = s.pop();
-          r.push(current.key);
-          current = current.right;
-        } else done = true;
-      }
-    }
-    return r;
-  }
-
-
-  /**
-   * Returns `data` fields of all nodes in order.
-   * @return {Array<Value>}
-   */
-  values () {
-    var current = this._root;
-    var s = [], r = [], done = false;
-
-    while (!done) {
-      if (current) {
-        s.push(current);
-        current = current.left;
-      } else {
-        if (s.length > 0) {
-          current = s.pop();
-          r.push(current.data);
-          current = current.right;
-        } else done = true;
-      }
-    }
-    return r;
-  }
+  if (this._size !== 0) { throw new Error('bulk-load: tree is not empty'); }
+  var size = keys.length;
+  if (presort) { sort(keys, values, 0, size - 1, this._compare); }
+  this._root = loadRecursive(null, keys, values, 0, size);
+  this._size = size;
+  return this;
+};
 
 
-  /**
-   * Returns node at given index
-   * @param  {number} index
-   * @return {?Node}
-   */
-  at (index) {
-    // removed after a consideration, more misleading than useful
-    // index = index % this.size;
-    // if (index < 0) index = this.size - index;
-
-    var current = this._root;
-    var s = [], done = false, i = 0;
-
-    while (!done) {
-      if (current) {
-        s.push(current);
-        current = current.left;
-      } else {
-        if (s.length > 0) {
-          current = s.pop();
-          if (i === index) return current;
-          i++;
-          current = current.right;
-        } else done = true;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Bulk-load items. Both array have to be same size
-   * @param  {Array<Key>}    keys
-   * @param  {Array<Value>}  [values]
-   * @param  {Boolean}       [presort=false] Pre-sort keys and values, using
-   *                                         tree's comparator. Sorting is done
-   *                                         in-place
-   * @return {AVLTree}
-   */
-  load(keys = [], values = [], presort = false) {
-    if (this._size !== 0) throw new Error('bulk-load: tree is not empty');
-    const size = keys.length;
-    if (presort) sort(keys, values, 0, size - 1, this._compare);
-    this._root = loadRecursive(null, keys, values, 0, size);
-    this._size = size;
-    return this;
-  }
+SplayTree.prototype.min = function min () {
+  var node = this.minNode(this._root);
+  if (node) { return node.key; }
+  else    { return null; }
+};
 
 
-  min() {
-    var node = this.minNode(this._root);
-    if (node) return node.key;
-    else      return null;
-  }
+SplayTree.prototype.max = function max () {
+  var node = this.maxNode(this._root);
+  if (node) { return node.key; }
+  else    { return null; }
+};
+
+SplayTree.prototype.isEmpty = function isEmpty () { return this._root === null; };
+prototypeAccessors.size.get = function () { return this._size; };
 
 
-  max() {
-    var node = this.maxNode(this._root);
-    if (node) return node.key;
-    else      return null;
-  }
+/**
+ * Create a tree and load it with items
+ * @param{Array<Key>}        keys
+ * @param{Array<Value>?}      [values]
 
-  isEmpty() { return this._root === null; }
-  get size() { return this._size; }
+ * @param{Function?}          [comparator]
+ * @param{Boolean?}           [presort=false] Pre-sort keys and values, using
+ *                                             tree's comparator. Sorting is done
+ *                                             in-place
+ * @param{Boolean?}           [noDuplicates=false] Allow duplicates
+ * @return {SplayTree}
+ */
+SplayTree.createTree = function createTree (keys, values, comparator, presort, noDuplicates) {
+  return new SplayTree(comparator, noDuplicates).load(keys, values, presort);
+};
 
-
-  /**
-   * Create a tree and load it with items
-   * @param  {Array<Key>}          keys
-   * @param  {Array<Value>?}        [values]
-
-   * @param  {Function?}            [comparator]
-   * @param  {Boolean?}             [presort=false] Pre-sort keys and values, using
-   *                                               tree's comparator. Sorting is done
-   *                                               in-place
-   * @param  {Boolean?}             [noDuplicates=false]   Allow duplicates
-   * @return {SplayTree}
-   */
-  static createTree(keys, values, comparator, presort, noDuplicates) {
-    return new SplayTree(comparator, noDuplicates).load(keys, values, presort);
-  }
-}
+Object.defineProperties( SplayTree.prototype, prototypeAccessors );
 
 
 function loadRecursive (parent, keys, values, start, end) {
-  const size = end - start;
+  var size = end - start;
   if (size > 0) {
-    const middle = start + Math.floor(size / 2);
-    const key    = keys[middle];
-    const data   = values[middle];
-    const node   = { key, data, parent };
+    var middle = start + Math.floor(size / 2);
+    var key    = keys[middle];
+    var data   = values[middle];
+    var node   = { key: key, data: data, parent: parent };
     node.left    = loadRecursive(node, keys, values, start, middle);
     node.right   = loadRecursive(node, keys, values, middle + 1, end);
     return node;
@@ -1881,18 +1898,18 @@ function loadRecursive (parent, keys, values, start, end) {
 
 
 function sort(keys, values, left, right, compare) {
-  if (left >= right) return;
+  if (left >= right) { return; }
 
-  const pivot = keys[(left + right) >> 1];
-  let i = left - 1;
-  let j = right + 1;
+  var pivot = keys[(left + right) >> 1];
+  var i = left - 1;
+  var j = right + 1;
 
   while (true) {
-    do i++; while (compare(keys[i], pivot) < 0);
-    do j--; while (compare(keys[j], pivot) > 0);
-    if (i >= j) break;
+    do { i++; } while (compare(keys[i], pivot) < 0);
+    do { j--; } while (compare(keys[j], pivot) > 0);
+    if (i >= j) { break; }
 
-    let tmp = keys[i];
+    var tmp = keys[i];
     keys[i] = keys[j];
     keys[j] = tmp;
 
@@ -1905,15 +1922,15 @@ function sort(keys, values, left, right, compare) {
   sort(keys, values, j + 1, right, compare);
 }
 
-const NORMAL               = 0;
-const NON_CONTRIBUTING     = 1;
-const SAME_TRANSITION      = 2;
-const DIFFERENT_TRANSITION = 3;
+var NORMAL               = 0;
+var NON_CONTRIBUTING     = 1;
+var SAME_TRANSITION      = 2;
+var DIFFERENT_TRANSITION = 3;
 
-const INTERSECTION = 0;
-const UNION        = 1;
-const DIFFERENCE   = 2;
-const XOR          = 3;
+var INTERSECTION = 0;
+var UNION        = 1;
+var DIFFERENCE   = 2;
+var XOR          = 3;
 
 /**
  * @param  {SweepEvent} event
@@ -1979,131 +1996,117 @@ function inResult(event, operation) {
 }
 /* eslint-enable indent */
 
-class SweepEvent {
+var SweepEvent = function SweepEvent (point, left, otherEvent, isSubject, edgeType) {
+
+  /**
+   * Is left endpoint?
+   * @type {Boolean}
+   */
+  this.left = left;
+
+  /**
+   * @type {Array.<Number>}
+   */
+  this.point = point;
+
+  /**
+   * Other edge reference
+   * @type {SweepEvent}
+   */
+  this.otherEvent = otherEvent;
+
+  /**
+   * Belongs to source or clipping polygon
+   * @type {Boolean}
+   */
+  this.isSubject = isSubject;
+
+  /**
+   * Edge contribution type
+   * @type {Number}
+   */
+  this.type = edgeType || NORMAL;
 
 
   /**
-   * Sweepline event
-   *
-   * @class {SweepEvent}
-   * @param {Array.<Number>}  point
-   * @param {Boolean}         left
-   * @param {SweepEvent=}     otherEvent
-   * @param {Boolean}         isSubject
-   * @param {Number}          edgeType
+   * In-out transition for the sweepline crossing polygon
+   * @type {Boolean}
    */
-  constructor (point, left, otherEvent, isSubject, edgeType) {
-
-    /**
-     * Is left endpoint?
-     * @type {Boolean}
-     */
-    this.left = left;
-
-    /**
-     * @type {Array.<Number>}
-     */
-    this.point = point;
-
-    /**
-     * Other edge reference
-     * @type {SweepEvent}
-     */
-    this.otherEvent = otherEvent;
-
-    /**
-     * Belongs to source or clipping polygon
-     * @type {Boolean}
-     */
-    this.isSubject = isSubject;
-
-    /**
-     * Edge contribution type
-     * @type {Number}
-     */
-    this.type = edgeType || NORMAL;
-
-
-    /**
-     * In-out transition for the sweepline crossing polygon
-     * @type {Boolean}
-     */
-    this.inOut = false;
-
-
-    /**
-     * @type {Boolean}
-     */
-    this.otherInOut = false;
-
-    /**
-     * Previous event in result?
-     * @type {SweepEvent}
-     */
-    this.prevInResult = null;
-
-    /**
-     * Does event belong to result?
-     * @type {Boolean}
-     */
-    this.inResult = false;
-
-
-    // connection step
-
-    /**
-     * @type {Boolean}
-     */
-    this.resultInOut = false;
-
-    this.isExteriorRing = true;
-  }
+  this.inOut = false;
 
 
   /**
-   * @param  {Array.<Number>}  p
-   * @return {Boolean}
+   * @type {Boolean}
    */
-  isBelow (p) {
-    const p0 = this.point, p1 = this.otherEvent.point;
-    return this.left
-      ? (p0[0] - p[0]) * (p1[1] - p[1]) - (p1[0] - p[0]) * (p0[1] - p[1]) > 0
-      // signedArea(this.point, this.otherEvent.point, p) > 0 :
-      : (p1[0] - p[0]) * (p0[1] - p[1]) - (p0[0] - p[0]) * (p1[1] - p[1]) > 0;
-      //signedArea(this.otherEvent.point, this.point, p) > 0;
-  }
-
+  this.otherInOut = false;
 
   /**
-   * @param  {Array.<Number>}  p
-   * @return {Boolean}
+   * Previous event in result?
+   * @type {SweepEvent}
    */
-  isAbove (p) {
-    return !this.isBelow(p);
-  }
-
+  this.prevInResult = null;
 
   /**
-   * @return {Boolean}
+   * Does event belong to result?
+   * @type {Boolean}
    */
-  isVertical () {
-    return this.point[0] === this.otherEvent.point[0];
-  }
+  this.inResult = false;
 
 
-  clone () {
-    const copy = new SweepEvent(
-      this.point, this.left, this.otherEvent, this.isSubject, this.type);
+  // connection step
 
-    copy.inResult       = this.inResult;
-    copy.prevInResult   = this.prevInResult;
-    copy.isExteriorRing = this.isExteriorRing;
-    copy.inOut          = this.inOut;
-    copy.otherInOut     = this.otherInOut;
+  /**
+   * @type {Boolean}
+   */
+  this.resultInOut = false;
 
-    return copy;
-  }
-}
+  this.isExteriorRing = true;
+};
+
+
+/**
+ * @param{Array.<Number>}p
+ * @return {Boolean}
+ */
+SweepEvent.prototype.isBelow = function isBelow (p) {
+  var p0 = this.point, p1 = this.otherEvent.point;
+  return this.left
+    ? (p0[0] - p[0]) * (p1[1] - p[1]) - (p1[0] - p[0]) * (p0[1] - p[1]) > 0
+    // signedArea(this.point, this.otherEvent.point, p) > 0 :
+    : (p1[0] - p[0]) * (p0[1] - p[1]) - (p0[0] - p[0]) * (p1[1] - p[1]) > 0;
+    //signedArea(this.otherEvent.point, this.point, p) > 0;
+};
+
+
+/**
+ * @param{Array.<Number>}p
+ * @return {Boolean}
+ */
+SweepEvent.prototype.isAbove = function isAbove (p) {
+  return !this.isBelow(p);
+};
+
+
+/**
+ * @return {Boolean}
+ */
+SweepEvent.prototype.isVertical = function isVertical () {
+  return this.point[0] === this.otherEvent.point[0];
+};
+
+
+SweepEvent.prototype.clone = function clone () {
+  var copy = new SweepEvent(
+    this.point, this.left, this.otherEvent, this.isSubject, this.type);
+
+  copy.inResult     = this.inResult;
+  copy.prevInResult = this.prevInResult;
+  copy.isExteriorRing = this.isExteriorRing;
+  copy.inOut        = this.inOut;
+  copy.otherInOut   = this.otherInOut;
+
+  return copy;
+};
 
 function equals(p1, p2) {
   if (p1[0] === p2[0]) {
@@ -2125,17 +2128,17 @@ function equals(p1, p2) {
 //   return abs(p1[0] - p2[0]) <= EPSILON && abs(p1[1] - p2[1]) <= EPSILON;
 // };
 
-const epsilon = 1.1102230246251565e-16;
-const splitter = 134217729;
-const resulterrbound = (3 + 8 * epsilon) * epsilon;
+var epsilon = 1.1102230246251565e-16;
+var splitter = 134217729;
+var resulterrbound = (3 + 8 * epsilon) * epsilon;
 
 // fast_expansion_sum_zeroelim routine from oritinal code
 function sum(elen, e, flen, f, h) {
-    let Q, Qnew, hh, bvirt;
-    let enow = e[0];
-    let fnow = f[0];
-    let eindex = 0;
-    let findex = 0;
+    var Q, Qnew, hh, bvirt;
+    var enow = e[0];
+    var fnow = f[0];
+    var eindex = 0;
+    var findex = 0;
     if ((fnow > enow) === (fnow > -enow)) {
         Q = enow;
         enow = e[++eindex];
@@ -2143,7 +2146,7 @@ function sum(elen, e, flen, f, h) {
         Q = fnow;
         fnow = f[++findex];
     }
-    let hindex = 0;
+    var hindex = 0;
     if (eindex < elen && findex < flen) {
         if ((fnow > enow) === (fnow > -enow)) {
             Qnew = enow + Q;
@@ -2203,8 +2206,8 @@ function sum(elen, e, flen, f, h) {
 }
 
 function estimate(elen, e) {
-    let Q = e[0];
-    for (let i = 1; i < elen; i++) Q += e[i];
+    var Q = e[0];
+    for (var i = 1; i < elen; i++) { Q += e[i]; }
     return Q;
 }
 
@@ -2212,24 +2215,24 @@ function vec(n) {
     return new Float64Array(n);
 }
 
-const ccwerrboundA = (3 + 16 * epsilon) * epsilon;
-const ccwerrboundB = (2 + 12 * epsilon) * epsilon;
-const ccwerrboundC = (9 + 64 * epsilon) * epsilon * epsilon;
+var ccwerrboundA = (3 + 16 * epsilon) * epsilon;
+var ccwerrboundB = (2 + 12 * epsilon) * epsilon;
+var ccwerrboundC = (9 + 64 * epsilon) * epsilon * epsilon;
 
-const B = vec(4);
-const C1 = vec(8);
-const C2 = vec(12);
-const D = vec(16);
-const u = vec(4);
+var B = vec(4);
+var C1 = vec(8);
+var C2 = vec(12);
+var D = vec(16);
+var u = vec(4);
 
 function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
-    let acxtail, acytail, bcxtail, bcytail;
-    let bvirt, c, ahi, alo, bhi, blo, _i, _j, _0, s1, s0, t1, t0, u3;
+    var acxtail, acytail, bcxtail, bcytail;
+    var bvirt, c, ahi, alo, bhi, blo, _i, _j, _0, s1, s0, t1, t0, u3;
 
-    const acx = ax - cx;
-    const bcx = bx - cx;
-    const acy = ay - cy;
-    const bcy = by - cy;
+    var acx = ax - cx;
+    var bcx = bx - cx;
+    var acy = ay - cy;
+    var bcy = by - cy;
 
     s1 = acx * bcy;
     c = splitter * acx;
@@ -2261,8 +2264,8 @@ function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
     B[2] = _j - (u3 - bvirt) + (_i - bvirt);
     B[3] = u3;
 
-    let det = estimate(4, B);
-    let errbound = ccwerrboundB * detsum;
+    var det = estimate(4, B);
+    var errbound = ccwerrboundB * detsum;
     if (det >= errbound || -det >= errbound) {
         return det;
     }
@@ -2282,7 +2285,7 @@ function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
 
     errbound = ccwerrboundC * detsum + resulterrbound * Math.abs(det);
     det += (acx * bcytail + bcy * acxtail) - (acy * bcxtail + bcx * acytail);
-    if (det >= errbound || -det >= errbound) return det;
+    if (det >= errbound || -det >= errbound) { return det; }
 
     s1 = acxtail * bcy;
     c = splitter * acxtail;
@@ -2313,7 +2316,7 @@ function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
     bvirt = u3 - _j;
     u[2] = _j - (u3 - bvirt) + (_i - bvirt);
     u[3] = u3;
-    const C1len = sum(4, B, 4, u, C1);
+    var C1len = sum(4, B, 4, u, C1);
 
     s1 = acx * bcytail;
     c = splitter * acx;
@@ -2344,7 +2347,7 @@ function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
     bvirt = u3 - _j;
     u[2] = _j - (u3 - bvirt) + (_i - bvirt);
     u[3] = u3;
-    const C2len = sum(C1len, C1, 4, u, C2);
+    var C2len = sum(C1len, C1, 4, u, C2);
 
     s1 = acxtail * bcytail;
     c = splitter * acxtail;
@@ -2375,20 +2378,20 @@ function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
     bvirt = u3 - _j;
     u[2] = _j - (u3 - bvirt) + (_i - bvirt);
     u[3] = u3;
-    const Dlen = sum(C2len, C2, 4, u, D);
+    var Dlen = sum(C2len, C2, 4, u, D);
 
     return D[Dlen - 1];
 }
 
 function orient2d(ax, ay, bx, by, cx, cy) {
-    const detleft = (ay - cy) * (bx - cx);
-    const detright = (ax - cx) * (by - cy);
-    const det = detleft - detright;
+    var detleft = (ay - cy) * (bx - cx);
+    var detright = (ax - cx) * (by - cy);
+    var det = detleft - detright;
 
-    if (detleft === 0 || detright === 0 || (detleft > 0) !== (detright > 0)) return det;
+    if (detleft === 0 || detright === 0 || (detleft > 0) !== (detright > 0)) { return det; }
 
-    const detsum = Math.abs(detleft + detright);
-    if (Math.abs(det) >= ccwerrboundA * detsum) return det;
+    var detsum = Math.abs(detleft + detright);
+    if (Math.abs(det) >= ccwerrboundA * detsum) { return det; }
 
     return -orient2dadapt(ax, ay, bx, by, cx, cy, detsum);
 }
@@ -2401,9 +2404,9 @@ function orient2d(ax, ay, bx, by, cx, cy) {
  * @return {Number}
  */
 function signedArea(p0, p1, p2) {
-  const res = orient2d(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]);
-  if (res > 0) return -1;
-  if (res < 0) return 1;
+  var res = orient2d(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]);
+  if (res > 0) { return -1; }
+  if (res < 0) { return 1; }
   return 0;
 }
 
@@ -2413,16 +2416,16 @@ function signedArea(p0, p1, p2) {
  * @return {Number}
  */
 function compareEvents(e1, e2) {
-  const p1 = e1.point;
-  const p2 = e2.point;
+  var p1 = e1.point;
+  var p2 = e2.point;
 
   // Different x-coordinate
-  if (p1[0] > p2[0]) return 1;
-  if (p1[0] < p2[0]) return -1;
+  if (p1[0] > p2[0]) { return 1; }
+  if (p1[0] < p2[0]) { return -1; }
 
   // Different points, but same x-coordinate
   // Event with lower y-coordinate is processed first
-  if (p1[1] !== p2[1]) return p1[1] > p2[1] ? 1 : -1;
+  if (p1[1] !== p2[1]) { return p1[1] > p2[1] ? 1 : -1; }
 
   return specialCases(e1, e2, p1);
 }
@@ -2433,7 +2436,7 @@ function specialCases(e1, e2, p1, p2) {
   // Same coordinates, but one is a left endpoint and the other is
   // a right endpoint. The right endpoint is processed first
   if (e1.left !== e2.left)
-    return e1.left ? 1 : -1;
+    { return e1.left ? 1 : -1; }
 
   // const p2 = e1.otherEvent.point, p3 = e2.otherEvent.point;
   // const sa = (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
@@ -2456,8 +2459,8 @@ function specialCases(e1, e2, p1, p2) {
  * @return {Queue}
  */
 function divideSegment(se, p, queue)  {
-  const r = new SweepEvent(p, false, se,            se.isSubject);
-  const l = new SweepEvent(p, true,  se.otherEvent, se.isSubject);
+  var r = new SweepEvent(p, false, se,            se.isSubject);
+  var l = new SweepEvent(p, true,  se.otherEvent, se.isSubject);
 
   /* eslint-disable no-console */
   if (equals(se.point, se.otherEvent.point)) {
@@ -2539,8 +2542,8 @@ function intersection (a1, a2, b1, b2, noEndpointTouch) {
   // vector, then, could be thought of as the distance (in x and y components)
   // from the first point to the second point.
   // So first, let's make our vectors:
-  const va = [a2[0] - a1[0], a2[1] - a1[1]];
-  const vb = [b2[0] - b1[0], b2[1] - b1[1]];
+  var va = [a2[0] - a1[0], a2[1] - a1[1]];
+  var vb = [b2[0] - b1[0], b2[1] - b1[1]];
   // We also define a function to convert back to regular point form:
 
   /* eslint-disable arrow-body-style */
@@ -2555,10 +2558,10 @@ function intersection (a1, a2, b1, b2, noEndpointTouch) {
   /* eslint-enable arrow-body-style */
 
   // The rest is pretty much a straight port of the algorithm.
-  const e = [b1[0] - a1[0], b1[1] - a1[1]];
-  let kross    = crossProduct(va, vb);
-  let sqrKross = kross * kross;
-  const sqrLenA  = dotProduct(va, va);
+  var e = [b1[0] - a1[0], b1[1] - a1[1]];
+  var kross    = crossProduct(va, vb);
+  var sqrKross = kross * kross;
+  var sqrLenA  = dotProduct(va, va);
   //const sqrLenB  = dotProduct(vb, vb);
 
   // Check for line intersection. This works because of the properties of the
@@ -2570,12 +2573,12 @@ function intersection (a1, a2, b1, b2, noEndpointTouch) {
     // If they're not parallel, then (because these are line segments) they
     // still might not actually intersect. This code checks that the
     // intersection point of the lines is actually on both line segments.
-    const s = crossProduct(e, vb) / kross;
+    var s = crossProduct(e, vb) / kross;
     if (s < 0 || s > 1) {
       // not on line segment a
       return null;
     }
-    const t = crossProduct(e, va) / kross;
+    var t = crossProduct(e, va) / kross;
     if (t < 0 || t > 1) {
       // not on line segment b
       return null;
@@ -2606,10 +2609,10 @@ function intersection (a1, a2, b1, b2, noEndpointTouch) {
     return null;
   }
 
-  const sa = dotProduct(va, e) / sqrLenA;
-  const sb = sa + dotProduct(va, vb) / sqrLenA;
-  const smin = Math.min(sa, sb);
-  const smax = Math.max(sa, sb);
+  var sa = dotProduct(va, e) / sqrLenA;
+  var sb = sa + dotProduct(va, vb) / sqrLenA;
+  var smin = Math.min(sa, sb);
+  var smax = Math.max(sa, sb);
 
   // this is, essentially, the FindIntersection acting on floats from
   // Schneider & Eberly, just inlined into this function.
@@ -2624,7 +2627,7 @@ function intersection (a1, a2, b1, b2, noEndpointTouch) {
       return noEndpointTouch ? null : [toPoint(a1, smax < 1 ? smax : 1, va)];
     }
 
-    if (noEndpointTouch && smin === 0 && smax === 1) return null;
+    if (noEndpointTouch && smin === 0 && smax === 1) { return null; }
 
     // There's overlap on a segment -- two points of intersection. Return both.
     return [
@@ -2647,13 +2650,13 @@ function possibleIntersection (se1, se2, queue) {
   // did cost us half a day, so I'll leave it
   // out of respect
   // if (se1.isSubject === se2.isSubject) return;
-  const inter = intersection(
+  var inter = intersection(
     se1.point, se1.otherEvent.point,
     se2.point, se2.otherEvent.point
   );
 
-  const nintersections = inter ? inter.length : 0;
-  if (nintersections === 0) return 0; // no intersection
+  var nintersections = inter ? inter.length : 0;
+  if (nintersections === 0) { return 0; } // no intersection
 
   // the line segments intersect at an endpoint of both line segments
   if ((nintersections === 1) &&
@@ -2687,9 +2690,9 @@ function possibleIntersection (se1, se2, queue) {
   }
 
   // The line segments associated to se1 and se2 overlap
-  const events        = [];
-  let leftCoincide  = false;
-  let rightCoincide = false;
+  var events        = [];
+  var leftCoincide  = false;
+  var rightCoincide = false;
 
   if (equals(se1.point, se2.point)) {
     leftCoincide = true; // linked
@@ -2747,21 +2750,21 @@ function possibleIntersection (se1, se2, queue) {
  * @return {Number}
  */
 function compareSegments(le1, le2) {
-  if (le1 === le2) return 0;
+  if (le1 === le2) { return 0; }
 
   // Segments are not collinear
   if (signedArea(le1.point, le1.otherEvent.point, le2.point) !== 0 ||
     signedArea(le1.point, le1.otherEvent.point, le2.otherEvent.point) !== 0) {
 
     // If they share their left endpoint use the right endpoint to sort
-    if (equals(le1.point, le2.point)) return le1.isBelow(le2.otherEvent.point) ? -1 : 1;
+    if (equals(le1.point, le2.point)) { return le1.isBelow(le2.otherEvent.point) ? -1 : 1; }
 
     // Different left endpoint: use the left endpoint to sort
-    if (le1.point[0] === le2.point[0]) return le1.point[1] < le2.point[1] ? -1 : 1;
+    if (le1.point[0] === le2.point[0]) { return le1.point[1] < le2.point[1] ? -1 : 1; }
 
     // has the line segment associated to e1 been inserted
     // into S after the line segment associated to e2 ?
-    if (compareEvents(le1, le2) === 1) return le2.isAbove(le1.point) ? -1 : 1;
+    if (compareEvents(le1, le2) === 1) { return le2.isAbove(le1.point) ? -1 : 1; }
 
     // The line segment associated to e2 has been inserted
     // into S after the line segment associated to e1
@@ -2769,11 +2772,11 @@ function compareSegments(le1, le2) {
   }
 
   if (le1.isSubject === le2.isSubject) { // same polygon
-    let p1 = le1.point, p2 = le2.point;
+    var p1 = le1.point, p2 = le2.point;
     if (p1[0] === p2[0] && p1[1] === p2[1]/*equals(le1.point, le2.point)*/) {
       p1 = le1.otherEvent.point; p2 = le2.otherEvent.point;
-      if (p1[0] === p2[0] && p1[1] === p2[1]) return 0;
-      else return le1.contourId > le2.contourId ? 1 : -1;
+      if (p1[0] === p2[0] && p1[1] === p2[1]) { return 0; }
+      else { return le1.contourId > le2.contourId ? 1 : -1; }
     }
   } else { // Segments are collinear, but belong to separate polygons
     return le1.isSubject ? -1 : 1;
@@ -2783,15 +2786,15 @@ function compareSegments(le1, le2) {
 }
 
 function subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation) {
-  const sweepLine = new SplayTree(compareSegments);
-  const sortedEvents = [];
+  var sweepLine = new SplayTree(compareSegments);
+  var sortedEvents = [];
 
-  const rightbound = Math.min(sbbox[2], cbbox[2]);
+  var rightbound = Math.min(sbbox[2], cbbox[2]);
 
-  let prev, next, begin;
+  var prev, next, begin;
 
   while (eventQueue.length !== 0) {
-    let event = eventQueue.pop();
+    var event = eventQueue.pop();
     sortedEvents.push(event);
 
     // optimization by bboxes for intersection and difference goes here
@@ -2804,13 +2807,13 @@ function subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation) {
       next  = prev = sweepLine.insert(event);
       begin = sweepLine.minNode();
 
-      if (prev !== begin) prev = sweepLine.prev(prev);
-      else                prev = null;
+      if (prev !== begin) { prev = sweepLine.prev(prev); }
+      else                { prev = null; }
 
       next = sweepLine.next(next);
 
-      const prevEvent = prev ? prev.key : null;
-      let prevprevEvent;
+      var prevEvent = prev ? prev.key : null;
+      var prevprevEvent = (void 0);
       computeFields(event, prevEvent, operation);
       if (next) {
         if (possibleIntersection(event, next.key, eventQueue) === 2) {
@@ -2821,9 +2824,9 @@ function subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation) {
 
       if (prev) {
         if (possibleIntersection(prev.key, event, eventQueue) === 2) {
-          let prevprev = prev;
-          if (prevprev !== begin) prevprev = sweepLine.prev(prevprev);
-          else                    prevprev = null;
+          var prevprev = prev;
+          if (prevprev !== begin) { prevprev = sweepLine.prev(prevprev); }
+          else                    { prevprev = null; }
 
           prevprevEvent = prevprev ? prevprev.key : null;
           computeFields(prevEvent, prevprevEvent, operation);
@@ -2836,8 +2839,8 @@ function subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation) {
 
       if (prev && next) {
 
-        if (prev !== begin) prev = sweepLine.prev(prev);
-        else                prev = null;
+        if (prev !== begin) { prev = sweepLine.prev(prev); }
+        else                { prev = null; }
 
         next = sweepLine.next(next);
         sweepLine.remove(event);
@@ -2856,8 +2859,8 @@ function subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation) {
  * @return {Array.<SweepEvent>}
  */
 function orderEvents(sortedEvents) {
-  let event, i, len, tmp;
-  const resultEvents = [];
+  var event, i, len, tmp;
+  var resultEvents = [];
   for (i = 0, len = sortedEvents.length; i < len; i++) {
     event = sortedEvents[i];
     if ((event.left && event.inResult) ||
@@ -2866,7 +2869,7 @@ function orderEvents(sortedEvents) {
     }
   }
   // Due to overlapping edges the resultEvents array can be not wholly sorted
-  let sorted = false;
+  var sorted = false;
   while (!sorted) {
     sorted = true;
     for (i = 0, len = resultEvents.length; i < len; i++) {
@@ -2908,14 +2911,14 @@ function orderEvents(sortedEvents) {
  * @return {Number}
  */
 function nextPos(pos, resultEvents, processed, origIndex) {
-  let p, p1;
-  let newPos = pos + 1;
-  const length = resultEvents.length;
+  var p, p1;
+  var newPos = pos + 1;
+  var length = resultEvents.length;
 
   p  = resultEvents[pos].point;
 
   if (newPos < length)
-    p1 = resultEvents[newPos].point;
+    { p1 = resultEvents[newPos].point; }
 
 
   // while in range and not the current one by value
@@ -2942,17 +2945,17 @@ function nextPos(pos, resultEvents, processed, origIndex) {
  * @return {Array.<*>} polygons
  */
 function connectEdges(sortedEvents, operation) {
-  let i, len;
-  const resultEvents = orderEvents(sortedEvents);
+  var i, len;
+  var resultEvents = orderEvents(sortedEvents);
 
   // "false"-filled array
-  const processed = {};
-  const result = [];
-  let event;
+  var processed = {};
+  var result = [];
+  var event;
 
   for (i = 0, len = resultEvents.length; i < len; i++) {
-    if (processed[i]) continue;
-    const contour = [[]];
+    if (processed[i]) { continue; }
+    var contour = [[]];
 
     if (!resultEvents[i].isExteriorRing) {
       if (operation === DIFFERENCE && !resultEvents[i].isSubject && result.length === 0) {
@@ -2968,10 +2971,10 @@ function connectEdges(sortedEvents, operation) {
       result.push(contour);
     }
 
-    const ringId = result.length - 1;
-    let pos = i;
+    var ringId = result.length - 1;
+    var pos = i;
 
-    const initial = resultEvents[i].point;
+    var initial = resultEvents[i].point;
     contour[0].push(initial);
 
     while (pos >= i) {
@@ -3010,14 +3013,14 @@ var tinyqueue = TinyQueue;
 var _default$1 = TinyQueue;
 
 function TinyQueue(data, compare) {
-    if (!(this instanceof TinyQueue)) return new TinyQueue(data, compare);
+    if (!(this instanceof TinyQueue)) { return new TinyQueue(data, compare); }
 
     this.data = data || [];
     this.length = this.data.length;
     this.compare = compare || defaultCompare;
 
     if (this.length > 0) {
-        for (var i = (this.length >> 1) - 1; i >= 0; i--) this._down(i);
+        for (var i = (this.length >> 1) - 1; i >= 0; i--) { this._down(i); }
     }
 }
 
@@ -3034,7 +3037,7 @@ TinyQueue.prototype = {
     },
 
     pop: function () {
-        if (this.length === 0) return undefined;
+        if (this.length === 0) { return undefined; }
 
         var top = this.data[0];
         this.length--;
@@ -3060,7 +3063,7 @@ TinyQueue.prototype = {
         while (pos > 0) {
             var parent = (pos - 1) >> 1;
             var current = data[parent];
-            if (compare(item, current) >= 0) break;
+            if (compare(item, current) >= 0) { break; }
             data[pos] = current;
             pos = parent;
         }
@@ -3083,7 +3086,7 @@ TinyQueue.prototype = {
                 left = right;
                 best = data[right];
             }
-            if (compare(best, item) >= 0) break;
+            if (compare(best, item) >= 0) { break; }
 
             data[pos] = best;
             pos = left;
@@ -3094,14 +3097,14 @@ TinyQueue.prototype = {
 };
 tinyqueue.default = _default$1;
 
-const max = Math.max;
-const min = Math.min;
+var max = Math.max;
+var min = Math.min;
 
-let contourId = 0;
+var contourId = 0;
 
 
 function processPolygon(contourOrHole, isSubject, depth, Q, bbox, isExteriorRing) {
-  let i, len, s1, s2, e1, e2;
+  var i, len, s1, s2, e1, e2;
   for (i = 0, len = contourOrHole.length - 1; i < len; i++) {
     s1 = contourOrHole[i];
     s2 = contourOrHole[i + 1];
@@ -3124,7 +3127,7 @@ function processPolygon(contourOrHole, isSubject, depth, Q, bbox, isExteriorRing
       e1.left = true;
     }
 
-    const x = s1[0], y = s1[1];
+    var x = s1[0], y = s1[1];
     bbox[0] = min(bbox[0], x);
     bbox[1] = min(bbox[1], y);
     bbox[2] = max(bbox[2], x);
@@ -3139,14 +3142,14 @@ function processPolygon(contourOrHole, isSubject, depth, Q, bbox, isExteriorRing
 
 
 function fillQueue(subject, clipping, sbbox, cbbox, operation) {
-  const eventQueue = new tinyqueue(null, compareEvents);
-  let polygonSet, isExteriorRing, i, ii, j, jj; //, k, kk;
+  var eventQueue = new tinyqueue(null, compareEvents);
+  var polygonSet, isExteriorRing, i, ii, j, jj; //, k, kk;
 
   for (i = 0, ii = subject.length; i < ii; i++) {
     polygonSet = subject[i];
     for (j = 0, jj = polygonSet.length; j < jj; j++) {
       isExteriorRing = j === 0;
-      if (isExteriorRing) contourId++;
+      if (isExteriorRing) { contourId++; }
       processPolygon(polygonSet[j], true, contourId, eventQueue, sbbox, isExteriorRing);
     }
   }
@@ -3155,8 +3158,8 @@ function fillQueue(subject, clipping, sbbox, cbbox, operation) {
     polygonSet = clipping[i];
     for (j = 0, jj = polygonSet.length; j < jj; j++) {
       isExteriorRing = j === 0;
-      if (operation === DIFFERENCE) isExteriorRing = false;
-      if (isExteriorRing) contourId++;
+      if (operation === DIFFERENCE) { isExteriorRing = false; }
+      if (isExteriorRing) { contourId++; }
       processPolygon(polygonSet[j], false, contourId, eventQueue, cbbox, isExteriorRing);
     }
   }
@@ -3164,11 +3167,11 @@ function fillQueue(subject, clipping, sbbox, cbbox, operation) {
   return eventQueue;
 }
 
-const EMPTY = [];
+var EMPTY = [];
 
 
 function trivialOperation(subject, clipping, operation) {
-  let result = null;
+  var result = null;
   if (subject.length * clipping.length === 0) {
     if        (operation === INTERSECTION) {
       result = EMPTY;
@@ -3184,7 +3187,7 @@ function trivialOperation(subject, clipping, operation) {
 
 
 function compareBBoxes(subject, clipping, sbbox, cbbox, operation) {
-  let result = null;
+  var result = null;
   if (sbbox[0] > cbbox[2] ||
       cbbox[0] > sbbox[2] ||
       sbbox[1] > cbbox[3] ||
@@ -3209,15 +3212,15 @@ function boolean(subject, clipping, operation) {
   if (typeof clipping[0][0][0] === 'number') {
     clipping = [clipping];
   }
-  let trivial = trivialOperation(subject, clipping, operation);
+  var trivial = trivialOperation(subject, clipping, operation);
   if (trivial) {
     return trivial === EMPTY ? null : trivial;
   }
-  const sbbox = [Infinity, Infinity, -Infinity, -Infinity];
-  const cbbox = [Infinity, Infinity, -Infinity, -Infinity];
+  var sbbox = [Infinity, Infinity, -Infinity, -Infinity];
+  var cbbox = [Infinity, Infinity, -Infinity, -Infinity];
 
   //console.time('fill queue');
-  const eventQueue = fillQueue(subject, clipping, sbbox, cbbox, operation);
+  var eventQueue = fillQueue(subject, clipping, sbbox, cbbox, operation);
   //console.timeEnd('fill queue');
 
   trivial = compareBBoxes(subject, clipping, sbbox, cbbox, operation);
@@ -3225,11 +3228,11 @@ function boolean(subject, clipping, operation) {
     return trivial === EMPTY ? null : trivial;
   }
   //console.time('subdivide edges');
-  const sortedEvents = subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation);
+  var sortedEvents = subdivide(eventQueue, subject, clipping, sbbox, cbbox, operation);
   //console.timeEnd('subdivide edges');
 
   //console.time('connect vertices');
-  const result = connectEdges(sortedEvents, operation);
+  var result = connectEdges(sortedEvents, operation);
   //console.timeEnd('connect vertices');
   return result;
 }
@@ -3483,8 +3486,8 @@ var jsonStringifyPrettyCompact = stringify;
 
 // Wrap the Martinez clipper and return a GeoJSON feature.
 function _clip(a, b, which) {
-  const operation = { INTERSECTION: 0, UNION: 1, DIFFERENCE: 2, XOR: 3 }[which];
-  const coords = boolean(a.geometry.coordinates, b.geometry.coordinates, operation);
+  var operation = { INTERSECTION: 0, UNION: 1, DIFFERENCE: 2, XOR: 3 }[which];
+  var coords = boolean(a.geometry.coordinates, b.geometry.coordinates, operation);
   return {
     type: 'Feature',
     properties: {},
@@ -3496,10 +3499,10 @@ function _clip(a, b, which) {
 
   // is this a Polygon or a MultiPolygon?
   function whichType(coords) {
-    const a = Array.isArray(coords);
-    const b = a && Array.isArray(coords[0]);
-    const c = b && Array.isArray(coords[0][0]);
-    const d = c && Array.isArray(coords[0][0][0]);
+    var a = Array.isArray(coords);
+    var b = a && Array.isArray(coords[0]);
+    var c = b && Array.isArray(coords[0][0]);
+    var d = c && Array.isArray(coords[0][0][0]);
     return d ? 'MultiPolygon' : 'Polygon';
   }
 }
@@ -3508,16 +3511,16 @@ function _clip(a, b, which) {
 // Reduce an array of locations into a single GeoJSON feature
 function _locationReducer(accumulator, location) {
   /* eslint-disable no-console, no-invalid-this */
-  let result;
+  var result;
   try {
-    let resolved = this.resolveLocation(location);
+    var resolved = this.resolveLocation(location);
     if (!resolved || !resolved.feature) {
-      console.warn(`Warning:  Couldn't resolve location "${location}"`);
+      console.warn(("Warning:  Couldn't resolve location \"" + location + "\""));
       return accumulator;
     }
     result = !accumulator ? resolved.feature : _clip(accumulator, resolved.feature, 'UNION');
   } catch (e) {
-    console.warn(`Warning:  Error resolving location "${location}"`);
+    console.warn(("Warning:  Error resolving location \"" + location + "\""));
     console.warn(e);
     result = accumulator;
   }
@@ -3532,252 +3535,233 @@ function _cloneDeep(obj) {
 }
 
 
-class index {
+var defaultExport = function defaultExport(fc) {
+  var this$1 = this;
 
-  // constructor
-  //
-  // Optionally pass a GeoJSON FeatureCollection of known features which we can refer to later.
-  // Each feature must have a filename-like `id`, for example: `something.geojson`
-  //
-  // {
-  //   "type": "FeatureCollection"
-  //   "features": [
-  //     {
-  //       "type": "Feature",
-  //       "id": "philly_metro.geojson",
-  //       "properties": { … },
-  //       "geometry": { … }
-  //     }
-  //   ]
-  // }
-  constructor(fc) {
-    this._cache = {};
+  this._cache = {};
 
-    // process input FeatureCollection
-    if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
-      fc.features.forEach(feature => {
-        feature.properties = feature.properties || {};
-        let props = feature.properties;
+  // process input FeatureCollection
+  if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
+    fc.features.forEach(function (feature) {
+      feature.properties = feature.properties || {};
+      var props = feature.properties;
 
-        // get `id` from either `id` or `properties`
-        let id = feature.id || props.id;
-        if (!id || !/^\S+\.geojson$/i.test(id)) return;
+      // get `id` from either `id` or `properties`
+      var id = feature.id || props.id;
+      if (!id || !/^\S+\.geojson$/i.test(id)) { return; }
 
-        // ensure id exists and is lowercase
-        id = id.toLowerCase();
-        feature.id = id;
-        props.id = id;
-
-        // ensure area property exists
-        if (!props.area) {
-          const area = geojsonArea.geometry(feature.geometry) / 1e6;  // m² to km²
-          props.area = Number(area.toFixed(2));
-        }
-
-        this._cache[id] = feature;
-      });
-    }
-
-    // Replace CountryCoder world geometry to have a polygon covering the world.
-    let world = _cloneDeep(feature('Q2'));
-    world.geometry = {
-      type: 'Polygon',
-      coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
-    };
-    world.id = 'Q2';
-    world.properties.id = 'Q2';
-    world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;  // m² to km²
-    this._cache.Q2 = world;
-  }
-
-
-  // validateLocation
-  //
-  // Pass a `location` identifier
-  // Returns a result like
-  //   {
-  //     type:     'point', 'geojson', or 'countrycoder'
-  //     location:  the queried location
-  //     id:        a unique identifier
-  //   }
-  //  or `null` if the location is invalid
-  //
-  validateLocation(location) {
-    if (Array.isArray(location)) {   // a [lon,lat] coordinate pair?
-      if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-        location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
-      ) {
-        const id = '[' + location.toString() + ']';
-        return { type: 'point', location: location, id: id };
-      }
-
-    } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) {   // a .geojson filename?
-      const id = location.toLowerCase();
-      if (this._cache[id]) {
-        return { type: 'geojson', location: location, id: id };
-      }
-
-    } else if (typeof location === 'string' || typeof location === 'number') {   // a country-coder value?
-      const feature$1 = feature(location);
-      if (feature$1) {
-        // Use wikidata QID as the identifier, since that seems to be the only
-        // property that everything in CountryCoder is guaranteed to have.
-        const id = feature$1.properties.wikidata;
-        return { type: 'countrycoder', location: location, id: id };
-      }
-    }
-
-    return null;
-  }
-
-
-  // resolveLocation
-  //
-  // Pass a `location` identifier
-  // Returns a result like
-  //   {
-  //     type:      'point', 'geojson', or 'countrycoder'
-  //     location:  the queried location
-  //     id:        a unique identifier
-  //     feature:   the geojson feature
-  //   }
-  //  or `null` if the location is invalid
-  //
-  resolveLocation(location) {
-    const valid = this.validateLocation(location);
-    if (!valid) return null;
-
-    // return a result from cache if we can
-    if (this._cache[valid.id]) {
-      return Object.assign(valid, { feature: this._cache[valid.id] });
-    }
-
-    // a [lon,lat] coordinate pair?
-    if (valid.type === 'point') {
-      const RADIUS = 25000;  // meters
-      const EDGES = 10;
-      const PRECISION = 3;
-      const area = Math.PI * RADIUS * RADIUS / 1e6;     // m² to km²
-      const feature = this._cache[valid.id] = geojsonPrecision({
-        type: 'Feature',
-        id: valid.id,
-        properties: { id: valid.id, area: Number(area.toFixed(2)) },
-        geometry: circleToPolygon(location, RADIUS, EDGES)
-      }, PRECISION);
-      return Object.assign(valid, { feature: feature });
-
-    // a .geojson filename?
-    } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
-      let feature$1 = _cloneDeep(feature(valid.id));
-      let props = feature$1.properties;
-
-      // -> This block of code is weird and requires some explanation. <-
-      // CountryCoder includes higher level features which are made up of members.
-      // These features don't have their own geometry, but CountryCoder provides an
-      //   `aggregateFeature` method to combine these members into a MultiPolygon.
-      // BUT, when we try to actually work with these aggregated MultiPolygons,
-      //   Turf/JSTS gets crashy because of topography bugs.
-      // SO, we'll aggregate the features ourselves by unioning them together.
-      // This approach also has the benefit of removing all the internal boaders and
-      //   simplifying the regional polygons a lot.
-      if (Array.isArray(props.members)) {
-        let seed = feature$1.geometry ? feature$1 : null;
-        let aggregate = props.members.reduce(_locationReducer.bind(this), seed);
-        feature$1.geometry = aggregate.geometry;
-      }
+      // ensure id exists and is lowercase
+      id = id.toLowerCase();
+      feature.id = id;
+      props.id = id;
 
       // ensure area property exists
       if (!props.area) {
-        const area = geojsonArea.geometry(feature$1.geometry) / 1e6;  // m² to km²
+        var area = geojsonArea.geometry(feature.geometry) / 1e6;// m² to km²
         props.area = Number(area.toFixed(2));
       }
 
-      // ensure id property exists
-      feature$1.id = valid.id;
-      props.id = valid.id;
-
-      this._cache[valid.id] = feature$1;
-      return Object.assign(valid, { feature: feature$1 });
-    }
-
-    return null;
+      this$1._cache[id] = feature;
+    });
   }
 
+  // Replace CountryCoder world geometry to have a polygon covering the world.
+  var world = _cloneDeep(feature('Q2'));
+  world.geometry = {
+    type: 'Polygon',
+    coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
+  };
+  world.id = 'Q2';
+  world.properties.id = 'Q2';
+  world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;// m² to km²
+  this._cache.Q2 = world;
+};
 
-  // resolveLocationSet
-  //
-  // Pass a `locationSet` Object like:
-  //   `{ include: [ Array ], exclude: [ Array ] }`
-  // Returns a stable identifier string of the form:
-  //   "+[included]-[excluded]"
-  //
-  resolveLocationSet(locationSet) {
-    locationSet = locationSet || {};
-    const resolve = this.resolveLocation.bind(this);
-    let include = (locationSet.include || []).map(resolve).filter(Boolean);
-    let exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
 
-    if (!include.length) {
-      include = [resolve('Q2')];   // default to 'the world'
+// validateLocation
+//
+// Pass a `location` identifier
+// Returns a result like
+// {
+//   type:   'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      a unique identifier
+// }
+//or `null` if the location is invalid
+//
+defaultExport.prototype.validateLocation = function validateLocation (location) {
+  if (Array.isArray(location)) { // a [lon,lat] coordinate pair?
+    if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
+      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+    ) {
+      var id = '[' + location.toString() + ']';
+      return { type: 'point', location: location, id: id };
     }
 
-    // return quickly if it's a single included location..
-    if (include.length === 1 && exclude.length === 0) {
-      return include[0].feature;
+  } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) { // a .geojson filename?
+    var id$1 = location.toLowerCase();
+    if (this._cache[id$1]) {
+      return { type: 'geojson', location: location, id: id$1 };
     }
 
-    // generate stable identifier
-    include.sort(sortFeatures);
-    let id = '+[' + include.map(d => d.id).join(',') + ']';
-    if (exclude.length) {
-      exclude.sort(sortFeatures);
-      id += '-[' + exclude.map(d => d.id).join(',') + ']';
-    }
-
-    // return cached?
-    if (this._cache[id]) {
-      return this._cache[id];
-    }
-
-    // calculate unions
-    let includeGeoJSON = include.map(d => d.location).reduce(_locationReducer.bind(this), null);
-    let excludeGeoJSON = exclude.map(d => d.location).reduce(_locationReducer.bind(this), null);
-
-    // calculate difference, update area and return result
-    let resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
-    const area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
-    resultGeoJSON.id = id;
-    resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
-
-    return this._cache[id] = resultGeoJSON;
-
-
-    // Sorting the location lists is ok because they end up unioned together.
-    // This sorting makes it possible to generate a deterministic id.
-    function sortFeatures(a, b) {
-      const rank = { countrycoder: 1, geojson: 2, point: 3 };
-      const aRank = rank[a.type];
-      const bRank = rank[b.type];
-
-      return (aRank > bRank) ? 1
-        : (aRank < bRank) ? -1
-        : a.id.localeCompare(b.id);
+  } else if (typeof location === 'string' || typeof location === 'number') { // a country-coder value?
+    var feature$1 = feature(location);
+    if (feature$1) {
+      // Use wikidata QID as the identifier, since that seems to be the only
+      // property that everything in CountryCoder is guaranteed to have.
+      var id$2 = feature$1.properties.wikidata;
+      return { type: 'countrycoder', location: location, id: id$2 };
     }
   }
 
+  return null;
+};
 
-  cache() {
-    return this._cache;
+
+// resolveLocation
+//
+// Pass a `location` identifier
+// Returns a result like
+// {
+//   type:    'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      a unique identifier
+//   feature: the geojson feature
+// }
+//or `null` if the location is invalid
+//
+defaultExport.prototype.resolveLocation = function resolveLocation (location) {
+  var valid = this.validateLocation(location);
+  if (!valid) { return null; }
+
+  // return a result from cache if we can
+  if (this._cache[valid.id]) {
+    return Object.assign(valid, { feature: this._cache[valid.id] });
   }
 
+  // a [lon,lat] coordinate pair?
+  if (valid.type === 'point') {
+    var RADIUS = 25000;// meters
+    var EDGES = 10;
+    var PRECISION = 3;
+    var area = Math.PI * RADIUS * RADIUS / 1e6;   // m² to km²
+    var feature$1 = this._cache[valid.id] = geojsonPrecision({
+      type: 'Feature',
+      id: valid.id,
+      properties: { id: valid.id, area: Number(area.toFixed(2)) },
+      geometry: circleToPolygon(location, RADIUS, EDGES)
+    }, PRECISION);
+    return Object.assign(valid, { feature: feature$1 });
 
-  stringify(obj, options) {
-    return jsonStringifyPrettyCompact(obj, options);
+  // a .geojson filename?
+  } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
+    var feature$1$1 = _cloneDeep(feature(valid.id));
+    var props = feature$1$1.properties;
+
+    // -> This block of code is weird and requires some explanation. <-
+    // CountryCoder includes higher level features which are made up of members.
+    // These features don't have their own geometry, but CountryCoder provides an
+    // `aggregateFeature` method to combine these members into a MultiPolygon.
+    // BUT, when we try to actually work with these aggregated MultiPolygons,
+    // Turf/JSTS gets crashy because of topography bugs.
+    // SO, we'll aggregate the features ourselves by unioning them together.
+    // This approach also has the benefit of removing all the internal boaders and
+    // simplifying the regional polygons a lot.
+    if (Array.isArray(props.members)) {
+      var seed = feature$1$1.geometry ? feature$1$1 : null;
+      var aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+      feature$1$1.geometry = aggregate.geometry;
+    }
+
+    // ensure area property exists
+    if (!props.area) {
+      var area$1 = geojsonArea.geometry(feature$1$1.geometry) / 1e6;// m² to km²
+      props.area = Number(area$1.toFixed(2));
+    }
+
+    // ensure id property exists
+    feature$1$1.id = valid.id;
+    props.id = valid.id;
+
+    this._cache[valid.id] = feature$1$1;
+    return Object.assign(valid, { feature: feature$1$1 });
   }
 
+  return null;
+};
 
-}
 
-return index;
+// resolveLocationSet
+//
+// Pass a `locationSet` Object like:
+// `{ include: [ Array ], exclude: [ Array ] }`
+// Returns a stable identifier string of the form:
+// "+[included]-[excluded]"
+//
+defaultExport.prototype.resolveLocationSet = function resolveLocationSet (locationSet) {
+  locationSet = locationSet || {};
+  var resolve = this.resolveLocation.bind(this);
+  var include = (locationSet.include || []).map(resolve).filter(Boolean);
+  var exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
+
+  if (!include.length) {
+    include = [resolve('Q2')]; // default to 'the world'
+  }
+
+  // return quickly if it's a single included location..
+  if (include.length === 1 && exclude.length === 0) {
+    return include[0].feature;
+  }
+
+  // generate stable identifier
+  include.sort(sortFeatures);
+  var id = '+[' + include.map(function (d) { return d.id; }).join(',') + ']';
+  if (exclude.length) {
+    exclude.sort(sortFeatures);
+    id += '-[' + exclude.map(function (d) { return d.id; }).join(',') + ']';
+  }
+
+  // return cached?
+  if (this._cache[id]) {
+    return this._cache[id];
+  }
+
+  // calculate unions
+  var includeGeoJSON = include.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+  var excludeGeoJSON = exclude.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+
+  // calculate difference, update area and return result
+  var resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
+  var area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;// m² to km²
+  resultGeoJSON.id = id;
+  resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
+
+  return this._cache[id] = resultGeoJSON;
+
+
+  // Sorting the location lists is ok because they end up unioned together.
+  // This sorting makes it possible to generate a deterministic id.
+  function sortFeatures(a, b) {
+    var rank = { countrycoder: 1, geojson: 2, point: 3 };
+    var aRank = rank[a.type];
+    var bRank = rank[b.type];
+
+    return (aRank > bRank) ? 1
+      : (aRank < bRank) ? -1
+      : a.id.localeCompare(b.id);
+  }
+};
+
+
+defaultExport.prototype.cache = function cache () {
+  return this._cache;
+};
+
+
+defaultExport.prototype.stringify = function stringify (obj, options) {
+  return jsonStringifyPrettyCompact(obj, options);
+};
+
+return defaultExport;
 
 })));

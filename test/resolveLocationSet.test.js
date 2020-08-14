@@ -6,12 +6,12 @@ const loco = new LocationConflation(features);
 
 
 test('resolveLocationSet', t => {
-  t.test('empty include defaults to world (q2)', t => {
+  t.test('empty include defaults to world (Q2)', t => {
     const locationSet = { };
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, 'q2');
+    t.equal(result.properties.id, 'Q2');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -21,7 +21,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q18,q27611]');
+    t.equal(result.properties.id, '+[Q18,Q27611]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -31,7 +31,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q2]-[q18,q27611]');
+    t.equal(result.properties.id, '+[Q2]-[Q18,Q27611]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -51,7 +51,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q2]-[dc_metro.geojson,philly_metro.geojson]');
+    t.equal(result.properties.id, '+[Q2]-[dc_metro.geojson,philly_metro.geojson]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -71,7 +71,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q2]-[[0,0],[0,1],[1,0],[1,1]]');
+    t.equal(result.properties.id, '+[Q2]-[[0,0],[0,1],[1,0],[1,1]]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -81,7 +81,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, 'q2');
+    t.equal(result.properties.id, 'Q2');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -91,7 +91,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, 'q2');
+    t.equal(result.properties.id, 'Q2');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -101,7 +101,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q16,philly_metro.geojson,[0,0]]');
+    t.equal(result.properties.id, '+[Q16,philly_metro.geojson,[0,0]]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -111,7 +111,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q2]-[q16,philly_metro.geojson,[0,0]]');
+    t.equal(result.properties.id, '+[Q2]-[Q16,philly_metro.geojson,[0,0]]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });
@@ -121,7 +121,7 @@ test('resolveLocationSet', t => {
     const result = loco.resolveLocationSet(locationSet);
     t.type(result, 'object');
     t.type(result.properties, 'object');
-    t.equal(result.properties.id, '+[q30]-[q1183]');
+    t.equal(result.properties.id, '+[Q30]-[Q1183]');
     t.match(result.properties, { area: /\d+/ });  // has a numeric area property
     t.end();
   });

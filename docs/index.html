@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'/>
+<title>Location Conflation</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.js'></script>
+<script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/whatwg-fetch@3.2.0/dist/fetch.umd.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/gh/ideditor/location-conflation@master/dist/index.es5.js'></script>
+<!-- <script defer src='../dist/index.es5.js'></script> -->
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css' rel='stylesheet'/>
+<link href='style.css' rel='stylesheet' type='text/css'/>
+</head>
+
+<body>
+<div id='wrap' class='hasCols'>
+
+  <div id='side' class='hasRows'>
+
+    <div id='title' class='hasCols'>
+      <div class='icon'><i class='fas fa-puzzle-piece fa-2x'></i></div>
+      <div><h2>location-conflation</h2></div>
+    </div>
+
+    <div id='sidebar' class='hasRows'>
+
+      <div id='loco' class='section'>
+        <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/master/README.md#location-conflation' target='_blank' style='font-size: smaller; margin-left: 70px'>What's this?</a></p>
+<textarea autofocus id='loco-textarea' name='loco-textarea' rows='5'>
+{ include: ['de', 'cz', 'pl'] }
+</textarea>
+        <div id='button-row' class='hasCols'>
+          <div><button id='loco-view-button'>View it!</button></div>
+          <div><button id='loco-remove-button' class='invisible'>Remove</button></div>
+          <div id='loco-result-icon' class='invisible'>
+            <div id='loco-icon-good' class='hidden'><i class='fas fa-check-circle fa-2x'></i></div>
+            <div id='loco-icon-bad' class='hidden'><i class='fas fa-times-circle fa-2x'></i></div>
+          </div>
+        </div>
+        <p id='loco-result-message' class='invisible'></p>
+      </div>
+
+      <div id='docs' class='section'>
+         <h3>Try these!</h3>
+      </div>
+
+    </div>
+  </div>
+
+  <div id='viewer' class='hasRows'>
+
+    <div id='controls' class='hasCols'>
+      <div id='control-zoom' class='control'>
+        <label>Zoom: </label>
+        <span id='zoom-value'>1</span>
+      </div>
+      <div id='control-toggle' class='control'>
+        <div class='icon'><i class='fas fa-map fa-lg'></i></div>
+        <label id='geojson-toggle' class='switch'>
+          <input id='geojson-checkbox' type='checkbox'>
+          <span class='slider round'></span>
+        </label>
+        <div class='icon'><i class='fas fa-vector-square fa-lg'></i></div>
+      </div>
+      <div id='octocat'>
+        <a href='https://github.com/ideditor/location-conflation' target='_blank'>
+        <i class='fab fa-github fa-2x'></i>
+        </a>
+      </div>
+    </div>
+
+    <div id='maps'>
+      <div id='geojson-view' class='invisible'>
+        <textarea id='geojson-container' name='geojson-textarea' readonly>No Data</textarea>
+      </div>
+      <div id='basemap'></div>
+      <div id='attribution' class='mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right'></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibWlrZWxtYXJvbiIsImEiOiJjaWZlY25lZGQ2cTJjc2trbmdiZDdjYjllIn0.Wx1n0X7aeCQyDTnK6_mrGw';
+
+var map = new mapboxgl.Map({
+  attributionControl: false,
+  container: 'basemap',
+  style: 'mapbox://styles/mapbox/dark-v10',
+  center: [0,0],
+  zoom: 1,
+  minZoom: 0,
+  maxZoom: 24,
+  minPitch: 0,
+  maxPitch: 0,
+  dragRotate: false,
+  renderWorldCopies: false
+});
+
+// ----------------------------------- STATE ------------------------------------
+var _currZoom = 1;
+var _showMap = true;
+var _locoReset = true;
+var _loco;
+var _locoPromise;
+var _fcPromise;
+
+
+// ----------------------------------- DOM ------------------------------------
+// select some elements to use later
+var attribution = document.getElementById('attribution');
+var basemap = document.getElementById('basemap');
+var docs = document.getElementById('docs');
+var geojsonView = document.getElementById('geojson-view');
+var geojsonCheckbox = document.getElementById('geojson-checkbox');
+var geojsonContainer = document.getElementById('geojson-container');
+var locoTextarea = document.getElementById('loco-textarea');
+var locoViewButton = document.getElementById('loco-view-button');
+var locoRemoveButton = document.getElementById('loco-remove-button');
+var locoResultMessage = document.getElementById('loco-result-message');
+var locoResultIcon = document.getElementById('loco-result-icon');
+var locoIconGood = document.getElementById('loco-icon-good');
+var locoIconBad = document.getElementById('loco-icon-bad');
+var zoomValue = document.getElementById('zoom-value');
+
+var baseAttribution = ' <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a>';
+attribution.innerHTML = baseAttribution;
+
+// pull params out of the query string, if any
+var qs = window.location.search ? utilStringQs(window.location.search) : {};
+
+// handle locationSet in url querystring
+if (qs.locationSet) {
+  locoTextarea.value = qs.locationSet;
+}
+
+
+// ------------------------------------ STYLE ------------------------------------
+var LOCO_COLOR = '#f90';
+var LOCO_CLASS = 'orange';
+
+var LOCO_FILL = {
+  id: 'loco-fill-layer',
+  type: 'fill',
+  source: 'loco-source',
+  paint: {
+    'fill-color': LOCO_COLOR,
+    'fill-opacity': 0.1
+  }
+};
+var LOCO_LINE = {
+  id: 'loco-line-layer',
+  type: 'line',
+  source: 'loco-source',
+  paint: {
+    'line-blur': 1,
+    'line-width': 4,
+    'line-color': LOCO_COLOR,
+    'line-opacity': 0.9
+  }
+};
+var LOCO_POINT = {
+  id: 'loco-point-layer',
+  type: 'circle',
+  source: 'loco-source',
+  paint: {
+    'circle-radius': 2.5,
+    'circle-color': LOCO_COLOR,
+    'circle-opacity': 0.9,
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#111',
+    'circle-stroke-opacity': 0.9
+  }
+};
+
+// ---------------------------------- EXAMPLES ------------------------------------
+var examples = [
+  [ "Germany, Czech Republic, Poland",            "{ include: ['de', 'cz', 'pl'] }" ],
+  [ "Metropolitan France",                        "{ include: ['fx'] }" ],
+  [ "Estonia, Latvia, Lithuania",                 "{ include: ['ee', 'lv', 'lt'] }" ],
+  [ "Southern Europe",                            "{ include: ['039'] }" ],
+  [ "Southern Europe and Northern Africa",        "{ include: ['039', '015'] }" ],
+  [ "The world excluding New Zealand",            "{ include: ['001'], exclude: ['nz'] }" ],
+  [ "Sub-Saharan Africa excluding South Africa",  "{ include: ['202'], exclude: ['za'] }" ],
+  [ "North and South Korea",                      "{ include: ['kp', 'kr'] }" ],
+  [ "Oceania excluding Fiji, Tonga",              "{ include: ['009'], exclude: ['fj', 'to'] }" ]
+];
+
+
+// ---------------------------------- HANDLERS ------------------------------------
+
+window.addEventListener('DOMContentLoaded', function(e) {
+  // If we were referred here from another site, fetch the appropriate featureCollection for that site.
+  if (qs.referrer === 'oci') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/osm-community-index@master/dist/features.min.json');
+  } else if (qs.referrer === 'nsi') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/name-suggestion-index@master/dist/featureCollection.min.json');
+  } else if (qs.referrer === 'ii') {
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/ideditor/imagery-index@master/dist/featureCollection.min.json');
+  } else {
+    _fcPromise = Promise.resolve({ ok: true, json: function() { return {}; } });  // fake response
+  }
+
+  // Settle once the file has been fetched
+  _locoPromise = _fcPromise
+    .then(function(response) {
+      if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+      return response.json();
+    })
+    .then(function(featureCollection) {
+      return _loco = new LocationConflation(featureCollection);
+    })
+    .catch(function(err) {
+      return _loco = new LocationConflation();
+    });
+
+
+  // append examples
+  examples.forEach(function(example) {
+    var p = document.createElement('p');
+    var a = document.createElement('a');
+    a.appendChild(document.createTextNode(example[0]));
+    a.setAttribute('href', 'javascript:locoSetInput("' + example[1] + '")');
+    var br = document.createElement('br');
+    var code = document.createElement('code');
+    code.appendChild(document.createTextNode(example[1]));
+
+    p.appendChild(a);
+    p.appendChild(br);
+    p.appendChild(code);
+    docs.appendChild(p);
+  });
+});
+
+
+// wait for map to load before adjusting it
+map.on('load', function() {
+
+  map.on('zoom', function(e) {
+    var newZoom = Math.round((e.target.transform.zoom + Number.EPSILON) * 100) / 100;
+    if (newZoom !== _currZoom) {
+      _currZoom = newZoom;
+      zoomValue.textContent = '' + newZoom;
+    }
+  });
+
+  geojsonCheckbox.addEventListener('change', function(e) {
+    _showMap = !_showMap;
+    if (_showMap) {
+      basemap.className = 'mapboxgl-map visible';
+      geojsonView.className = LOCO_CLASS + ' invisible';
+      attribution.innerHTML = baseAttribution;
+    } else {
+      basemap.className = 'mapboxgl-map obscured';
+      geojsonView.className = LOCO_CLASS + ' visible';
+      attribution.innerHTML = '';
+    }
+  });
+
+  locoViewButton.addEventListener('click', function(e) {
+    e.target.blur();
+    locoParseInput();
+  });
+
+  locoRemoveButton.addEventListener('click', function(e) {
+    e.target.blur();
+    locoRemoveData();
+    locoClearResults();
+  });
+
+  locoTextarea.addEventListener('input', locoClearResults);
+
+  // If we got a locationSet in the URL querystring, display it.
+  if (qs.locationSet) {
+    locoParseInput();
+  }
+});
+
+
+// ---------------------------------- FUNCTIONS ------------------------------------
+
+//
+// Fit to shape bounds - pass a MultiPolygon coordinates array
+//
+function flyTo(multipolygon) {
+  var bounds = multipolygon.reduce(function(bounds, ring) {
+    ring[0].forEach(function(coord) {  // ring[0] is the "outer"
+      if (coord[0] > bounds[0])  bounds[0] = coord[0];
+      if (coord[1] > bounds[1])  bounds[1] = coord[1];
+      if (coord[0] < bounds[2])  bounds[2] = coord[0];
+      if (coord[1] < bounds[3])  bounds[3] = coord[1];
+    });
+    return bounds;
+  }, [-180, -90, 180, 90]);  // W,S,E,N
+
+  map.fitBounds(bounds, { padding: 50 });
+}
+
+//
+// Remove the LocationConflation data from the map..
+//
+function locoRemoveData() {
+  locoRemoveButton.className = locoRemoveButton.className.replace('visible', 'invisible');
+  geojsonContainer.textContent = 'No Data';
+  delete qs.locationSet;
+  history.replaceState('{}', '', '?' + utilQsString(qs));
+  document.title = 'Location Conflation';
+
+  if (map.getLayer('loco-fill-layer'))   map.removeLayer('loco-fill-layer');
+  if (map.getLayer('loco-line-layer'))   map.removeLayer('loco-line-layer');
+  if (map.getLayer('loco-point-layer'))  map.removeLayer('loco-point-layer');
+  if (map.getSource('loco-source'))      map.removeSource('loco-source');
+}
+
+//
+// Remove the LocationConflation results from the DOM..
+//
+function locoClearResults() {
+  if (_locoReset) return;
+  _locoReset = true;
+  locoResultIcon.className = locoResultIcon.className.replace('visible', 'invisible');
+  locoResultMessage.className = locoResultMessage.className.replace('visible', 'invisible');
+  window.setTimeout(function() {
+    locoIconGood.className = 'hidden';
+    locoIconBad.className = 'hidden';
+    locoResultMessage.innerHTML = '';
+  }, 100);
+}
+
+//
+// This just sets the loctionSet textBox and parses it.
+// (same as if the user had typed it themselves and clicked the button)
+//
+function locoSetInput(str) {
+  locoTextarea.value = str;
+  locoParseInput();
+}
+
+
+// Wait for the `LocationConflation` to be ready (`_locoPromise` settled)
+// before continuing.  We may be waiting for a featureCollection file.
+function locoParseInput() {
+  _locoPromise.then(locoParseInputWhenReady);
+};
+
+
+//
+// Parse the pasted LocationConflation data,
+// then update the map and present results..
+//
+function locoParseInputWhenReady() {
+  if (locoTextarea.value === '') return;
+  _locoReset = false;
+  locoRemoveData();
+
+  // Lets go!
+  try {
+    var locationSet = JSON5.parse(locoTextarea.value);
+    if (!locationSet.include) {
+      throw 'Missing property "include".';
+    }
+
+    var feature = _loco.resolveLocationSet(locationSet);
+    var props = feature.properties || {};
+
+    // Setup the LocationConflation feature layer
+    map.addSource('loco-source', { type: 'geojson', data: feature });
+    map.addLayer(LOCO_FILL);
+    map.addLayer(LOCO_LINE);
+    map.addLayer(LOCO_POINT);
+
+    var multipolygon;
+    if (feature.geometry.type === 'Polygon') {
+      multipolygon = [ feature.geometry.coordinates ];
+    } else {   // MultiPolygon
+      multipolygon = feature.geometry.coordinates;
+    }
+
+    flyTo(multipolygon);
+
+    // Present results..
+    locoRemoveButton.className = 'visible';
+    locoIconGood.className = '';  // remove 'hidden'
+    locoResultIcon.className = 'visible ' + LOCO_CLASS;
+    locoResultMessage.className = 'visible';
+
+    var messageHTML = '<strong class="' + LOCO_CLASS + '">Valid LocationSet.</strong><br/>' +
+      '<em>id = ' + feature.id + '</em><br/>';
+
+    if (props.nameEn) {
+      messageHTML += '<span class="nameEn">' + props.nameEn + '</span>';
+    }
+    if (props.emojiFlag) {
+      if (props.emojiFlag === '🇫🇽') props.emojiFlag = '🇫🇷';   // https://github.com/ideditor/country-coder/issues/25
+      messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
+    }
+    locoResultMessage.innerHTML = messageHTML;
+    geojsonContainer.textContent = _loco.stringify(feature, { maxLength: 100 });
+    qs.locationSet = locoTextarea.value;
+    history.replaceState(locationSet, locoTextarea.value,  '?' + utilQsString(qs));
+    document.title = 'LocationConflation - ' + JSON.stringify(locationSet);
+
+  } catch (err) {
+    locoRemoveButton.className = 'visible';
+    locoIconBad.className = '';  // remove 'hidden'
+    locoResultIcon.className = 'visible red';
+    locoResultMessage.className = 'visible';
+    locoResultMessage.innerHTML = 'Invalid LocationSet.<br/><em>' + err + '</em>';
+    geojsonContainer.textContent = 'No Data';
+    delete qs.locationSet;
+    history.replaceState('{}', '', '?' + utilQsString(qs));
+    document.title = 'Location Conflation';
+  }
+}
+
+
+function utilStringQs(str) {
+  var i = 0;  // advance past any leading '?' or '#' characters
+  while (i < str.length && (str[i] === '?' || str[i] === '#')) i++;
+  str = str.slice(i);
+
+  return str.split('&').reduce(function(obj, pair){
+    var parts = pair.split('=');
+    if (parts.length === 2) {
+      obj[parts[0]] = (null === parts[1]) ? '' : decodeURIComponent(parts[1]);
+    }
+    return obj;
+  }, {});
+}
+
+function utilQsString(obj) {
+  return Object.keys(obj).sort().map(function(key) {
+    return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+  }).join('&');
+}
+
+</script>
+</body>
+</html>
