@@ -6,16 +6,54 @@ import { union, diff } from 'martinez-polygon-clipping';
 import precision  from 'geojson-precision';
 import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 
+
+// Does working with the coordinates *as integers* make clipping work better?
+// We expect geo coordinates to be bounded between [-180f, 180f]
+// To be safe, consider MAX_INT = 4_294_967_295  per https://stackoverflow.com/a/7179733
+// So e.g.   123.4567890 * 1e7 = 1_234_567_890
+// 7 digits of float precision in geo coordinates should be plenty for what we are doing.
+function _toIntCoords(val) {
+  if (typeof val === 'number') return Math.round(val * 1e7);
+  else if (Array.isArray(val)) return val.map(_toIntCoords);
+  else return val;  // shrug
+}
+
+// Put them back to normal geo coords
+function _toFloatCoords(val) {
+  if (typeof val === 'number') return val / 1e7;
+  else if (Array.isArray(val)) return val.map(_toFloatCoords);
+  else return val;  // shrug
+}
+
+// Make sure this GeoJSON feature has normal geo coordinates
+function _assertCoords(feature) {
+  if (!feature || !feature.geometry) return;   // undefined/null feature, ok
+  if (feature.geometry.coordinates) return;    // coordinates exist, ok
+  if (!feature.geometry.coordinates && feature.geometry._intCoords) {
+    feature.geometry.coordinates = _toFloatCoords(feature.geometry._intCoords);
+  } else {
+    throw new Error('_assertCoords failed:  No coordinates');
+  }
+}
+
+
 // Wrap the Martinez clipper and return a GeoJSON feature.
+// The results of this operation will contain integer coordinates only,
+// so we must call `_assertCoords` to restore float coordinates after we're finished clipping
 function _clip(a, b, which) {
+  // Force all coordinates to integers before clipping
+  if (!a.geometry._intCoords) { a.geometry._intCoords = _toIntCoords(a.geometry.coordinates); }
+  if (!b.geometry._intCoords) { b.geometry._intCoords = _toIntCoords(b.geometry.coordinates); }
+
   const fn = { UNION: union, DIFFERENCE: diff }[which];
-  const coords = fn(a.geometry.coordinates, b.geometry.coordinates);
+  const coords = fn(a.geometry._intCoords, b.geometry._intCoords);
   return {
     type: 'Feature',
     properties: {},
     geometry: {
-      type: whichType(coords),
-      coordinates: coords
+      _intCoords: coords,
+      type: whichType(coords)
+      // coordinates: leave undefined
     }
   };
 
@@ -31,6 +69,8 @@ function _clip(a, b, which) {
 
 
 // Reduce an array of locations into a single GeoJSON feature
+// The results of this operation *may* contain integer coordinates only,
+// so we must call _assertCoords to restore float coordinates after we're finished reducing
 function _locationReducer(accumulator, location) {
   /* eslint-disable no-console, no-invalid-this */
   let result;
@@ -212,6 +252,7 @@ export default class {
       if (Array.isArray(props.members)) {
         let seed = feature.geometry ? feature : null;
         let aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+        _assertCoords(aggregate);
         feature.geometry = aggregate.geometry;
       }
 
@@ -271,9 +312,13 @@ export default class {
     // calculate unions
     let includeGeoJSON = include.map(d => d.location).reduce(_locationReducer.bind(this), null);
     let excludeGeoJSON = exclude.map(d => d.location).reduce(_locationReducer.bind(this), null);
+    _assertCoords(includeGeoJSON);
+    _assertCoords(excludeGeoJSON);
 
     // calculate difference, update area and return result
     let resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
+    _assertCoords(resultGeoJSON);
+
     const area = calcArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
     resultGeoJSON.id = id;
     resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
