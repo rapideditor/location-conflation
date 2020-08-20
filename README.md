@@ -4,7 +4,7 @@
 
 # location-conflation
 
-🧩 Define complex geographic regions by including and excluding country codes and geojson shapes.
+🧩 Define complex geographic regions by including and excluding country codes and GeoJSON shapes.
 
 
 ### What is it?
@@ -110,7 +110,7 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
   * [polygon-clipping](https://github.com/mfogel/polygon-clipping) for union/difference functions
 * Results contain an `area` property containing the approximate size of the feature in km²<br/>(This is helpful for sorting features)
 * Results contain a stable `id` in the form `+[included]-[excluded]`<br/>(e.g. "+[015,039]-[eg,sd]")
-* Results are cached, so if you ask for the same thing multiple times we don't repeat the expensive turf calls.
+* Results are cached, so if you ask for the same thing multiple times we don't repeat the expensive clipping operations.
 
 
 
