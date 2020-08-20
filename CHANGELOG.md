@@ -27,7 +27,7 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#1]: https://github.com/ideditor/location-conflation/issues/1
 
 
-## 0.3.0
+# 0.3.0
 ##### 2020-Feb-13
 * Use uppercase Wikidata identifiers, lowercase geojson filenames
 * Handle cases like UK which have both members _and_ geometry ([#4])
@@ -41,11 +41,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#4]: https://github.com/ideditor/location-conflation/issues/4
 
 
-## 0.2.0
+# 0.2.0
 ##### 2020-Jan-15
 * Ensure that feature results always have both `id` and `properties.id`
 
 
-## 0.1.0
+# 0.1.0
 ##### 2020-Jan-13
 * Initial release
