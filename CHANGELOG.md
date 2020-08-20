@@ -16,6 +16,17 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.4.0
+##### 2020-Aug-20
+* Replace turf with mfogel/polygon-clipping ([#1], [#2], [#20])
+* Include `stringify` convenience method
+* Update country-coder and other dependencies
+
+[#20]: https://github.com/ideditor/location-conflation/issues/20
+[#2]: https://github.com/ideditor/location-conflation/issues/2
+[#1]: https://github.com/ideditor/location-conflation/issues/1
+
+
 ## 0.3.0
 ##### 2020-Feb-13
 * Use uppercase Wikidata identifiers, lowercase geojson filenames
