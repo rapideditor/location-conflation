@@ -2,11 +2,33 @@ import * as CountryCoder from '@ideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
+import polygonClipping from 'polygon-clipping';
 import precision  from 'geojson-precision';
 import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
-import difference  from '@turf/difference';
-import { default as union } from '@turf/union';
 
+
+// Wrap the mfogel/polygon-clipping and return a GeoJSON feature.
+function _clip(a, b, which) {
+  const fn = { UNION: polygonClipping.union, DIFFERENCE: polygonClipping.difference }[which];
+  const coords = fn(a.geometry.coordinates, b.geometry.coordinates);
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: whichType(coords),
+      coordinates: coords
+    }
+  };
+
+  // is this a Polygon or a MultiPolygon?
+  function whichType(coords) {
+    const a = Array.isArray(coords);
+    const b = a && Array.isArray(coords[0]);
+    const c = b && Array.isArray(coords[0][0]);
+    const d = c && Array.isArray(coords[0][0][0]);
+    return d ? 'MultiPolygon' : 'Polygon';
+  }
+}
 
 
 // Reduce an array of locations into a single GeoJSON feature
@@ -19,17 +41,15 @@ function _locationReducer(accumulator, location) {
       console.warn(`Warning:  Couldn't resolve location "${location}"`);
       return accumulator;
     }
-    result = !accumulator ? resolved.feature : union(accumulator, resolved.feature);
+    result = !accumulator ? resolved.feature : _clip(accumulator, resolved.feature, 'UNION');
   } catch (e) {
     console.warn(`Warning:  Error resolving location "${location}"`);
     console.warn(e);
     result = accumulator;
   }
-
   return result;
   /* eslint-enable no-console, no-invalid-this */
 }
-
 
 
 function _cloneDeep(obj) {
@@ -253,7 +273,7 @@ export default class {
     let excludeGeoJSON = exclude.map(d => d.location).reduce(_locationReducer.bind(this), null);
 
     // calculate difference, update area and return result
-    let resultGeoJSON = excludeGeoJSON ? difference(includeGeoJSON, excludeGeoJSON) : includeGeoJSON;
+    let resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
     const area = calcArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
     resultGeoJSON.id = id;
     resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
