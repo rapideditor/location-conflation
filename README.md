@@ -15,7 +15,7 @@ including and excluding other locations and shapes.
 ⚡️ Try it now!:  https://ideditor.github.io/location-conflation/
 
 
-You can define a *location set* as an Object with `include` and `exclude` properties:
+You can define a *locationSet* as an Object with `include` and `exclude` properties:
 ```js
 let locationSet = {
   include: [ Array of locations ],
@@ -66,7 +66,6 @@ Or if you need to support even older browsers like Internet Explorer, fetch the 
 <script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0/dist/index.es5.min.js"></script>
 ```
 
-
 &nbsp;
 
 ## Examples
@@ -78,21 +77,24 @@ const loco = new LocationConflation(myFeatures);
 
 #### Southern Europe:
 ```js
-let result = loco.resolveLocationSet({ include: ['039'] });   // 039 = Southern Europe
+let locationSet = { include: ['039'] };    // 039 = Southern Europe
+let result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example1.png"/>
 
 
 #### Southern Europe and Northern Africa:
 ```js
-let result = loco.resolveLocationSet({ include: ['039','015'] });   // 015 = Northern Africa
+let locationSet = { include: ['039','015'] };   // 015 = Northern Africa
+let result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example2.png"/>
 
 
 #### Southern Europe and Northern Africa, _excluding_ Egypt and Sudan:
 ```js
-let result = loco.resolveLocationSet({ include: ['039','015'], exclude: ['eg','sd'] });
+let locationSet = { include: ['039','015'], exclude: ['eg','sd'] };
+let result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example3.png"/>
 
@@ -117,6 +119,7 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
 * [stringify](#stringify)
 * [cache](#cache)
 
+&nbsp;
 
 <a name="constructor" href="#constructor">#</a> const <i>loco</i> = new <b>LocationConflation</b>(<i>featureCollection</i>)
 
