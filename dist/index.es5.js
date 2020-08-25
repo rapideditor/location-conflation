@@ -3984,7 +3984,316 @@ function get (options, name, defaultValue) {
 
 var jsonStringifyPrettyCompact = stringify;
 
-// Wrap the mfogel/polygon-clipping and return a GeoJSON feature.
+var defaultExport = function defaultExport(fc) {
+  var this$1 = this;
+
+  // The _cache retains resolved features, so if you ask for the same thing multiple times
+  // we don't repeat the expensive resolving/clipping operations.
+  //
+  // Each feature has a stable identifier that is used as the cache key.
+  // The identifiers look like:
+  // - for point locations, the stringified point:        e.g. '[8.67039,49.41882]'
+  // - for geojson locations, the geojson id:             e.g. 'de-hamburg.geojson'
+  // - for countrycoder locations, feature.id property:   e.g. 'Q2'(countrycoder uses Wikidata identifiers)
+  // - for aggregated locationSets, +[include]-[exclude]: e.g '+[Q2]-[Q18,Q27611]'
+  this._cache = {};
+
+  // When strict mode = true, throw on invalid locations or locationSets.
+  // When strict mode = false, return `null` for invalid locations or locationSets.
+  this._strict = true;
+
+  // process input FeatureCollection
+  if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
+    fc.features.forEach(function (feature) {
+      feature.properties = feature.properties || {};
+      var props = feature.properties;
+
+      // get `id` from either `id` or `properties`
+      var id = feature.id || props.id;
+      if (!id || !/^\S+\.geojson$/i.test(id)) { return; }
+
+      // ensure `id` exists and is lowercase
+      id = id.toLowerCase();
+      feature.id = id;
+      props.id = id;
+
+      // ensure `area` property exists
+      if (!props.area) {
+        var area = geojsonArea.geometry(feature.geometry) / 1e6;// m² to km²
+        props.area = Number(area.toFixed(2));
+      }
+
+      this$1._cache[id] = feature;
+    });
+  }
+
+  // Replace CountryCoder world geometry to be a polygon covering the world.
+  var world = _cloneDeep(feature('Q2'));
+  world.geometry = {
+    type: 'Polygon',
+    coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
+  };
+  world.id = 'Q2';
+  world.properties.id = 'Q2';
+  world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;// m² to km²
+  this._cache.Q2 = world;
+};
+
+
+// validateLocation
+// `location`The location to validate
+//
+// Pass a `location` value to validate
+//
+// Returns a result like:
+// {
+//   type:   'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      the stable identifier for the feature
+// }
+// or `null` if the location is invalid
+//
+defaultExport.prototype.validateLocation = function validateLocation (location) {
+  if (Array.isArray(location)) { // a [lon,lat] coordinate pair?
+    if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
+      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+    ) {
+      var id = '[' + location.toString() + ']';
+      return { type: 'point', location: location, id: id };
+    }
+
+  } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) { // a .geojson filename?
+    var id$1 = location.toLowerCase();
+    if (this._cache[id$1]) {
+      return { type: 'geojson', location: location, id: id$1 };
+    }
+
+  } else if (typeof location === 'string' || typeof location === 'number') { // a country-coder value?
+    var feature$1 = feature(location);
+    if (feature$1) {
+      // Use wikidata QID as the identifier, since that seems to be the one
+      // property that everything in CountryCoder is guaranteed to have.
+      var id$2 = feature$1.properties.wikidata;
+      return { type: 'countrycoder', location: location, id: id$2 };
+    }
+  }
+
+  if (this._strict) {
+    throw new Error(("validateLocation:  Invalid location: \"" + location + "\"."));
+  } else {
+    return null;
+  }
+};
+
+
+// resolveLocation
+// `location`The location to resolve
+//
+// Pass a `location` value to resolve
+//
+// Returns a result like:
+// {
+//   type:    'point', 'geojson', or 'countrycoder'
+//   location:the queried location
+//   id:      a stable identifier for the feature
+//   feature: the resolved GeoJSON feature
+// }
+//or `null` if the location is invalid
+//
+defaultExport.prototype.resolveLocation = function resolveLocation (location) {
+  var valid = this.validateLocation(location);
+  if (!valid) { return null; }
+
+  var id = valid.id;
+
+  // return a result from cache if we can
+  if (this._cache[id]) {
+    return Object.assign(valid, { feature: this._cache[id] });
+  }
+
+  // a [lon,lat] coordinate pair?
+  if (valid.type === 'point') {
+    var RADIUS = 25000;// meters
+    var EDGES = 10;
+    var PRECISION = 3;
+    var area = Math.PI * RADIUS * RADIUS / 1e6;   // m² to km²
+    var feature$1 = this._cache[id] = geojsonPrecision({
+      type: 'Feature',
+      id: id,
+      properties: { id: id, area: Number(area.toFixed(2)) },
+      geometry: circleToPolygon(location, RADIUS, EDGES)
+    }, PRECISION);
+    return Object.assign(valid, { feature: feature$1 });
+
+  // a .geojson filename?
+  } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
+    var feature$1$1 = _cloneDeep(feature(id));
+    var props = feature$1$1.properties;
+
+    // -> This block of code is weird and requires some explanation. <-
+    // CountryCoder includes higher level features which are made up of members.
+    // These features don't have their own geometry, but CountryCoder provides an
+    // `aggregateFeature` method to combine these members into a MultiPolygon.
+    // BUT, when we try to actually work with these aggregated MultiPolygons,
+    // Turf/JSTS gets crashy because of topography bugs.
+    // SO, we'll aggregate the features ourselves by unioning them together.
+    // This approach also has the benefit of removing all the internal boaders and
+    // simplifying the regional polygons a lot.
+    if (Array.isArray(props.members)) {
+      var seed = feature$1$1.geometry ? feature$1$1 : null;
+      var aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+      feature$1$1.geometry = aggregate.geometry;
+    }
+
+    // ensure `area` property exists
+    if (!props.area) {
+      var area$1 = geojsonArea.geometry(feature$1$1.geometry) / 1e6;// m² to km²
+      props.area = Number(area$1.toFixed(2));
+    }
+
+    // ensure `id` property exists
+    feature$1$1.id = id;
+    props.id = id;
+
+    this._cache[id] = feature$1$1;
+    return Object.assign(valid, { feature: feature$1$1 });
+  }
+
+  if (this._strict) {
+    throw new Error(("resolveLocation:  Couldn't resolve location \"" + location + "\"."));
+  } else {
+    return null;
+  }
+};
+
+
+// validateLocationSet
+// `locationSet`the locationSet to validate
+//
+// Pass a locationSet Object to validate like:
+// {
+//   include: [ Array of locations ],
+//   exclude: [ Array of locations ]
+// }
+//
+// Returns a result like:
+// {
+//   type:       'locationset'
+//   locationSet:the queried locationSet
+//   id:         the stable identifier for the feature
+// }
+// or `null` if the locationSet is invalid
+//
+defaultExport.prototype.validateLocationSet = function validateLocationSet (locationSet) {
+  locationSet = locationSet || {};
+  var validator = this.validateLocation.bind(this);
+  var include = (locationSet.include || []).map(validator).filter(Boolean);
+  var exclude = (locationSet.exclude || []).map(validator).filter(Boolean);
+
+  if (!include.length) {
+    if (this._strict) {
+      throw new Error("validateLocationSet:  LocationSet includes nothing.");
+    } else {
+      // non-strict mode, replace an empty locationSet with one that includes "the world"
+      locationSet.include = ['Q2'];
+      include = [{ type: 'countrycoder', location: 'Q2', id: 'Q2' }];
+    }
+  }
+
+  // generate stable identifier
+  include.sort(_sortLocations);
+  var id = '+[' + include.map(function (d) { return d.id; }).join(',') + ']';
+  if (exclude.length) {
+    exclude.sort(_sortLocations);
+    id += '-[' + exclude.map(function (d) { return d.id; }).join(',') + ']';
+  }
+
+  return { type: 'locationset', locationSet: locationSet, id: id };
+};
+
+
+// resolveLocationSet
+// `locationSet`the locationSet to resolve
+//
+// Pass a locationSet Object to validate like:
+// {
+//   include: [ Array of locations ],
+//   exclude: [ Array of locations ]
+// }
+//
+// Returns a result like:
+// {
+//   type:       'locationset'
+//   locationSet:the queried locationSet
+//   id:         the stable identifier for the feature
+//   feature:    the resolved GeoJSON feature
+// }
+// or `null` if the locationSet is invalid
+//
+defaultExport.prototype.resolveLocationSet = function resolveLocationSet (locationSet) {
+  locationSet = locationSet || {};
+  var valid = this.validateLocationSet(locationSet);
+  if (!valid) { return null; }
+
+  var id = valid.id;
+
+  // return a result from cache if we can
+  if (this._cache[id]) {
+    return Object.assign(valid, { feature: this._cache[id] });
+  }
+
+  var resolver = this.resolveLocation.bind(this);
+  var include = (locationSet.include || []).map(resolver).filter(Boolean);
+  var exclude = (locationSet.exclude || []).map(resolver).filter(Boolean);
+
+  // return quickly if it's a single included location..
+  if (include.length === 1 && exclude.length === 0) {
+    return Object.assign(valid, { feature: include[0].feature });
+  }
+
+  // calculate unions
+  var includeGeoJSON = include.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+  var excludeGeoJSON = exclude.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+
+  // calculate difference, update `area` and return result
+  var resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
+  var area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;// m² to km²
+  resultGeoJSON.id = id;
+  resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
+
+  this._cache[id] = resultGeoJSON;
+  return Object.assign(valid, { feature: resultGeoJSON });
+};
+
+
+// strict
+//
+defaultExport.prototype.strict = function strict (val) {
+  if (val === undefined) { // get
+    return this._strict;
+  } else {                 // set
+    this._strict = val;
+    return this;
+  }
+};
+
+
+// cache
+// convenience method to access the internal cache
+defaultExport.prototype.cache = function cache () {
+  return this._cache;
+};
+
+
+// stringify
+// convenience method to prettyStringify the given object
+defaultExport.prototype.stringify = function stringify (obj, options) {
+  return jsonStringifyPrettyCompact(obj, options);
+};
+
+
+
+// Wrap the mfogel/polygon-clipping library and return a GeoJSON feature.
 function _clip(a, b, which) {
   var fn = { UNION: index.union, DIFFERENCE: index.difference }[which];
   var coords = fn(a.geometry.coordinates, b.geometry.coordinates);
@@ -4034,232 +4343,17 @@ function _cloneDeep(obj) {
 }
 
 
-var defaultExport = function defaultExport(fc) {
-  var this$1 = this;
+// Sorting the location lists is ok because they end up unioned together.
+// This sorting makes it possible to generate a deterministic id.
+function _sortLocations(a, b) {
+  var rank = { countrycoder: 1, geojson: 2, point: 3 };
+  var aRank = rank[a.type];
+  var bRank = rank[b.type];
 
-  this._cache = {};
-
-  // process input FeatureCollection
-  if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
-    fc.features.forEach(function (feature) {
-      feature.properties = feature.properties || {};
-      var props = feature.properties;
-
-      // get `id` from either `id` or `properties`
-      var id = feature.id || props.id;
-      if (!id || !/^\S+\.geojson$/i.test(id)) { return; }
-
-      // ensure id exists and is lowercase
-      id = id.toLowerCase();
-      feature.id = id;
-      props.id = id;
-
-      // ensure area property exists
-      if (!props.area) {
-        var area = geojsonArea.geometry(feature.geometry) / 1e6;// m² to km²
-        props.area = Number(area.toFixed(2));
-      }
-
-      this$1._cache[id] = feature;
-    });
-  }
-
-  // Replace CountryCoder world geometry to have a polygon covering the world.
-  var world = _cloneDeep(feature('Q2'));
-  world.geometry = {
-    type: 'Polygon',
-    coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
-  };
-  world.id = 'Q2';
-  world.properties.id = 'Q2';
-  world.properties.area = geojsonArea.geometry(world.geometry) / 1e6;// m² to km²
-  this._cache.Q2 = world;
-};
-
-
-// validateLocation
-//
-// Pass a `location` identifier
-// Returns a result like
-// {
-//   type:   'point', 'geojson', or 'countrycoder'
-//   location:the queried location
-//   id:      a unique identifier
-// }
-//or `null` if the location is invalid
-//
-defaultExport.prototype.validateLocation = function validateLocation (location) {
-  if (Array.isArray(location)) { // a [lon,lat] coordinate pair?
-    if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
-    ) {
-      var id = '[' + location.toString() + ']';
-      return { type: 'point', location: location, id: id };
-    }
-
-  } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) { // a .geojson filename?
-    var id$1 = location.toLowerCase();
-    if (this._cache[id$1]) {
-      return { type: 'geojson', location: location, id: id$1 };
-    }
-
-  } else if (typeof location === 'string' || typeof location === 'number') { // a country-coder value?
-    var feature$1 = feature(location);
-    if (feature$1) {
-      // Use wikidata QID as the identifier, since that seems to be the only
-      // property that everything in CountryCoder is guaranteed to have.
-      var id$2 = feature$1.properties.wikidata;
-      return { type: 'countrycoder', location: location, id: id$2 };
-    }
-  }
-
-  return null;
-};
-
-
-// resolveLocation
-//
-// Pass a `location` identifier
-// Returns a result like
-// {
-//   type:    'point', 'geojson', or 'countrycoder'
-//   location:the queried location
-//   id:      a unique identifier
-//   feature: the geojson feature
-// }
-//or `null` if the location is invalid
-//
-defaultExport.prototype.resolveLocation = function resolveLocation (location) {
-  var valid = this.validateLocation(location);
-  if (!valid) { return null; }
-
-  // return a result from cache if we can
-  if (this._cache[valid.id]) {
-    return Object.assign(valid, { feature: this._cache[valid.id] });
-  }
-
-  // a [lon,lat] coordinate pair?
-  if (valid.type === 'point') {
-    var RADIUS = 25000;// meters
-    var EDGES = 10;
-    var PRECISION = 3;
-    var area = Math.PI * RADIUS * RADIUS / 1e6;   // m² to km²
-    var feature$1 = this._cache[valid.id] = geojsonPrecision({
-      type: 'Feature',
-      id: valid.id,
-      properties: { id: valid.id, area: Number(area.toFixed(2)) },
-      geometry: circleToPolygon(location, RADIUS, EDGES)
-    }, PRECISION);
-    return Object.assign(valid, { feature: feature$1 });
-
-  // a .geojson filename?
-  } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
-    var feature$1$1 = _cloneDeep(feature(valid.id));
-    var props = feature$1$1.properties;
-
-    // -> This block of code is weird and requires some explanation. <-
-    // CountryCoder includes higher level features which are made up of members.
-    // These features don't have their own geometry, but CountryCoder provides an
-    // `aggregateFeature` method to combine these members into a MultiPolygon.
-    // BUT, when we try to actually work with these aggregated MultiPolygons,
-    // Turf/JSTS gets crashy because of topography bugs.
-    // SO, we'll aggregate the features ourselves by unioning them together.
-    // This approach also has the benefit of removing all the internal boaders and
-    // simplifying the regional polygons a lot.
-    if (Array.isArray(props.members)) {
-      var seed = feature$1$1.geometry ? feature$1$1 : null;
-      var aggregate = props.members.reduce(_locationReducer.bind(this), seed);
-      feature$1$1.geometry = aggregate.geometry;
-    }
-
-    // ensure area property exists
-    if (!props.area) {
-      var area$1 = geojsonArea.geometry(feature$1$1.geometry) / 1e6;// m² to km²
-      props.area = Number(area$1.toFixed(2));
-    }
-
-    // ensure id property exists
-    feature$1$1.id = valid.id;
-    props.id = valid.id;
-
-    this._cache[valid.id] = feature$1$1;
-    return Object.assign(valid, { feature: feature$1$1 });
-  }
-
-  return null;
-};
-
-
-// resolveLocationSet
-//
-// Pass a `locationSet` Object like:
-// `{ include: [ Array ], exclude: [ Array ] }`
-// Returns a stable identifier string of the form:
-// "+[included]-[excluded]"
-//
-defaultExport.prototype.resolveLocationSet = function resolveLocationSet (locationSet) {
-  locationSet = locationSet || {};
-  var resolve = this.resolveLocation.bind(this);
-  var include = (locationSet.include || []).map(resolve).filter(Boolean);
-  var exclude = (locationSet.exclude || []).map(resolve).filter(Boolean);
-
-  if (!include.length) {
-    include = [resolve('Q2')]; // default to 'the world'
-  }
-
-  // return quickly if it's a single included location..
-  if (include.length === 1 && exclude.length === 0) {
-    return include[0].feature;
-  }
-
-  // generate stable identifier
-  include.sort(sortFeatures);
-  var id = '+[' + include.map(function (d) { return d.id; }).join(',') + ']';
-  if (exclude.length) {
-    exclude.sort(sortFeatures);
-    id += '-[' + exclude.map(function (d) { return d.id; }).join(',') + ']';
-  }
-
-  // return cached?
-  if (this._cache[id]) {
-    return this._cache[id];
-  }
-
-  // calculate unions
-  var includeGeoJSON = include.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
-  var excludeGeoJSON = exclude.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
-
-  // calculate difference, update area and return result
-  var resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
-  var area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;// m² to km²
-  resultGeoJSON.id = id;
-  resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
-
-  return this._cache[id] = resultGeoJSON;
-
-
-  // Sorting the location lists is ok because they end up unioned together.
-  // This sorting makes it possible to generate a deterministic id.
-  function sortFeatures(a, b) {
-    var rank = { countrycoder: 1, geojson: 2, point: 3 };
-    var aRank = rank[a.type];
-    var bRank = rank[b.type];
-
-    return (aRank > bRank) ? 1
-      : (aRank < bRank) ? -1
-      : a.id.localeCompare(b.id);
-  }
-};
-
-
-defaultExport.prototype.cache = function cache () {
-  return this._cache;
-};
-
-
-defaultExport.prototype.stringify = function stringify (obj, options) {
-  return jsonStringifyPrettyCompact(obj, options);
-};
+  return (aRank > bRank) ? 1
+    : (aRank < bRank) ? -1
+    : a.id.localeCompare(b.id);
+}
 
 return defaultExport;
 

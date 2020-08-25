@@ -66,9 +66,10 @@ Or if you need to support even older browsers like Internet Explorer, fetch the 
 <script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0/dist/index.es5.min.js"></script>
 ```
 
+
 &nbsp;
 
-### Examples
+## Examples
 ```js
 const LocationConflation = require('@ideditor/location-conflation');
 const myFeatures = require('./path/to/FeatureCollection.json');   // optional
@@ -103,24 +104,174 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
 <img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example4.png"/>
 
 
+&nbsp;
 
-### Other Fun facts
-* This library is a wrapper around
-  * [country-coder](https://github.com/ideditor/country-coder) for world boundaries, and
-  * [polygon-clipping](https://github.com/mfogel/polygon-clipping) for union/difference functions
-* Results contain an `area` property containing the approximate size of the feature in km²<br/>(This is helpful for sorting features)
-* Results contain a stable `id` in the form `+[included]-[excluded]`<br/>(e.g. "+[015,039]-[eg,sd]")
-* Results are cached, so if you ask for the same thing multiple times we don't repeat the expensive clipping operations.
+## API Reference
+
+* [constructor](#constructor)
+* [validateLocation](#validateLocation)
+* [validateLocationSet](#validateLocationSet)
+* [resolveLocation](#resolveLocation)
+* [resolveLocationSet](#resolveLocationSet)
+* [strict](#strict)
+* [stringify](#stringify)
+* [cache](#cache)
 
 
+<a name="constructor" href="#constructor">#</a> const <i>loco</i> = new <b>LocationConflation</b>(<i>featureCollection</i>)
 
-#### Prerequisites
+Constructs a new LocationConflation instance.
+
+Optionally pass a GeoJSON FeatureCollection of known features which can be used later as locations.
+
+Each feature *must* have a filename-like `id`, for example: `example.geojson`
+```js
+{
+  "type": "FeatureCollection"
+  "features": [
+    {
+      "type": "Feature",
+      "id": "example.geojson",
+      "properties": { … },
+      "geometry": { … }
+    }
+  ]
+}
+```
+
+&nbsp;
+
+<a name="validateLocation" href="#validateLocation">#</a> <i>loco</i>.<b>validateLocation</b>(<i>location</i>)
+
+Validates a given location. The "locations" can be:
+* Points as `[longitude, latitude]` coordinate pairs. _Example: `[8.67039, 49.41882]`_
+* Filenames for known `.geojson` features. _Example: `"de-hamburg.geojson"`_
+* Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). _Example: `"de"`_
+
+If the location is valid, returns a result `Object` like:
+```js
+{
+  type:     'point', 'geojson', or 'countrycoder'
+  location:  the queried location
+  id:        the stable identifier for the feature
+}
+```
+
+If the location is invalid,
+* _in strict mode_, throws an error
+* _in non-strict mode_, returns `null`
+
+&nbsp;
+
+<a name="validateLocationSet" href="#validateLocationSet">#</a> <i>loco</i>.<b>validateLocationSet</b>(<i>locationSet</i>)
+
+Validates a given locationSet. Pass a locationSet `Object` like:
+```js
+{
+  include: [ Array of locations ],
+  exclude: [ Array of locations ]
+}
+```
+
+If the locationSet is valid, returns a result `Object` like:
+
+```js
+{
+  type:         'locationset'
+  locationSet:  the queried locationSet
+  id:           the stable identifier for the feature
+}
+```
+
+If the locationSet is invalid or contains any invalid locations,
+* _in strict mode_, throws an error
+* _in non-strict mode_, invalid locations are quietly ignored. A locationSet with nothing included will be considered valid, and will validate as if it were a locationSet covering the entire world.  `{ type: 'locationset', locationSet: ['Q2'], id: +[Q2] }`
+
+&nbsp;
+
+<a name="resolveLocation" href="#resolveLocation">#</a> <i>loco</i>.<b>resolveLocation</b>(<i>location</i>)
+
+Resolves a given location into a GeoJSON feature.  This is similar to [validateLocation](#validateLocation), but runs slower and includes the actual GeoJSON in the result.  Results are cached, so if you ask for the same thing multiple times we don't repeat the expensive clipping operations.
+
+The returned GeoJSON feature will also have an `area` property containing the approximate size of the feature in km².  (This is helpful for sorting features)
+
+If the location is valid, returns a result `Object` like:
+```js
+{
+  type:     'point', 'geojson', or 'countrycoder'
+  location:  the queried location
+  id:        the stable identifier for the feature
+  feature:   the resolved GeoJSON feature
+}
+```
+
+If the location is invalid,
+* _in strict mode_, throws an error
+* _in non-strict mode_, returns `null`
+
+&nbsp;
+
+<a name="resolveLocationSet" href="#resolveLocationSet">#</a> <i>loco</i>.<b>resolveLocationSet</b>(<i>locationSet</i>)
+
+Resolves a given locationSet into a GeoJSON feature.  This is similar to [validateLocationSet](#validateLocationSet), but runs slower and includes the actual GeoJSON in the result.  Results are cached, so if you ask for the same thing multiple times we don't repeat the expensive clipping operations.
+
+The returned GeoJSON feature will also have an `area` property containing the approximate size of the feature in km².  (This is helpful for sorting features)
+
+If the locationSet is valid, returns a result `Object` like:
+
+```js
+{
+  type:         'locationset'
+  locationSet:  the queried locationSet
+  id:           the stable identifier for the feature
+  feature:      the resolved GeoJSON feature
+}
+```
+
+If the locationSet is invalid or contains any invalid locations,
+* _in strict mode_, throws an error
+* _in non-strict mode_, invalid locations are quietly ignored. A locationSet with nothing included will be considered valid, and will validate as if it were a locationSet covering the entire world.  `{ type: 'locationset', locationSet: ['Q2'], id: +[Q2] }`
+
+&nbsp;
+
+<a name="strict" href="#strict">#</a> <i>loco</i>.<b>strict</b>(<i>val</i>)
+
+Get/set "strict mode".  New instances of LocationConflation start out in strict mode by default.
+
+* In strict mode, any invalid location or locationSet throws an error.
+* In non strict mode, invalid locations are ignored, and locationSets that include nothing are assumed to include the entire world.
+
+```js
+loco.strict(false);                // pass a true/false value to set the strict mode
+const isStrict = loco.strict();    // pass no value to return the current value
+```
+
+&nbsp;
+
+<a name="stringify" href="#stringify">#</a> <i>loco</i>.<b>stringify</b>(<i>object</i>, <i>options</i>)
+
+Convenience method that wraps [json-stringify-pretty-compact](https://www.npmjs.com/package/@aitodotai/json-stringify-pretty-compact) to stringify the given object. Optional `options` parameter gets passed through to json-stringify-pretty-compact.
+
+```js
+loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
+```
+
+<a name="cache" href="#cache">#</a> <i>loco</i>.<b>cache</b>()
+
+Convenience method to access the internal feature `_cache`.  You probably shouldn't use it except for debugging.
+
+&nbsp;
+
+
+## Contributing
+
+### Prerequisites
 
 * [Node.js](https://nodejs.org/) version 10 or newer
 * [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
 
 
-#### Installing
+### Installing
 
 * Clone this project, for example:
   `git clone git@github.com:ideditor/location-conflation.git`
@@ -128,9 +279,16 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
 * Run `npm install` to install libraries
 
 
-#### Building
+### Building
 
 * `npm run build`
+
+
+### Thanks!
+
+**location-conflation** is really just a wrapper around these other great projects:
+* [country-coder](https://github.com/ideditor/country-coder) for world boundaries, and
+* [polygon-clipping](https://github.com/mfogel/polygon-clipping) for union/difference functions
 
 
 ### License
