@@ -16,6 +16,20 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.5.0
+##### 2020-Aug-25
+* :warning:  Refactor - API now has:
+  * `validateLocation` / `validateLocationSet` - fast, return stable ids
+  * `resolveLocation` / `resolveLocationSet` - slower, resolve GeoJSON features
+  * All functions now return similar result objects
+* :warning: Introduce strict / non-strict modes.  Location-conflation defaults to "strict" mode now.
+  * In strict mode, any invalid location or locationSet throws an error.
+  * In non strict mode, invalid locations are ignored, and locationSets that include nothing are assumed to include the entire world.
+  * Can change modes by calling `.strict(val)`, for example:<br/>
+    `const loco = new LocationConflation(features).strict(false);    // not strict`
+* Add tests and document everything
+
+
 # 0.4.0
 ##### 2020-Aug-20
 * Replace turf with mfogel/polygon-clipping ([#1], [#2], [#20])
