@@ -363,7 +363,7 @@ function locoParseInputWhenReady() {
       throw 'Missing property "include".';
     }
 
-    var feature = _loco.resolveLocationSet(locationSet);
+    var feature = _loco.resolveLocationSet(locationSet).feature;
     var props = feature.properties || {};
 
     // Setup the LocationConflation feature layer
