@@ -1,5 +1,5 @@
 [![npm version](https://badge.fury.io/js/%40ideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40ideditor%2Flocation-conflation)
-[![Build Status](https://travis-ci.org/ideditor/location-conflation.svg?branch=master)](https://travis-ci.org/ideditor/location-conflation)
+[![Build Status](https://travis-ci.org/ideditor/location-conflation.svg?branch=main)](https://travis-ci.org/ideditor/location-conflation)
 
 
 # location-conflation
@@ -80,7 +80,7 @@ const loco = new LocationConflation(myFeatures);
 let locationSet = { include: ['039'] };    // 039 = Southern Europe
 let result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example1.png"/>
+<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example1.png"/>
 
 
 #### Southern Europe and Northern Africa:
@@ -88,7 +88,7 @@ let result = loco.resolveLocationSet(locationSet);
 let locationSet = { include: ['039','015'] };   // 015 = Northern Africa
 let result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example2.png"/>
+<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example2.png"/>
 
 
 #### Southern Europe and Northern Africa, _excluding_ Egypt and Sudan:
@@ -96,14 +96,14 @@ let result = loco.resolveLocationSet(locationSet);
 let locationSet = { include: ['039','015'], exclude: ['eg','sd'] };
 let result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example3.png"/>
+<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example3.png"/>
 
 
 #### The Alps, _excluding_ Liechtenstein and regions around Bern and Zürich
 ```js
 let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
 ```
-<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/master/docs/images/example4.png"/>
+<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example4.png"/>
 
 
 &nbsp;
