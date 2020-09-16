@@ -199,7 +199,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   } else if (qs.referrer === 'nsi') {
     _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/name-suggestion-index@main/dist/featureCollection.min.json');
   } else if (qs.referrer === 'ii') {
-    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/ideditor/imagery-index@master/dist/featureCollection.min.json');
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/ideditor/imagery-index@main/dist/featureCollection.min.json');
   } else {
     _fcPromise = Promise.resolve({ ok: true, json: function() { return {}; } });  // fake response
   }
