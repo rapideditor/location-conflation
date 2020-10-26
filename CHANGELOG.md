@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.6.0
+##### 2020-Oct-26
+* Update to country-coder v4.0.0
+
+
 # 0.5.0
 ##### 2020-Aug-25
 * :warning:  Refactor - API now has:
