@@ -1,5 +1,5 @@
+[![build](https://github.com/ideditor/location-conflation/workflows/build/badge.svg)](https://github.com/ideditor/location-conflation/actions?query=workflow%3A%22build%22)
 [![npm version](https://badge.fury.io/js/%40ideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40ideditor%2Flocation-conflation)
-[![Build Status](https://travis-ci.org/ideditor/location-conflation.svg?branch=main)](https://travis-ci.org/ideditor/location-conflation)
 
 
 # location-conflation
