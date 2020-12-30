@@ -16,6 +16,13 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.7.0
+##### 2020-Dec-30
+* Perf improvement: Don't union features iteratively with locationReducer ([#26])
+
+[#26]: https://github.com/ideditor/location-conflation/issues/26
+
+
 # 0.6.0
 ##### 2020-Oct-26
 * Update to country-coder v4.0.0
