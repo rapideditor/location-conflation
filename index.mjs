@@ -49,16 +49,16 @@ export default class {
         feature.properties = feature.properties || {};
         let props = feature.properties;
 
-        // get `id` from either `id` or `properties`
+        // Get `id` from either `id` or `properties`
         let id = feature.id || props.id;
         if (!id || !/^\S+\.geojson$/i.test(id)) return;
 
-        // ensure `id` exists and is lowercase
+        // Ensure `id` exists and is lowercase
         id = id.toLowerCase();
         feature.id = id;
         props.id = id;
 
-        // ensure `area` property exists
+        // Ensure `area` property exists
         if (!props.area) {
           const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
           props.area = Number(area.toFixed(2));
@@ -147,12 +147,12 @@ export default class {
 
     const id = valid.id;
 
-    // return a result from cache if we can
+    // Return a result from cache if we can
     if (this._cache[id]) {
       return Object.assign(valid, { feature: this._cache[id] });
     }
 
-    // a [lon,lat] coordinate pair?
+    // A [lon,lat] coordinate pair?
     if (valid.type === 'point') {
       const RADIUS = 25000;  // meters
       const EDGES = 10;
@@ -166,11 +166,11 @@ export default class {
       }, PRECISION);
       return Object.assign(valid, { feature: feature });
 
-    // a .geojson filename?
+    // A .geojson filename?
     } else if (valid.type === 'geojson') {
       // nothing to do here - these are all in _cache and would have returned already
 
-    // a country-coder identifier?
+    // A country-coder identifier?
     } else if (valid.type === 'countrycoder') {
       let feature = _cloneDeep(CountryCoder.feature(id));
       let props = feature.properties;
@@ -179,24 +179,24 @@ export default class {
       // CountryCoder includes higher level features which are made up of members.
       // These features don't have their own geometry, but CountryCoder provides an
       //   `aggregateFeature` method to combine these members into a MultiPolygon.
-      // BUT, when we try to actually work with these aggregated MultiPolygons,
-      //   Turf/JSTS gets crashy because of topography bugs.
-      // SO, we'll aggregate the features ourselves by unioning them together.
+      // In the past, Turf/JSTS/martinez could not handle the aggregated features,
+      //   so we'd iteratively union them all together.  (this was slow)
+      // But now mfogel/polygon-clipping handles these MultiPolygons like a boss.
       // This approach also has the benefit of removing all the internal boaders and
       //   simplifying the regional polygons a lot.
       if (Array.isArray(props.members)) {
-        const seed = feature.geometry ? feature : null;
-        const aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+        let aggregate = CountryCoder.aggregateFeature(id);
+        aggregate.geometry.coordinates = _clip([aggregate], 'UNION').geometry.coordinates;
         feature.geometry = aggregate.geometry;
       }
 
-      // ensure `area` property exists
+      // Ensure `area` property exists
       if (!props.area) {
         const area = calcArea.geometry(feature.geometry) / 1e6;  // m² to km²
         props.area = Number(area.toFixed(2));
       }
 
-      // ensure `id` property exists
+      // Ensure `id` property exists
       feature.id = id;
       props.id = id;
 
@@ -245,7 +245,7 @@ export default class {
       }
     }
 
-    // generate stable identifier
+    // Generate stable identifier
     include.sort(_sortLocations);
     let id = '+[' + include.map(d => d.id).join(',') + ']';
     if (exclude.length) {
@@ -282,26 +282,26 @@ export default class {
 
     const id = valid.id;
 
-    // return a result from cache if we can
+    // Return a result from cache if we can
     if (this._cache[id]) {
       return Object.assign(valid, { feature: this._cache[id] });
     }
 
     const resolver = this.resolveLocation.bind(this);
-    const include = (locationSet.include || []).map(resolver).filter(Boolean);
-    const exclude = (locationSet.exclude || []).map(resolver).filter(Boolean);
+    const includes = (locationSet.include || []).map(resolver).filter(Boolean);
+    const excludes = (locationSet.exclude || []).map(resolver).filter(Boolean);
 
-    // return quickly if it's a single included location..
-    if (include.length === 1 && exclude.length === 0) {
-      return Object.assign(valid, { feature: include[0].feature });
+    // Return quickly if it's a single included location..
+    if (includes.length === 1 && excludes.length === 0) {
+      return Object.assign(valid, { feature: includes[0].feature });
     }
 
-    // calculate unions
-    const includeGeoJSON = include.map(d => d.location).reduce(_locationReducer.bind(this), null);
-    const excludeGeoJSON = exclude.map(d => d.location).reduce(_locationReducer.bind(this), null);
+    // Calculate unions
+    const includeGeoJSON = _clip(includes.map(d => d.feature), 'UNION');
+    const excludeGeoJSON = _clip(excludes.map(d => d.feature), 'UNION');
 
-    // calculate difference, update `area` and return result
-    let resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
+    // Calculate difference, update `area` and return result
+    let resultGeoJSON = excludeGeoJSON ? _clip([includeGeoJSON, excludeGeoJSON], 'DIFFERENCE') : includeGeoJSON;
     const area = calcArea.geometry(resultGeoJSON.geometry) / 1e6;  // m² to km²
     resultGeoJSON.id = id;
     resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
@@ -338,11 +338,13 @@ export default class {
 }
 
 
-
 // Wrap the mfogel/polygon-clipping library and return a GeoJSON feature.
-function _clip(a, b, which) {
+function _clip(features, which) {
+  if (!Array.isArray(features) || !features.length) return null;
+
   const fn = { UNION: polygonClipping.union, DIFFERENCE: polygonClipping.difference }[which];
-  const coords = fn(a.geometry.coordinates, b.geometry.coordinates);
+  const args = features.map(feature => feature.geometry.coordinates);
+  const coords = fn.apply(null, args);
   return {
     type: 'Feature',
     properties: {},
@@ -360,27 +362,6 @@ function _clip(a, b, which) {
     const d = c && Array.isArray(coords[0][0][0]);
     return d ? 'MultiPolygon' : 'Polygon';
   }
-}
-
-
-// Reduce an array of locations into a single GeoJSON feature
-function _locationReducer(accumulator, location) {
-  /* eslint-disable no-console, no-invalid-this */
-  let result;
-  try {
-    let resolved = this.resolveLocation(location);
-    if (!resolved || !resolved.feature) {
-      console.warn(`Warning:  Couldn't resolve location "${location}"`);
-      return accumulator;
-    }
-    result = !accumulator ? resolved.feature : _clip(accumulator, resolved.feature, 'UNION');
-  } catch (e) {
-    console.warn(`Warning:  Error resolving location "${location}"`);
-    console.warn(e);
-    result = accumulator;
-  }
-  return result;
-  /* eslint-enable no-console, no-invalid-this */
 }
 
 

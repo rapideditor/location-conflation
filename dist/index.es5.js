@@ -6,18 +6,9 @@ typeof define === 'function' && define.amd ? define(factory) :
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function createCommonjsModule(fn, basedir, module) {
-	return module = {
-		path: basedir,
-		exports: {},
-		require: function (path, base) {
-			return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
-		}
-	}, fn(module, module.exports), module.exports;
-}
-
-function commonjsRequire () {
-	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
+function createCommonjsModule(fn) {
+  var module = { exports: {} };
+	return fn(module, module.exports), module.exports;
 }
 
 var quickselect = createCommonjsModule(function (module, exports) {
@@ -1232,6 +1223,45 @@ function featuresContaining(query, strict) {
     features.push(featuresByCode[groupID]);
   }
   return features;
+}
+function featuresIn(id, strict) {
+  var feature = featureForID(id);
+  if (!feature) { return []; }
+  var features = [];
+  if (!strict) {
+    features.push(feature);
+  }
+  var properties = feature.properties;
+  if (properties.members) {
+    for (var i in properties.members) {
+      var memberID = properties.members[i];
+      features.push(featuresByCode[memberID]);
+    }
+  }
+  return features;
+}
+function aggregateFeature(id) {
+  var features = featuresIn(id, false);
+  if (features.length === 0) { return null; }
+  var aggregateCoordinates = [];
+  for (var i in features) {
+    var feature = features[i];
+    if (
+      feature.geometry &&
+      feature.geometry.type === 'MultiPolygon' &&
+      feature.geometry.coordinates
+    ) {
+      aggregateCoordinates = aggregateCoordinates.concat(feature.geometry.coordinates);
+    }
+  }
+  return {
+    type: 'Feature',
+    properties: features[0].properties,
+    geometry: {
+      type: 'MultiPolygon',
+      coordinates: aggregateCoordinates
+    }
+  };
 }
 
 var RADIUS = 6378137;
@@ -4148,16 +4178,16 @@ var defaultExport = function defaultExport(fc) {
       feature.properties = feature.properties || {};
       var props = feature.properties;
 
-      // get `id` from either `id` or `properties`
+      // Get `id` from either `id` or `properties`
       var id = feature.id || props.id;
       if (!id || !/^\S+\.geojson$/i.test(id)) { return; }
 
-      // ensure `id` exists and is lowercase
+      // Ensure `id` exists and is lowercase
       id = id.toLowerCase();
       feature.id = id;
       props.id = id;
 
-      // ensure `area` property exists
+      // Ensure `area` property exists
       if (!props.area) {
         var area = geojsonArea.geometry(feature.geometry) / 1e6;// m² to km²
         props.area = Number(area.toFixed(2));
@@ -4246,12 +4276,12 @@ defaultExport.prototype.resolveLocation = function resolveLocation (location) {
 
   var id = valid.id;
 
-  // return a result from cache if we can
+  // Return a result from cache if we can
   if (this._cache[id]) {
     return Object.assign(valid, { feature: this._cache[id] });
   }
 
-  // a [lon,lat] coordinate pair?
+  // A [lon,lat] coordinate pair?
   if (valid.type === 'point') {
     var RADIUS = 25000;// meters
     var EDGES = 10;
@@ -4265,7 +4295,7 @@ defaultExport.prototype.resolveLocation = function resolveLocation (location) {
     }, PRECISION);
     return Object.assign(valid, { feature: feature$1 });
 
-  // a .geojson filename?
+  // A .geojson filename?
   } else if (valid.type === 'geojson') ; else if (valid.type === 'countrycoder') {
     var feature$1$1 = _cloneDeep(feature(id));
     var props = feature$1$1.properties;
@@ -4274,24 +4304,24 @@ defaultExport.prototype.resolveLocation = function resolveLocation (location) {
     // CountryCoder includes higher level features which are made up of members.
     // These features don't have their own geometry, but CountryCoder provides an
     // `aggregateFeature` method to combine these members into a MultiPolygon.
-    // BUT, when we try to actually work with these aggregated MultiPolygons,
-    // Turf/JSTS gets crashy because of topography bugs.
-    // SO, we'll aggregate the features ourselves by unioning them together.
+    // In the past, Turf/JSTS/martinez could not handle the aggregated features,
+    // so we'd iteratively union them all together.(this was slow)
+    // But now mfogel/polygon-clipping handles these MultiPolygons like a boss.
     // This approach also has the benefit of removing all the internal boaders and
     // simplifying the regional polygons a lot.
     if (Array.isArray(props.members)) {
-      var seed = feature$1$1.geometry ? feature$1$1 : null;
-      var aggregate = props.members.reduce(_locationReducer.bind(this), seed);
+      var aggregate = aggregateFeature(id);
+      aggregate.geometry.coordinates = _clip([aggregate], 'UNION').geometry.coordinates;
       feature$1$1.geometry = aggregate.geometry;
     }
 
-    // ensure `area` property exists
+    // Ensure `area` property exists
     if (!props.area) {
       var area$1 = geojsonArea.geometry(feature$1$1.geometry) / 1e6;// m² to km²
       props.area = Number(area$1.toFixed(2));
     }
 
-    // ensure `id` property exists
+    // Ensure `id` property exists
     feature$1$1.id = id;
     props.id = id;
 
@@ -4340,7 +4370,7 @@ defaultExport.prototype.validateLocationSet = function validateLocationSet (loca
     }
   }
 
-  // generate stable identifier
+  // Generate stable identifier
   include.sort(_sortLocations);
   var id = '+[' + include.map(function (d) { return d.id; }).join(',') + ']';
   if (exclude.length) {
@@ -4377,26 +4407,26 @@ defaultExport.prototype.resolveLocationSet = function resolveLocationSet (locati
 
   var id = valid.id;
 
-  // return a result from cache if we can
+  // Return a result from cache if we can
   if (this._cache[id]) {
     return Object.assign(valid, { feature: this._cache[id] });
   }
 
   var resolver = this.resolveLocation.bind(this);
-  var include = (locationSet.include || []).map(resolver).filter(Boolean);
-  var exclude = (locationSet.exclude || []).map(resolver).filter(Boolean);
+  var includes = (locationSet.include || []).map(resolver).filter(Boolean);
+  var excludes = (locationSet.exclude || []).map(resolver).filter(Boolean);
 
-  // return quickly if it's a single included location..
-  if (include.length === 1 && exclude.length === 0) {
-    return Object.assign(valid, { feature: include[0].feature });
+  // Return quickly if it's a single included location..
+  if (includes.length === 1 && excludes.length === 0) {
+    return Object.assign(valid, { feature: includes[0].feature });
   }
 
-  // calculate unions
-  var includeGeoJSON = include.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
-  var excludeGeoJSON = exclude.map(function (d) { return d.location; }).reduce(_locationReducer.bind(this), null);
+  // Calculate unions
+  var includeGeoJSON = _clip(includes.map(function (d) { return d.feature; }), 'UNION');
+  var excludeGeoJSON = _clip(excludes.map(function (d) { return d.feature; }), 'UNION');
 
-  // calculate difference, update `area` and return result
-  var resultGeoJSON = excludeGeoJSON ? _clip(includeGeoJSON, excludeGeoJSON, 'DIFFERENCE') : includeGeoJSON;
+  // Calculate difference, update `area` and return result
+  var resultGeoJSON = excludeGeoJSON ? _clip([includeGeoJSON, excludeGeoJSON], 'DIFFERENCE') : includeGeoJSON;
   var area = geojsonArea.geometry(resultGeoJSON.geometry) / 1e6;// m² to km²
   resultGeoJSON.id = id;
   resultGeoJSON.properties = { id: id, area: Number(area.toFixed(2)) };
@@ -4432,11 +4462,13 @@ defaultExport.prototype.stringify = function stringify (obj, options) {
 };
 
 
-
 // Wrap the mfogel/polygon-clipping library and return a GeoJSON feature.
-function _clip(a, b, which) {
+function _clip(features, which) {
+  if (!Array.isArray(features) || !features.length) { return null; }
+
   var fn = { UNION: index.union, DIFFERENCE: index.difference }[which];
-  var coords = fn(a.geometry.coordinates, b.geometry.coordinates);
+  var args = features.map(function (feature) { return feature.geometry.coordinates; });
+  var coords = fn.apply(null, args);
   return {
     type: 'Feature',
     properties: {},
@@ -4454,27 +4486,6 @@ function _clip(a, b, which) {
     var d = c && Array.isArray(coords[0][0][0]);
     return d ? 'MultiPolygon' : 'Polygon';
   }
-}
-
-
-// Reduce an array of locations into a single GeoJSON feature
-function _locationReducer(accumulator, location) {
-  /* eslint-disable no-console, no-invalid-this */
-  var result;
-  try {
-    var resolved = this.resolveLocation(location);
-    if (!resolved || !resolved.feature) {
-      console.warn(("Warning:  Couldn't resolve location \"" + location + "\""));
-      return accumulator;
-    }
-    result = !accumulator ? resolved.feature : _clip(accumulator, resolved.feature, 'UNION');
-  } catch (e) {
-    console.warn(("Warning:  Error resolving location \"" + location + "\""));
-    console.warn(e);
-    result = accumulator;
-  }
-  return result;
-  /* eslint-enable no-console, no-invalid-this */
 }
 
 
