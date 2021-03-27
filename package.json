@@ -8,6 +8,7 @@
   ],
   "description": "Define complex geographic regions by including and excluding country codes and geojson shapes",
   "keywords": [
+    "geofence",
     "location",
     "locationset",
     "include",

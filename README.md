@@ -4,13 +4,16 @@
 
 # location-conflation
 
-🧩 Define complex geographic regions by including and excluding country codes and GeoJSON shapes.
+🧩 Define complex geographic regions ([geofences](https://en.wikipedia.org/wiki/Geo-fence)) by including and excluding country codes and GeoJSON shapes.
 
 
 ### What is it?
 
 **Location-conflation** is a tool for generating [GeoJSON](https://geojson.org/) features by
 including and excluding other locations and shapes.
+
+It is useful for generating geofences in a declarative way, so your application doesn't need
+to bundle or fetch so much geodata.
 
 ⚡️ Try it now!:  https://ideditor.github.io/location-conflation/
 
@@ -24,14 +27,24 @@ let locationSet = {
 ```
 
 The "locations" can be any of the following:
-* A string recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). These should be [ISO 3166-1 2 or 3 letter country codes](https://en.wikipedia.org/wiki/List_of_countries_by_United_Nations_geoscheme) or [UN M.49 numeric codes](https://en.wikipedia.org/wiki/UN_M49).<br/>_Example: `"de"`_
-* A filenames for `.geojson` features. If you want to use your own features, pass them to the LocationConflation constructor in a `FeatureCollection` - each `Feature` must have an `id` that ends in `.geojson`.<br/>_Example: `"de-hamburg.geojson"`_
-* A circular area defined as `[longitude, latitude, radius?]` Array.  Radius is specified in kilometers, and is optional.  If not specified, it will default to a 25km radius.<br/>_Example: `[8.67039, 49.41882]`_
+
+- Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme).<br/>
+  These include [ISO 3166-1 2 or 3 letter country codes](https://en.wikipedia.org/wiki/List_of_countries_by_United_Nations_geoscheme), [UN M.49 numeric codes](https://en.wikipedia.org/wiki/UN_M49), and supported Wikidata QIDs.<br/>
+  _Examples: `"de"`, `"001"`, `"conus"`, `"gb-sct"`, `"Q620634"`_<br/>
+  👉 A current list of supported codes can be found at <https://ideditor.codes>
+
+- Filenames for custom `.geojson` features. If you want to use your own features, pass them to the LocationConflation constructor in a `FeatureCollection`<br/>
+  Each `Feature` must have an `id` that ends in `.geojson`.<br/>
+  _Examples: `"de-hamburg.geojson"`, `"new_jersey.geojson"`_
+
+- Circular areas defined as `[longitude, latitude, radius?]` Array.<br/>
+  Radius is specified in kilometers, and is optional. If not specified, it will default to a 25km radius.<br/>
+  _Examples: `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]`_
 
 
 ## Usage
 
-To install location-conflation as a dependency in your project:
+To install **location-conflation** as a dependency in your project:
 ```bash
 $  npm install --save @ideditor/location-conflation
 ```
@@ -125,16 +138,16 @@ let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li'
 
 Constructs a new LocationConflation instance.
 
-Optionally pass a GeoJSON FeatureCollection of known features which can be used later as locations.
+Optionally pass a GeoJSON `FeatureCollection` of custom features which can be referred to later as locations.
 
-Each feature *must* have a filename-like `id`, for example: `example.geojson`
+Each feature *must* have a filename-like `id`, for example: `new_jersey.geojson`
 ```js
 {
   "type": "FeatureCollection"
   "features": [
     {
       "type": "Feature",
-      "id": "example.geojson",
+      "id": "new_jersey.geojson",
       "properties": { … },
       "geometry": { … }
     }
@@ -147,9 +160,15 @@ Each feature *must* have a filename-like `id`, for example: `example.geojson`
 <a name="validateLocation" href="#validateLocation">#</a> <i>loco</i>.<b>validateLocation</b>(<i>location</i>)
 
 Validates a given location. The "locations" can be:
-* Points as `[longitude, latitude]` coordinate pairs. _Example: `[8.67039, 49.41882]`_
-* Filenames for known `.geojson` features. _Example: `"de-hamburg.geojson"`_
-* Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). _Example: `"de"`_
+- Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). <br/>
+  👉 A current list of supported codes can be found at <https://ideditor.codes><br/>
+  _Examples: `"de"`, `"001"`, `"conus"`, `"gb-sct"`, `"Q620634"`_
+
+- Filename-like identifiers of custom `.geojson` features. <br/>
+  _Examples: `"de-hamburg.geojson"`, `"new_jersey.geojson"`_
+
+- Points as `[longitude, latitude, radius?]` Arrays.<br/>
+  _Examples: `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]`_
 
 If the location is valid, returns a result `Object` like:
 ```js
