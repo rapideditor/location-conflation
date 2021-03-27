@@ -20,7 +20,7 @@ to bundle or fetch so much geodata.
 
 You can define a *locationSet* as an Object with `include` and `exclude` properties:
 ```js
-let locationSet = {
+const locationSet = {
   include: [ Array of locations ],
   exclude: [ Array of locations ]
 };
@@ -38,7 +38,7 @@ The "locations" can be any of the following:
   _Examples: `"de-hamburg.geojson"`, `"new_jersey.geojson"`_
 
 - Circular areas defined as `[longitude, latitude, radius?]` Array.<br/>
-  Radius is specified in kilometers, and is optional. If not specified, it will default to a 25km radius.<br/>
+  Radius is specified in kilometers and is optional. If not specified, it will default to a 25km radius.<br/>
   _Examples: `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]`_
 
 
@@ -66,17 +66,17 @@ You can also use **location-conflation** directly in a web browser. A good way t
 
 The latest versions of many web browsers now support [ES6 modules in script tags](https://caniuse.com/#feat=es6-module) like this:
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.7/index.min.mjs"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/index.min.mjs"></script>
 ```
 
 Older versions of modern ES6-capable browsers can still load the UMD build:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.7/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/dist/index.min.js"></script>
 ```
 
 Or if you need to support even older browsers like Internet Explorer, fetch the ES5 version:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.7/dist/index.es5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/dist/index.es5.min.js"></script>
 ```
 
 &nbsp;
@@ -90,31 +90,31 @@ const loco = new LocationConflation(myFeatures);
 
 #### Southern Europe:
 ```js
-let locationSet = { include: ['039'] };    // 039 = Southern Europe
-let result = loco.resolveLocationSet(locationSet);
+const locationSet = { include: ['039'] };    // 039 = Southern Europe
+const result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example1.png"/>
 
 
 #### Southern Europe and Northern Africa:
 ```js
-let locationSet = { include: ['039','015'] };   // 015 = Northern Africa
-let result = loco.resolveLocationSet(locationSet);
+const locationSet = { include: ['039','015'] };   // 015 = Northern Africa
+const result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example2.png"/>
 
 
 #### Southern Europe and Northern Africa, _excluding_ Egypt and Sudan:
 ```js
-let locationSet = { include: ['039','015'], exclude: ['eg','sd'] };
-let result = loco.resolveLocationSet(locationSet);
+const locationSet = { include: ['039','015'], exclude: ['eg','sd'] };
+const result = loco.resolveLocationSet(locationSet);
 ```
 <img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example3.png"/>
 
 
 #### The Alps, _excluding_ Liechtenstein and regions around Bern and Zürich
 ```js
-let result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
+const result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
 ```
 <img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example4.png"/>
 
@@ -167,8 +167,10 @@ Validates a given location. The "locations" can be:
 - Filename-like identifiers of custom `.geojson` features. <br/>
   _Examples: `"de-hamburg.geojson"`, `"new_jersey.geojson"`_
 
-- Points as `[longitude, latitude, radius?]` Arrays.<br/>
+- Circular areas defined as `[longitude, latitude, radius?]` Array.<br/>
+  Radius is specified in kilometers and is optional. If not specified, it will default to a 25km radius.<br/>
   _Examples: `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]`_
+
 
 If the location is valid, returns a result `Object` like:
 ```js

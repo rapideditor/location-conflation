@@ -16,6 +16,12 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.8.0
+##### 2021-Mar-27
+* Add support for optional `radius` value for point locations.
+  * Radius is specified in kilometers and is optional. If not specified, it will default to a 25km radius.
+
+
 # 0.7.0
 ##### 2020-Dec-30
 * Perf improvement: Don't union features iteratively with locationReducer ([#26])
