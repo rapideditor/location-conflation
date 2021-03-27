@@ -24,9 +24,9 @@ let locationSet = {
 ```
 
 The "locations" can be any of the following:
-* Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). These should be [ISO 3166-1 2 or 3 letter country codes](https://en.wikipedia.org/wiki/List_of_countries_by_United_Nations_geoscheme) or [UN M.49 numeric codes](https://en.wikipedia.org/wiki/UN_M49).<br/>_Example: `"de"`_
-* Filenames for `.geojson` features. If you want to use your own features, pass them to the LocationConflation constructor in a `FeatureCollection` - each `Feature` must have an `id` that ends in `.geojson`.<br/>_Example: `"de-hamburg.geojson"`_
-* Points as `[longitude, latitude]` coordinate pairs.  A 25km radius circle will be computed around the point.<br/>_Example: `[8.67039, 49.41882]`_
+* A string recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). These should be [ISO 3166-1 2 or 3 letter country codes](https://en.wikipedia.org/wiki/List_of_countries_by_United_Nations_geoscheme) or [UN M.49 numeric codes](https://en.wikipedia.org/wiki/UN_M49).<br/>_Example: `"de"`_
+* A filenames for `.geojson` features. If you want to use your own features, pass them to the LocationConflation constructor in a `FeatureCollection` - each `Feature` must have an `id` that ends in `.geojson`.<br/>_Example: `"de-hamburg.geojson"`_
+* A circular area defined as `[longitude, latitude, radius?]` Array.  Radius is specified in kilometers, and is optional.  If not specified, it will default to a 25km radius.<br/>_Example: `[8.67039, 49.41882]`_
 
 
 ## Usage

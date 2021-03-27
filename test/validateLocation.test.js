@@ -9,7 +9,7 @@ const locoNS = new LocationConflation(features).strict(false);
 test('validateLocation', t => {
 
   t.test('points', t => {
-    t.test('a valid [lon,lat] coordinate pair returns a "point" result', t => {
+    t.test('a valid [lon, lat] array returns a "point" result', t => {
       [[0, 0], [-180, -90], [180, -90], [180, 90]].forEach(val => {
         const result = loco.validateLocation(val);
         t.type(result, 'object');
@@ -19,26 +19,42 @@ test('validateLocation', t => {
       });
       t.end();
     });
-    t.test('(strict mode) an invalid [lon,lat] coordinate pair throws an error', t => {
+    t.test('a valid [lon, lat, radius] array returns a "point" result', t => {
+      [[0, 0, 20], [-180, -90, 20], [180, -90, 20], [180, 90, 20]].forEach(val => {
+        const result = loco.validateLocation(val);
+        t.type(result, 'object');
+        t.equal(result.type, 'point');
+        t.equal(result.location, val);
+        t.equal(result.id, '[' + val.toString() + ']');
+      });
+      t.end();
+    });
+    t.test('(strict mode) an invalid [lon, lat, radius?] Array throws an error', t => {
       t.throws(() => loco.validateLocation([]));
       t.throws(() => loco.validateLocation(['a']));
       t.throws(() => loco.validateLocation([0]));
-      t.throws(() => loco.validateLocation([0, 0, 0]));
       t.throws(() => loco.validateLocation([-181, -90]));
       t.throws(() => loco.validateLocation([-180, 91]));
       t.throws(() => loco.validateLocation([181, -90]));
       t.throws(() => loco.validateLocation([180, 91]));
+      t.throws(() => loco.validateLocation([10, 10, null]));
+      t.throws(() => loco.validateLocation([10, 10, -10]));
+      t.throws(() => loco.validateLocation([10, 10, 0]));
+      t.throws(() => loco.validateLocation([10, 10, 10, 10]));
       t.end();
     });
-    t.test('(non strict mode) an invalid [lon,lat] coordinate pair returns falsy', t => {
+    t.test('(non strict mode) an invalid [lon, lat, radius?] Array returns falsy', t => {
       t.notOk(locoNS.validateLocation([]));
       t.notOk(locoNS.validateLocation(['a']));
       t.notOk(locoNS.validateLocation([0]));
-      t.notOk(locoNS.validateLocation([0, 0, 0]));
       t.notOk(locoNS.validateLocation([-181, -90]));
       t.notOk(locoNS.validateLocation([-180, 91]));
       t.notOk(locoNS.validateLocation([181, -90]));
       t.notOk(locoNS.validateLocation([180, 91]));
+      t.notOk(locoNS.validateLocation([10, 10, null]));
+      t.notOk(locoNS.validateLocation([10, 10, -10]));
+      t.notOk(locoNS.validateLocation([10, 10, 0]));
+      t.notOk(locoNS.validateLocation([10, 10, 10, 10]));
       t.end();
     });
     t.end();

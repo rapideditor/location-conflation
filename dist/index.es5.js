@@ -4224,9 +4224,14 @@ var defaultExport = function defaultExport(fc) {
 // or `null` if the location is invalid
 //
 defaultExport.prototype.validateLocation = function validateLocation (location) {
-  if (Array.isArray(location)) { // a [lon,lat] coordinate pair?
-    if (location.length === 2 && Number.isFinite(location[0]) && Number.isFinite(location[1]) &&
-      location[0] >= -180 && location[0] <= 180 && location[1] >= -90 && location[1] <= 90
+  if (Array.isArray(location) && (location.length === 2 || location.length === 3)) { // [lon, lat] or [lon, lat, radius] point?
+    var lon = location[0];
+    var lat = location[1];
+    var radius = location[2];
+    if (
+      Number.isFinite(lon) && lon >= -180 && lon <= 180 &&
+      Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
+      (location.length === 2 || (Number.isFinite(radius) && radius > 0))
     ) {
       var id = '[' + location.toString() + ']';
       return { type: 'point', location: location, id: id };
@@ -4283,15 +4288,17 @@ defaultExport.prototype.resolveLocation = function resolveLocation (location) {
 
   // A [lon,lat] coordinate pair?
   if (valid.type === 'point') {
-    var RADIUS = 25000;// meters
+    var lon = location[0];
+    var lat = location[1];
+    var radius = location[2] || 25; // km
     var EDGES = 10;
     var PRECISION = 3;
-    var area = Math.PI * RADIUS * RADIUS / 1e6;   // m² to km²
+    var area = Math.PI * radius * radius;
     var feature$1 = this._cache[id] = geojsonPrecision({
       type: 'Feature',
       id: id,
       properties: { id: id, area: Number(area.toFixed(2)) },
-      geometry: circleToPolygon(location, RADIUS, EDGES)
+      geometry: circleToPolygon([lon, lat], radius * 1000, EDGES)// km to m
     }, PRECISION);
     return Object.assign(valid, { feature: feature$1 });
 
