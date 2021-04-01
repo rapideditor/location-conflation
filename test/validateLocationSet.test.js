@@ -17,7 +17,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) empty locationSet defaults to world (Q2)', t => {
       const locationSet = { };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -33,7 +33,7 @@ test('validateLocationSet', t => {
     t.test('sorts included countrycoder locations', t => {
       const locationSet = { include: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -48,7 +48,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake included countrycoder locations are ignored', t => {
       const locationSet = { include: ['013', 'fake', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -59,7 +59,7 @@ test('validateLocationSet', t => {
     t.test('sorts excluded countrycoder locations', t => {
       const locationSet = { include: ['001'], exclude: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -74,7 +74,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake excluded countrycoder locations are ignored', t => {
       const locationSet = { include: ['001'], exclude: ['013', 'fake', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -90,7 +90,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) missing include is replaced with world', t => {
       const locationSet = { exclude: ['013', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -106,7 +106,7 @@ test('validateLocationSet', t => {
     t.test('sorts included .geojson locations', t => {
       const locationSet = { include: ['philly_metro.geojson', 'dc_metro.geojson'] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -121,7 +121,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake included .geojson locations are ignored', t => {
       const locationSet = { include: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -132,7 +132,7 @@ test('validateLocationSet', t => {
     t.test('sorts excluded .geojson locations', t => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'dc_metro.geojson'] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -147,7 +147,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake excluded .geojson locations are ignored', t => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -163,7 +163,7 @@ test('validateLocationSet', t => {
     t.test('sorts included point locations', t => {
       const locationSet = { include: [[1, 0], [0, 1], [1, 1], [0, 0]] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -178,7 +178,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake included point locations are ignored', t => {
       const locationSet = { include: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -189,7 +189,7 @@ test('validateLocationSet', t => {
     t.test('sorts excluded point locations', t => {
       const locationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [1, 1], [0, 0]] };
       const result = loco.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -204,7 +204,7 @@ test('validateLocationSet', t => {
     t.test('(non strict mode) fake excluded point locations are ignored', t => {
       const locationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       const result = locoNS.resolveLocationSet(locationSet);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.type(result, 'object');
       t.equal(result.type, 'locationset');
       t.equal(result.locationSet, locationSet);
@@ -219,7 +219,7 @@ test('validateLocationSet', t => {
   t.test('sorts included countrycoder < geojson < point', t => {
     const locationSet = { include: ['philly_metro.geojson', [0,0], 'ca'] };
     const result = loco.resolveLocationSet(locationSet);
-    t.notEqual(result, null);
+    t.not(result, null);
     t.type(result, 'object');
     t.equal(result.type, 'locationset');
     t.equal(result.locationSet, locationSet);
@@ -230,7 +230,7 @@ test('validateLocationSet', t => {
   t.test('sorts excluded countrycoder < geojson < point', t => {
     const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', [0,0], 'ca'] };
     const result = loco.resolveLocationSet(locationSet);
-    t.notEqual(result, null);
+    t.not(result, null);
     t.type(result, 'object');
     t.equal(result.type, 'locationset');
     t.equal(result.locationSet, locationSet);
@@ -241,7 +241,7 @@ test('validateLocationSet', t => {
   t.test('force lowercase', t => {
     const locationSet = { include: ['US'], exclude: ['PR'] };
     const result = loco.resolveLocationSet(locationSet);
-    t.notEqual(result, null);
+    t.not(result, null);
     t.type(result, 'object');
     t.equal(result.type, 'locationset');
     t.equal(result.locationSet, locationSet);

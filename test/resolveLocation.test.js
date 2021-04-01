@@ -12,7 +12,7 @@ test('resolveLocation', t => {
     t.test('a valid [lon, lat] Array returns a feature match', t => {
       const location = [0, 0];
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'point');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                     // result includes a `feature`
@@ -25,7 +25,7 @@ test('resolveLocation', t => {
     t.test('a valid [lon, lat, radius] Array returns a feature match', t => {
       const location = [0, 0, 100];
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'point');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                     // result includes a `feature`
@@ -53,7 +53,7 @@ test('resolveLocation', t => {
     t.test('a known `.geojson` filename with id returns a feature match', t => {
       const location = 'dc_metro.geojson';
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'geojson');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                            // result includes a `feature`
@@ -66,7 +66,7 @@ test('resolveLocation', t => {
     t.test('a known `.geojson` filename with id property returns a feature match', t => {
       const location = 'philly_metro.geojson';
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'geojson');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                                // result includes a `feature`
@@ -79,7 +79,7 @@ test('resolveLocation', t => {
     t.test('`.geojson` identifiers compare as lowercase', t => {
       const location = 'PHiLLy_MeTRo.GeoJSoN';
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'geojson');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                                // result includes a `feature`
@@ -107,7 +107,7 @@ test('resolveLocation', t => {
     t.test('a valid country coder feature identifier returns a feature match', t => {
       const location = 'gb';
       const result = loco.resolveLocation(location);
-      t.notEqual(result, null);
+      t.not(result, null);
       t.equal(result.type, 'countrycoder');
       t.equal(result.location, location);
       t.type(result.feature, 'object');                       // result includes a `feature`
