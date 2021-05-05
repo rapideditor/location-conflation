@@ -13,7 +13,7 @@ function createCommonjsModule(fn) {
 
 var quickselect = createCommonjsModule(function (module, exports) {
 (function (global, factory) {
-	 module.exports = factory() ;
+	module.exports = factory() ;
 }(commonjsGlobal, (function () {
 function quickselect(arr, k, left, right, compare) {
     quickselectStep(arr, k, left || 0, right || (arr.length - 1), compare || defaultCompare);
@@ -3862,7 +3862,7 @@ var difference = function difference(subjectGeom) {
   return operation.run('difference', subjectGeom, clippingGeoms);
 };
 
-var index = {
+var index$1 = {
   union: union,
   intersection: intersection$1,
   xor: xor,
@@ -4116,7 +4116,7 @@ function get (options, name, defaultValue) {
 
 var jsonStringifyPrettyCompact = stringify;
 
-class index$1 {
+class index {
 
   // constructor
   //
@@ -4454,7 +4454,7 @@ class index$1 {
 function _clip(features, which) {
   if (!Array.isArray(features) || !features.length) return null;
 
-  const fn = { UNION: index.union, DIFFERENCE: index.difference }[which];
+  const fn = { UNION: index$1.union, DIFFERENCE: index$1.difference }[which];
   const args = features.map(feature => feature.geometry.coordinates);
   const coords = fn.apply(null, args);
   return {
@@ -4494,6 +4494,6 @@ function _sortLocations(a, b) {
     : a.id.localeCompare(b.id);
 }
 
-return index$1;
+return index;
 
 })));
