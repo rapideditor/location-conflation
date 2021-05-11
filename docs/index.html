@@ -297,7 +297,7 @@ function flyTo(multipolygon) {
     return bounds;
   }, [-180, -90, 180, 90]);  // W,S,E,N
 
-  map.fitBounds(bounds, { padding: 50 });
+  map.fitBounds(bounds, { padding: 50, speed: 2 });
 }
 
 //
