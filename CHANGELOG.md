@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 0.9.0
+##### 2021-Jun-05
+* Update to country-coder v4.1.0
+
+
 # 0.8.0
 ##### 2021-Mar-27
 * Add support for optional `radius` value for point locations.
