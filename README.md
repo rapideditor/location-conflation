@@ -66,17 +66,17 @@ You can also use **location-conflation** directly in a web browser. A good way t
 
 The latest versions of many web browsers now support [ES6 modules in script tags](https://caniuse.com/#feat=es6-module) like this:
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/index.min.mjs"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.min.mjs"></script>
 ```
 
 Older versions of modern ES6-capable browsers can still load the UMD build:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/index.min.js"></script>
 ```
 
 Or if you need to support even older browsers like Internet Explorer, fetch the ES5 version:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.8/dist/index.es5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/index.es5.min.js"></script>
 ```
 
 &nbsp;
