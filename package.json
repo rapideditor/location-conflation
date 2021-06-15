@@ -15,35 +15,37 @@
     "exclude",
     "geojson"
   ],
-  "main": "dist/index.js",
-  "module": "index.mjs",
+  "files": ["index.mjs", "dist/"],
+  "type": "module",
+  "module": "./index.mjs",
+  "main": "./dist/location-conflation.cjs",
+  "browser": "./dist/location-conflation.iife.js",
   "scripts": {
-    "all": "npm run build",
-    "build": "npm-run-all -s dist:**",
-    "dist:js": "rollup --config config/rollup.config.js",
-    "dist:es5": "rollup --config config/rollup.config.es5.js",
+    "all": "run-s clean test",
+    "clean": "shx rm -rf dist",
+    "build": "run-s build:**",
+    "build:browser": "esbuild ./index.mjs --platform=browser --format=iife --main-fields=module,main --global-name=LocationConflation --bundle --sourcemap --outfile=./dist/location-conflation.iife.js",
+    "build:cjs": "esbuild ./index.mjs --platform=node --format=cjs --bundle --sourcemap --outfile=./dist/location-conflation.cjs",
     "lint": "eslint index.mjs test/*.js",
-    "test": "npm run build && npm run lint && tap --reporter terse --no-coverage test/*.js"
+    "tap": "tap --reporter terse --no-coverage test/*.js",
+    "test": "run-s build lint tap"
   },
   "dependencies": {
     "@aitodotai/json-stringify-pretty-compact": "^1.3.0",
-    "@ideditor/country-coder": "^4.1.0",
+    "@ideditor/country-coder": "^5.0.1",
     "@mapbox/geojson-area": "^0.2.2",
     "circle-to-polygon": "^2.0.2",
     "geojson-precision": "^1.0.0",
     "polygon-clipping": "~0.15.1"
   },
   "devDependencies": {
-    "@rollup/plugin-buble": "~0.21.3",
-    "@rollup/plugin-commonjs": "^19.0.0",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
-    "eslint": "^7.26.0",
+    "esbuild": "^0.12.6",
+    "eslint": "^7.28.0",
     "npm-run-all": "^4.1.5",
-    "rollup": "^2.47.0",
+    "shx": "^0.3.3",
     "tap": "^15.0.9"
   },
   "engines": {
-    "node": ">=10"
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   }
 }

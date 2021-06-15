@@ -1,7 +1,10 @@
-const test = require('tap').test;
-const LocationConflation = require('../.');
+import fs from 'node:fs';
+import { test } from 'tap';
+import LocationConflation from '../index.mjs';
 
-const features = require('./fixtures/features.json');
+const featuresPath = './test/fixtures/features.json';
+const features = JSON.parse(fs.readFileSync(featuresPath));
+
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features).strict(false);
 
