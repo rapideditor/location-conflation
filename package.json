@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@aitodotai/json-stringify-pretty-compact": "^1.3.0",
-    "@ideditor/country-coder": "^4.1.0",
+    "@ideditor/country-coder": "^5.0.0",
     "@mapbox/geojson-area": "^0.2.2",
     "circle-to-polygon": "^2.0.2",
     "geojson-precision": "^1.0.0",
