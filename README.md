@@ -42,42 +42,47 @@ The "locations" can be any of the following:
   _Examples: `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]`_
 
 
-## Usage
+## Installing
 
-To install **location-conflation** as a dependency in your project:
-```bash
-$  npm install --save @ideditor/location-conflation
-```
+### Use in Node
 
-**location-conflation** is distributed in both UMD and ES6 module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
-* `index.mjs`  - ES6 module
-* `dist/index.js` - UMD module, ES6 syntax
-* `dist/index.es5.js` - UMD module, ES5 syntax
+`npm install @ideditor/location-conflation`
 
-Whether you require or import it, it should just work.
+**location-conflation** is distributed in several module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
+
 
 ```js
-const LocationConflation = require('@ideditor/location-conflation');    // UMD import all
+const LocationConflation = require('@ideditor/location-conflation');   // UMD import all
 // or
-import * as LocationConflation from '@ideditor/location-conflation';    // ES6 import all
+import LocationConflation from '@ideditor/location-conflation';        // ESM import all
 ```
 
-You can also use **location-conflation** directly in a web browser. A good way to do this is to fetch the file from the [jsDelivr CDN](https://www.jsdelivr.com/), which can even deliver minified versions.
 
-The latest versions of many web browsers now support [ES6 modules in script tags](https://caniuse.com/#feat=es6-module) like this:
+### Use in Browsers
+
+You can also use **location-conflation** directly in a web browser. A good way to do this is to fetch the appropriate file from the [jsDelivr CDN](https://www.jsdelivr.com/), which can even deliver minified versions.
+
+The latest versions of many web browsers now support [ES modules in script tags](https://caniuse.com/#feat=es6-module) like this:
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.min.mjs"></script>
+<script type="module">
+  import LocationConflation from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.mjs';
+  const loco = new LocationConflation();
+</script>
 ```
 
-Older versions of modern ES6-capable browsers can still load the UMD build:
+You can also load the IIFE build in a `<script>` tag - in this case you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/index.min.js"></script>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/location-conflation.iife.min.js"></script>
+</head>
+…
+<script>
+  var loco = new LocationConflation();
+</script>
 ```
 
-Or if you need to support even older browsers like Internet Explorer, fetch the ES5 version:
-```html
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/index.es5.min.js"></script>
-```
+👉 This project uses modern JavaScript syntax for use in supported node versions and modern browsers.  If you need support for legacy environments like ES5 or Internet Explorer, you'll need to build your own bundle with something like [Babel](https://babeljs.io/docs/en/index.html).
+
 
 &nbsp;
 
@@ -291,7 +296,7 @@ Convenience method to access the internal feature `_cache`.  You probably should
 
 ### Prerequisites
 
-* [Node.js](https://nodejs.org/) version 10 or newer
+* [Node.js](https://nodejs.org/) version 12 or newer
 * [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
 
 
