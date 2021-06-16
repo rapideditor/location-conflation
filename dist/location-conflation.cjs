@@ -3915,7 +3915,7 @@ var require_json_stringify_pretty_compact = __commonJS({
 
 // index.mjs
 __export(exports, {
-  default: () => location_conflation_default
+  LocationConflation: () => LocationConflation
 });
 var CountryCoder = __toModule(require_country_coder());
 var import_geojson_area = __toModule(require_geojson_area());
@@ -3923,7 +3923,7 @@ var import_circle_to_polygon = __toModule(require_circle_to_polygon());
 var import_polygon_clipping = __toModule(require_polygon_clipping_cjs());
 var import_geojson_precision = __toModule(require_geojson_precision());
 var import_json_stringify_pretty_compact = __toModule(require_json_stringify_pretty_compact());
-var location_conflation_default = class {
+var LocationConflation = class {
   constructor(fc) {
     this._cache = {};
     this._strict = true;
@@ -4119,7 +4119,9 @@ function _sortLocations(a, b) {
   return aRank > bRank ? 1 : aRank < bRank ? -1 : a.id.localeCompare(b.id);
 }
 // Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {});
+0 && (module.exports = {
+  LocationConflation
+});
 /**
  * splaytree v3.0.1
  * Fast Splay tree for Node and browser

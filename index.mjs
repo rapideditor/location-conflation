@@ -7,7 +7,7 @@ import precision  from 'geojson-precision';
 import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 
 
-export default class {
+export class LocationConflation {
 
   // constructor
   //

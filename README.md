@@ -52,9 +52,9 @@ The "locations" can be any of the following:
 
 
 ```js
-const LocationConflation = require('@ideditor/location-conflation');   // UMD import all
+const LocationConflation = require('@ideditor/location-conflation').LocationConflation;  // require named CJS
 // or
-import LocationConflation from '@ideditor/location-conflation';        // ESM import all
+import { LocationConflation } from '@ideditor/location-conflation';     // import named ESM
 ```
 
 
@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser. A good way t
 The latest versions of many web browsers now support [ES modules in script tags](https://caniuse.com/#feat=es6-module) like this:
 ```html
 <script type="module">
-  import LocationConflation from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.mjs';
+  import { LocationConflation } from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.mjs';
   const loco = new LocationConflation();
 </script>
 ```
