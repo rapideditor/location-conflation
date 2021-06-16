@@ -1027,7 +1027,7 @@ var LocationConflation = (() => {
   // index.mjs
   var location_conflation_exports = {};
   __export(location_conflation_exports, {
-    LocationConflation: () => LocationConflation
+    default: () => location_conflation_default
   });
 
   // node_modules/@ideditor/country-coder/dist/country-coder.mjs
@@ -3715,7 +3715,7 @@ var LocationConflation = (() => {
   // index.mjs
   var import_geojson_precision = __toModule(require_geojson_precision());
   var import_json_stringify_pretty_compact = __toModule(require_json_stringify_pretty_compact());
-  var LocationConflation = class {
+  var location_conflation_default = class {
     constructor(fc) {
       this._cache = {};
       this._strict = true;
