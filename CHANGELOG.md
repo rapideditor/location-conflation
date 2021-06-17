@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 1.0.1
+##### 2021-Jun-17
+* Add an export map to `package.json`, fix file extensions again
+
+
 # 1.0.0
 ##### 2021-Jun-17
 * ⚠️  Initial stable release
