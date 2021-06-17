@@ -1,6 +1,6 @@
 {
   "name": "@ideditor/location-conflation",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "license": "ISC",
   "repository": "github:ideditor/location-conflation",
   "contributors": [
@@ -15,7 +15,10 @@
     "exclude",
     "geojson"
   ],
-  "files": ["index.mjs", "dist/"],
+  "files": [
+    "index.mjs",
+    "dist/"
+  ],
   "type": "module",
   "module": "./index.mjs",
   "main": "./dist/location-conflation.cjs",
@@ -44,6 +47,9 @@
     "npm-run-all": "^4.1.5",
     "shx": "^0.3.3",
     "tap": "^15.0.9"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"

@@ -3,9 +3,9 @@
 **location-conflation** is an open source project. You can submit bug reports, help out,
 or learn more by visiting our project page on GitHub:  :octocat: https://github.com/ideditor/location-conflation
 
-Please star our project on GitHub to show your support! :star:
+Please star our project on GitHub to show your support! ⭐️
 
-_Breaking changes, which may affect downstream projects, are marked with a_ :warning:
+_Breaking changes, which may affect downstream projects, are marked with a_ ⚠️
 
 
 <!--
@@ -16,9 +16,23 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 1.0.0
+##### 2021-Jun-17
+* ⚠️  Initial stable release
+  * Note: Built files will no longer be checked into GitHub
+* ⚠️  Replace microbundle with [esbuild](https://esbuild.github.io/) for super fast build speed. Package outputs are now:
+  * `"module": "./index.mjs"` - ESM, modern JavaScript, works with `import`
+  * `"main": "./dist/location-conflation.cjs"` - CJS bundle, modern JavaScript, works with `require()`
+  * `"browser": "./dist/location-conflation.iife.js"` - IIFE bundle, modern JavaScript, works in browser `<script>` tag
+  * No longer distributing ES5 builds
+* ⚠️  location-conflation is marked as `"type": "module"` now
+* ⚠️  Dropped support for old browsers like Internet Explorer on https://ideditor.codes
+* Update to country-coder v5
+
+
 # 0.9.0
 ##### 2021-Jun-05
-* Update to country-coder v4.1.0
+* Update to country-coder v4.1
 
 
 # 0.8.0
@@ -36,12 +50,12 @@ _Breaking changes, which may affect downstream projects, are marked with a_ :war
 
 # 0.6.0
 ##### 2020-Oct-26
-* Update to country-coder v4.0.0
+* Update to country-coder v4
 
 
 # 0.5.0
 ##### 2020-Aug-25
-* :warning:  Refactor - API now has:
+* ⚠️  Refactor - API now has:
   * `validateLocation` / `validateLocationSet` - fast, return stable ids
   * `resolveLocation` / `resolveLocationSet` - slower, resolve GeoJSON features
   * All functions now return similar result objects
