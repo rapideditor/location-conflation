@@ -48,29 +48,21 @@ The "locations" can be any of the following:
 
 `npm install @ideditor/location-conflation`
 
-**location-conflation** is distributed in several module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
+**location-conflation** is distributed in CJS and ESM module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
 
 
 ```js
-const LocationConflation = require('@ideditor/location-conflation').default;  // require default CJS
+const LocationConflation = require('@ideditor/location-conflation').default;  // require CJS
 // or
-import LocationConflation from '@ideditor/location-conflation';     // import default ESM
+import LocationConflation from '@ideditor/location-conflation';   // import ESM
 ```
 
 
 ### Use in Browsers
 
-You can also use **location-conflation** directly in a web browser. A good way to do this is to fetch the appropriate file from the [jsDelivr CDN](https://www.jsdelivr.com/), which can even deliver minified versions.
+You can also use **location-conflation** directly in a web browser.  A good way to do this is to fetch the ["iife"](https://esbuild.github.io/api/#format-iife) bundle from the [jsDelivr CDN](https://www.jsdelivr.com/), which can even deliver minified versions.
 
-The latest versions of many web browsers now support [ES modules in script tags](https://caniuse.com/#feat=es6-module) like this:
-```html
-<script type="module">
-  import LocationConflation from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.0/index.mjs';
-  const loco = new LocationConflation();
-</script>
-```
-
-You can also load the IIFE build in a `<script>` tag - in this case you'll get a `LocationConflation` global to use elsewhere in your scripts:
+When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
 <script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.0/dist/location-conflation.iife.min.js"></script>
