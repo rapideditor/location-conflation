@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser. A good way t
 The latest versions of many web browsers now support [ES modules in script tags](https://caniuse.com/#feat=es6-module) like this:
 ```html
 <script type="module">
-  import LocationConflation from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/index.mjs';
+  import LocationConflation from 'https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.0/index.mjs';
   const loco = new LocationConflation();
 </script>
 ```
@@ -73,7 +73,7 @@ The latest versions of many web browsers now support [ES modules in script tags]
 You can also load the IIFE build in a `<script>` tag - in this case you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@0.9/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.0/dist/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>
