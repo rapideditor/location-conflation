@@ -23,17 +23,15 @@
   "source": "./index.mjs",
   "main": "./dist/location-conflation.cjs",
   "module": "./index.mjs",
-  "browser": "./dist/location-conflation.iife.js",
   "exports": {
-    "require": "./dist/location-conflation.cjs",
     "import": "./index.mjs",
-    "browser": "./dist/location-conflation.iife.js"
+    "require": "./dist/location-conflation.cjs"
   },
   "scripts": {
     "all": "run-s clean test",
     "clean": "shx rm -rf dist",
     "build": "run-s build:**",
-    "build:browser": "esbuild ./index.mjs --platform=browser --format=iife --main-fields=module,main --global-name=LocationConflation --bundle --sourcemap --outfile=./dist/location-conflation.iife.js",
+    "build:browser": "esbuild ./index.mjs --platform=browser --format=iife --global-name=LocationConflation --bundle --sourcemap --outfile=./dist/location-conflation.iife.js",
     "build:cjs": "esbuild ./index.mjs --platform=node --format=cjs --sourcemap --outfile=./dist/location-conflation.cjs",
     "lint": "eslint index.mjs test/*.js",
     "tap": "tap --reporter terse --no-coverage test/*.js",
@@ -41,15 +39,15 @@
   },
   "dependencies": {
     "@aitodotai/json-stringify-pretty-compact": "^1.3.0",
-    "@ideditor/country-coder": "^5.0.1",
+    "@ideditor/country-coder": "^5.0.3",
     "@mapbox/geojson-area": "^0.2.2",
     "circle-to-polygon": "^2.0.2",
     "geojson-precision": "^1.0.0",
-    "polygon-clipping": "~0.15.1"
+    "polygon-clipping": "~0.15.3"
   },
   "devDependencies": {
-    "esbuild": "^0.12.6",
-    "eslint": "^7.28.0",
+    "esbuild": "^0.12.9",
+    "eslint": "^7.29.0",
     "npm-run-all": "^4.1.5",
     "shx": "^0.3.3",
     "tap": "^15.0.9"
