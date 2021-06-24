@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 1.0.2
+##### 2021-Jun-24
+* Remove "browser" from the export map
+
+
 # 1.0.1
 ##### 2021-Jun-17
 * Add an export map to `package.json`, fix file extensions again
