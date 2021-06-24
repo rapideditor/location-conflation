@@ -1,10 +1,7 @@
-import fs from 'node:fs';
 import { test } from 'tap';
 import LocationConflation from '../index.mjs';
 
-const featuresPath = './test/fixtures/features.json';
-const features = JSON.parse(fs.readFileSync(featuresPath));
-
+import features from './fixtures/features.json';
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features).strict(false);
 
