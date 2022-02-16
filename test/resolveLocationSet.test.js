@@ -1,7 +1,7 @@
 import { test } from 'tap';
 import LocationConflation from '../index.mjs';
 
-import features from './fixtures/features.json';
+import features from './fixtures/features.json' assert {type: 'json'};
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features).strict(false);
 
