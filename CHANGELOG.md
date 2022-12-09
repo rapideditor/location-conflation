@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
 -->
 
+# 1.1.0
+##### 2022-Dec-09
+* Update country-coder to v5.1
+
+
 # 1.0.2
 ##### 2021-Jun-24
 * Remove "browser" from the export map
@@ -37,7 +42,7 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
   * No longer distributing ES5 builds
 * ⚠️  location-conflation is marked as `"type": "module"` now
 * ⚠️  Dropped support for old browsers like Internet Explorer on https://ideditor.codes
-* Update to country-coder v5
+* Update to country-coder v5.0
 
 
 # 0.9.0
