@@ -1,7 +1,7 @@
 # What's New
 
 **location-conflation** is an open source project. You can submit bug reports, help out,
-or learn more by visiting our project page on GitHub:  :octocat: https://github.com/ideditor/location-conflation
+or learn more by visiting our project page on GitHub:  :octocat: https://github.com/rapideditor/location-conflation
 
 Please star our project on GitHub to show your support! ⭐️
 
@@ -13,8 +13,15 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 ##### YYYY-MMM-DD
 *
 
-[#xxx]: https://github.com/ideditor/location-conflation/issues/xxx
+[#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
+
+# 1.2.0
+##### 2023-Mar-12
+* Bump dependency versions
+* Switch location-conflation to a scoped package under the rapideditor org: `@rapideditor/location-conflation`
+  * ⚠️ Note: projects that depend on location-conflation may need to update their code
+
 
 # 1.1.0
 ##### 2022-Dec-09
@@ -60,7 +67,7 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 ##### 2020-Dec-30
 * Perf improvement: Don't union features iteratively with locationReducer ([#26])
 
-[#26]: https://github.com/ideditor/location-conflation/issues/26
+[#26]: https://github.com/rapideditor/location-conflation/issues/26
 
 
 # 0.6.0
@@ -88,9 +95,9 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 * Include `stringify` convenience method
 * Update country-coder and other dependencies
 
-[#20]: https://github.com/ideditor/location-conflation/issues/20
-[#2]: https://github.com/ideditor/location-conflation/issues/2
-[#1]: https://github.com/ideditor/location-conflation/issues/1
+[#20]: https://github.com/rapideditor/location-conflation/issues/20
+[#2]: https://github.com/rapideditor/location-conflation/issues/2
+[#1]: https://github.com/rapideditor/location-conflation/issues/1
 
 
 # 0.3.0
@@ -104,7 +111,7 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
   * Use wikidata identifiers as the country coder feature ids and cache keys now
 * Update country-coder dependency
 
-[#4]: https://github.com/ideditor/location-conflation/issues/4
+[#4]: https://github.com/rapideditor/location-conflation/issues/4
 
 
 # 0.2.0

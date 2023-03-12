@@ -1,5 +1,5 @@
-[![build](https://github.com/ideditor/location-conflation/workflows/build/badge.svg)](https://github.com/ideditor/location-conflation/actions?query=workflow%3A%22build%22)
-[![npm version](https://badge.fury.io/js/%40ideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40ideditor%2Flocation-conflation)
+[![build](https://github.com/rapideditor/location-conflation/workflows/build/badge.svg)](https://github.com/rapideditor/location-conflation/actions?query=workflow%3A%22build%22)
+[![npm version](https://badge.fury.io/js/%40rapideditor%2Flocation-conflation.svg)](https://badge.fury.io/js/%40rapideditor%2Flocation-conflation)
 
 
 # location-conflation
@@ -15,7 +15,7 @@ including and excluding other locations and shapes.
 It is useful for generating geofences in a declarative way, so your application doesn't need
 to bundle or fetch so much geodata.
 
-⚡️ Try it now!:  https://ideditor.github.io/location-conflation/
+⚡️ Try it now!:  https://location-conflation.com/
 
 
 You can define a *locationSet* as an Object with `include` and `exclude` properties:
@@ -28,7 +28,7 @@ const locationSet = {
 
 The "locations" can be any of the following:
 
-- Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme).<br/>
+- Strings recognized by the [country-coder library](https://github.com/rapideditor/country-coder#readme).<br/>
   These include [ISO 3166-1 2 or 3 letter country codes](https://en.wikipedia.org/wiki/List_of_countries_by_United_Nations_geoscheme), [UN M.49 numeric codes](https://en.wikipedia.org/wiki/UN_M49), and supported Wikidata QIDs.<br/>
   _Examples: `"de"`, `"001"`, `"conus"`, `"gb-sct"`, `"Q620634"`_<br/>
   👉 A current list of supported codes can be found at <https://ideditor.codes>
@@ -46,15 +46,15 @@ The "locations" can be any of the following:
 
 ### Use in Node
 
-`npm install @ideditor/location-conflation`
+`npm install @rapideditor/location-conflation`
 
 **location-conflation** is distributed in CJS and ESM module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
 
 
 ```js
-const LocationConflation = require('@ideditor/location-conflation').default;  // require CJS
+const LocationConflation = require('@rapideditor/location-conflation').default;  // require CJS
 // or
-import LocationConflation from '@ideditor/location-conflation';   // import ESM
+import LocationConflation from '@rapideditor/location-conflation';   // import ESM
 ```
 
 
@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser.  A good way 
 When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.1/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.1/dist/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>
@@ -80,7 +80,7 @@ When you load this file in a `<script>` tag, you'll get a `LocationConflation` g
 
 ## Examples
 ```js
-const LocationConflation = require('@ideditor/location-conflation').default;
+const LocationConflation = require('@rapideditor/location-conflation').default;
 const myFeatures = require('./path/to/FeatureCollection.json');   // optional
 const loco = new LocationConflation(myFeatures);
 ```
@@ -90,7 +90,7 @@ const loco = new LocationConflation(myFeatures);
 const locationSet = { include: ['039'] };    // 039 = Southern Europe
 const result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example1.png"/>
+<img width="800px" alt="Southern Europe" src="https://raw.githubusercontent.com/rapideditor/location-conflation/main/docs/images/example1.png"/>
 
 
 #### Southern Europe and Northern Africa:
@@ -98,7 +98,7 @@ const result = loco.resolveLocationSet(locationSet);
 const locationSet = { include: ['039','015'] };   // 015 = Northern Africa
 const result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example2.png"/>
+<img width="800px" alt="Southern Europe and Northern Africa" src="https://raw.githubusercontent.com/rapideditor/location-conflation/main/docs/images/example2.png"/>
 
 
 #### Southern Europe and Northern Africa, _excluding_ Egypt and Sudan:
@@ -106,14 +106,14 @@ const result = loco.resolveLocationSet(locationSet);
 const locationSet = { include: ['039','015'], exclude: ['eg','sd'] };
 const result = loco.resolveLocationSet(locationSet);
 ```
-<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example3.png"/>
+<img width="800px" alt="Southern Europe and Northern Africa, excluding Egypt and Sudan" src="https://raw.githubusercontent.com/rapideditor/location-conflation/main/docs/images/example3.png"/>
 
 
 #### The Alps, _excluding_ Liechtenstein and regions around Bern and Zürich
 ```js
 const result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['li', [8.55,47.36], [7.45,46.95]] });
 ```
-<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/ideditor/location-conflation/main/docs/images/example4.png"/>
+<img width="800px" alt="The Alps, excluding Liechtenstein and regions around Bern and Zürich" src="https://raw.githubusercontent.com/rapideditor/location-conflation/main/docs/images/example4.png"/>
 
 
 &nbsp;
@@ -157,7 +157,7 @@ Each feature *must* have a filename-like `id`, for example: `new_jersey.geojson`
 <a name="validateLocation" href="#validateLocation">#</a> <i>loco</i>.<b>validateLocation</b>(<i>location</i>)
 
 Validates a given location. The "locations" can be:
-- Strings recognized by the [country-coder library](https://github.com/ideditor/country-coder#readme). <br/>
+- Strings recognized by the [country-coder library](https://github.com/rapideditor/country-coder#readme). <br/>
   👉 A current list of supported codes can be found at <https://ideditor.codes><br/>
   _Examples: `"de"`, `"001"`, `"conus"`, `"gb-sct"`, `"Q620634"`_
 
@@ -295,7 +295,7 @@ Convenience method to access the internal feature `_cache`.  You probably should
 ### Installing
 
 * Clone this project, for example:
-  `git clone git@github.com:ideditor/location-conflation.git`
+  `git clone git@github.com:rapideditor/location-conflation.git`
 * `cd` into the project folder,
 * Run `npm install` to install libraries
 
@@ -308,7 +308,7 @@ Convenience method to access the internal feature `_cache`.  You probably should
 ### Thanks!
 
 **location-conflation** is really just a wrapper around these other great projects:
-* [country-coder](https://github.com/ideditor/country-coder) for world boundaries, and
+* [country-coder](https://github.com/rapideditor/country-coder) for world boundaries, and
 * [polygon-clipping](https://github.com/mfogel/polygon-clipping) for union/difference functions
 
 

@@ -7,7 +7,7 @@
 <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.13.1/mapbox-gl.js'></script>
 <script defer src='https://kit.fontawesome.com/c772610440.js' crossorigin='anonymous'></script>
 <script defer src='https://cdn.jsdelivr.net/npm/json5@2.1/dist/index.min.js'></script>
-<script defer src='https://cdn.jsdelivr.net/npm/@ideditor/location-conflation@1.1/dist/location-conflation.iife.min.js'></script>
+<script defer src='https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.1/dist/location-conflation.iife.min.js'></script>
 <!-- <script defer src='../dist/location-conflation.iife.js'></script> -->
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.13.1/mapbox-gl.css' rel='stylesheet'/>
 <link href='style.css' rel='stylesheet' type='text/css'/>
@@ -29,7 +29,7 @@
     <div id='sidebar' class='hasRows'>
 
       <div id='loco' class='section'>
-        <p>Paste a locationSet:<a href='https://github.com/ideditor/location-conflation/blob/main/README.md#location-conflation' target='_blank' style='font-size: smaller; margin-left: 70px'>What's this?</a></p>
+        <p>Paste a locationSet:<a href='https://github.com/rapideditor/location-conflation/blob/main/README.md#location-conflation' target='_blank' style='font-size: smaller; margin-left: 70px'>What's this?</a></p>
 <textarea autofocus id='loco-textarea' name='loco-textarea' rows='5'>
 { include: ['de', 'cz', 'pl'] }
 </textarea>
@@ -67,7 +67,7 @@
         <div class='icon'><i class='fas fa-file-code fa-lg'></i></div>
       </div>
       <div id='octocat'>
-        <a href='https://github.com/ideditor/location-conflation' target='_blank'>
+        <a href='https://github.com/rapideditor/location-conflation' target='_blank'>
         <i class='fab fa-github fa-2x'></i>
         </a>
       </div>
@@ -201,7 +201,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   } else if (qs.referrer === 'nsi') {
     _fcPromise = fetch('https://cdn.jsdelivr.net/gh/osmlab/name-suggestion-index@main/dist/featureCollection.min.json');
   } else if (qs.referrer === 'ii') {
-    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/ideditor/imagery-index@main/dist/featureCollection.min.json');
+    _fcPromise = fetch('https://cdn.jsdelivr.net/gh/rapideditor/imagery-index@main/dist/featureCollection.min.json');
   } else {
     _fcPromise = Promise.resolve({ ok: true, json: function() { return {}; } });  // fake response
   }
@@ -397,8 +397,8 @@ function locoParseInputWhenReady() {
     }
 
     // Display the emoji flag
-    // https://github.com/ideditor/country-coder/issues/25
-    // https://github.com/ideditor/country-coder/issues/26
+    // https://github.com/rapideditor/country-coder/issues/25
+    // https://github.com/rapideditor/country-coder/issues/26
     var overrideFlag = {
       Q21: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',        // GB-ENG (England)
       Q22: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',        // GB-SCT (Scotland)

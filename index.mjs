@@ -1,4 +1,4 @@
-import * as CountryCoder from '@ideditor/country-coder';
+import * as CountryCoder from '@rapideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
