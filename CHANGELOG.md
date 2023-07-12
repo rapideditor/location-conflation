@@ -16,6 +16,12 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+
+# 1.2.1
+##### 2023-Jul-12
+* Update country-coder to v5.2.1
+
+
 # 1.2.0
 ##### 2023-Mar-12
 * Bump dependency versions

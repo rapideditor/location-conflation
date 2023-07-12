@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser.  A good way 
 When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.1/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>
@@ -288,7 +288,7 @@ Convenience method to access the internal feature `_cache`.  You probably should
 
 ### Prerequisites
 
-* [Node.js](https://nodejs.org/) version 12 or newer
+* [Node.js](https://nodejs.org/) version 16 or newer
 * [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
 
 

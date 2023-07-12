@@ -12,3 +12,16 @@
 - [ ] git push origin main vA.B.C
 - [ ] npm publish
 - [ ] Go to GitHub and link the release notes to the changelog
+
+
+### Purge JSDelivr CDN cache
+Include any URLs that iD/Rapid/others might request.
+
+```bash
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/location-conflation.iife.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/location-conflation.iife.min.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.min.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.min.js'
+```
