@@ -1,4 +1,4 @@
-import * as CountryCoder from '@rapideditor/country-coder';
+import { aggregateFeature, feature as countryCoderFeature } from '@rapideditor/country-coder';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
@@ -69,7 +69,7 @@ export default class {
     }
 
     // Replace CountryCoder world geometry to be a polygon covering the world.
-    let world = _cloneDeep(CountryCoder.feature('Q2'));
+    let world = _cloneDeep(countryCoderFeature('Q2'));
     world.geometry = {
       type: 'Polygon',
       coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
@@ -115,7 +115,7 @@ export default class {
       }
 
     } else if (typeof location === 'string' || typeof location === 'number') {   // a country-coder value?
-      const feature = CountryCoder.feature(location);
+      const feature = countryCoderFeature(location);
       if (feature) {
         // Use wikidata QID as the identifier, since that seems to be the one
         // property that everything in CountryCoder is guaranteed to have.
@@ -179,7 +179,7 @@ export default class {
 
     // A country-coder identifier?
     } else if (valid.type === 'countrycoder') {
-      let feature = _cloneDeep(CountryCoder.feature(id));
+      let feature = _cloneDeep(countryCoderFeature(id));
       let props = feature.properties;
 
       // -> This block of code is weird and requires some explanation. <-
@@ -192,7 +192,7 @@ export default class {
       // This approach also has the benefit of removing all the internal boaders and
       //   simplifying the regional polygons a lot.
       if (Array.isArray(props.members)) {
-        let aggregate = CountryCoder.aggregateFeature(id);
+        let aggregate = aggregateFeature(id);
         aggregate.geometry.coordinates = _clip([aggregate], 'UNION').geometry.coordinates;
         feature.geometry = aggregate.geometry;
       }
