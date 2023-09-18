@@ -1,8 +1,8 @@
 import * as CountryCoder from '@rapideditor/country-coder';
+import * as Polyclip from 'polyclip-ts';
 
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
-import polygonClipping from 'polygon-clipping';
 import precision  from 'geojson-precision';
 import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
 
@@ -345,11 +345,11 @@ export default class {
 }
 
 
-// Wrap the mfogel/polygon-clipping library and return a GeoJSON feature.
+// Wrap the https://github.com/luizbarboza/polyclip-ts library and return a GeoJSON feature.
 function _clip(features, which) {
   if (!Array.isArray(features) || !features.length) return null;
 
-  const fn = { UNION: polygonClipping.union, DIFFERENCE: polygonClipping.difference }[which];
+  const fn = { UNION: Polyclip.union, DIFFERENCE: Polyclip.difference }[which];
   const args = features.map(feature => feature.geometry.coordinates);
   const coords = fn.apply(null, args);
   return {
