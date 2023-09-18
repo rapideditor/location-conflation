@@ -41,7 +41,7 @@ export default class {
 
     // When strict mode = true, throw on invalid locations or locationSets.
     // When strict mode = false, return `null` for invalid locations or locationSets.
-    this._strict = true;
+    this.strict = true;
 
     // process input FeatureCollection
     if (fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features)) {
@@ -124,7 +124,7 @@ export default class {
       }
     }
 
-    if (this._strict) {
+    if (this.strict) {
       throw new Error(`validateLocation:  Invalid location: "${location}".`);
     } else {
       return null;
@@ -211,7 +211,7 @@ export default class {
       return Object.assign(valid, { feature: feature });
     }
 
-    if (this._strict) {
+    if (this.strict) {
       throw new Error(`resolveLocation:  Couldn't resolve location "${location}".`);
     } else {
       return null;
@@ -243,7 +243,7 @@ export default class {
     let exclude = (locationSet.exclude || []).map(validator).filter(Boolean);
 
     if (!include.length) {
-      if (this._strict) {
+      if (this.strict) {
         throw new Error(`validateLocationSet:  LocationSet includes nothing.`);
       } else {
         // non-strict mode, replace an empty locationSet with one that includes "the world"
@@ -315,25 +315,6 @@ export default class {
 
     this._cache[id] = resultGeoJSON;
     return Object.assign(valid, { feature: resultGeoJSON });
-  }
-
-
-  // strict
-  //
-  strict(val) {
-    if (val === undefined) {   // get
-      return this._strict;
-    } else {                   // set
-      this._strict = val;
-      return this;
-    }
-  }
-
-
-  // cache
-  // convenience method to access the internal cache
-  cache() {
-    return this._cache;
   }
 
 
