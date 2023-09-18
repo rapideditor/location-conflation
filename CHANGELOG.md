@@ -16,6 +16,19 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+# 1.3.0
+##### 2023-Sep-18
+* ⚠️  Use a named export for ESM, 'default' export for CJS/IIFE ([#68])
+* ⚠️  Change `.strict()` to a normal class property.  Also remove `.cache()` accessor
+* Replace mfogel/polygon-clipping with luizbarboza/polyclip-ts ([#67])
+* Fix map on https://location-conflation.org ([#66])
+* Bump dependency versions
+* Supported engines now `"node": ">=18"`
+
+[#68]: https://github.com/rapideditor/location-conflation/issues/68
+[#67]: https://github.com/rapideditor/location-conflation/issues/67
+[#66]: https://github.com/rapideditor/location-conflation/issues/66
+
 
 # 1.2.1
 ##### 2023-Jul-12

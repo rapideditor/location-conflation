@@ -54,7 +54,7 @@ The "locations" can be any of the following:
 ```js
 const LocationConflation = require('@rapideditor/location-conflation').default;  // require CJS
 // or
-import LocationConflation from '@rapideditor/location-conflation';   // import ESM
+import { LocationConflation } from '@rapideditor/location-conflation';   // import ESM
 ```
 
 
@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser.  A good way 
 When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.3/dist/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>
@@ -80,8 +80,8 @@ When you load this file in a `<script>` tag, you'll get a `LocationConflation` g
 
 ## Examples
 ```js
-const LocationConflation = require('@rapideditor/location-conflation').default;
-const myFeatures = require('./path/to/FeatureCollection.json');   // optional
+import { LocationConflation } from '@rapideditor/location-conflation';
+import myFeatures from './fixtures/features.json' assert {type: 'json'};  // optional
 const loco = new LocationConflation(myFeatures);
 ```
 
@@ -127,7 +127,6 @@ const result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['l
 * [resolveLocationSet](#resolveLocationSet)
 * [strict](#strict)
 * [stringify](#stringify)
-* [cache](#cache)
 
 &nbsp;
 
@@ -257,14 +256,14 @@ If the locationSet is invalid or contains any invalid locations,
 
 <a name="strict" href="#strict">#</a> <i>loco</i>.<b>strict</b>(<i>val</i>)
 
-Get/set "strict mode".  New instances of LocationConflation start out in strict mode by default.
+Getter/setter for "strict mode".  Current versions of LocationConflation start out in strict mode by default.
 
 * In strict mode, any invalid location or locationSet throws an error.
 * In non strict mode, invalid locations are ignored, and locationSets that include nothing are assumed to include the entire world.
 
 ```js
-loco.strict(false);                // pass a true/false value to set the strict mode
-const isStrict = loco.strict();    // pass no value to return the current value
+loco.strict = false;            // setter: pass a true/false value to set the strict mode
+const isStrict = loco.strict;   // getter: return the current value
 ```
 
 &nbsp;
@@ -277,10 +276,6 @@ Convenience method that wraps [json-stringify-pretty-compact](https://www.npmjs.
 loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
 ```
 
-<a name="cache" href="#cache">#</a> <i>loco</i>.<b>cache</b>()
-
-Convenience method to access the internal feature `_cache`.  You probably shouldn't use it except for debugging.
-
 &nbsp;
 
 
@@ -288,7 +283,7 @@ Convenience method to access the internal feature `_cache`.  You probably should
 
 ### Prerequisites
 
-* [Node.js](https://nodejs.org/) version 16 or newer
+* [Node.js](https://nodejs.org/) version 18 or newer
 * [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
 
 

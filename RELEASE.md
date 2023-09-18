@@ -22,6 +22,6 @@ curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/locat
 curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/location-conflation.iife.min.js'
 curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.js'
 curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.min.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.2/dist/location-conflation.iife.min.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.3/dist/location-conflation.iife.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.3/dist/location-conflation.iife.min.js'
 ```
