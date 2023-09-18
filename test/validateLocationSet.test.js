@@ -1,9 +1,10 @@
 import { test } from 'tap';
-import LocationConflation from '../index.mjs';
+import { LocationConflation } from '../index.mjs';
 
 import features from './fixtures/features.json' assert {type: 'json'};
 const loco = new LocationConflation(features);
-const locoNS = new LocationConflation(features).strict(false);
+const locoNS = new LocationConflation(features);
+locoNS.strict = false;
 
 
 test('validateLocationSet', t => {
