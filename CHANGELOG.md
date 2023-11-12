@@ -21,7 +21,7 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 * ⚠️  Use a named export for ESM, 'default' export for CJS/IIFE ([#68])
 * ⚠️  Change `.strict()` to a normal class property.  Also remove `.cache()` accessor
 * Replace mfogel/polygon-clipping with luizbarboza/polyclip-ts ([#67])
-* Fix map on https://location-conflation.org ([#66])
+* Fix map on https://location-conflation.com ([#66])
 * Bump dependency versions
 * Supported engines now `"node": ">=18"`
 
