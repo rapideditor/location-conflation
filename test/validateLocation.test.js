@@ -14,7 +14,7 @@ test('validateLocation', async t => {
     await t.test('a valid [lon, lat] array returns a "point" result', t => {
       [[0, 0], [-180, -90], [180, -90], [180, 90]].forEach(val => {
         const result = loco.validateLocation(val);
-        assert.equal(typeof result, 'object');
+        assert.ok(result instanceof Object);
         assert.equal(result.type, 'point');
         assert.equal(result.location, val);
         assert.equal(result.id, '[' + val.toString() + ']');
@@ -24,7 +24,7 @@ test('validateLocation', async t => {
     await t.test('a valid [lon, lat, radius] array returns a "point" result', t => {
       [[0, 0, 20], [-180, -90, 20], [180, -90, 20], [180, 90, 20]].forEach(val => {
         const result = loco.validateLocation(val);
-        assert.equal(typeof result, 'object');
+        assert.ok(result instanceof Object);
         assert.equal(result.type, 'point');
         assert.equal(result.location, val);
         assert.equal(result.id, '[' + val.toString() + ']');
@@ -65,7 +65,7 @@ test('validateLocation', async t => {
     await t.test('a valid `.geojson` identifier returns a "geojson" result', t => {
       ['philly_metro.geojson', 'dc_metro.geojson'].forEach(val => {
         const result = loco.validateLocation(val);
-        assert.equal(typeof result, 'object');
+        assert.ok(result instanceof Object);
         assert.equal(result.type, 'geojson');
         assert.equal(result.location, val);
         assert.equal(result.id, val);
@@ -84,7 +84,7 @@ test('validateLocation', async t => {
 
     await t.test('`.geojson` identifiers compare as lowercase', t => {
       const result = loco.validateLocation('PHiLLy_MeTRo.GeoJSoN');
-      assert.equal(typeof result, 'object');
+      assert.ok(result instanceof Object);
       assert.equal(result.type, 'geojson');
       assert.equal(result.location, 'PHiLLy_MeTRo.GeoJSoN');
       assert.equal(result.id, 'philly_metro.geojson');
@@ -96,7 +96,7 @@ test('validateLocation', async t => {
     await t.test('a valid country coder identifier returns a "countrycoder" result', t => {
       ['GB', 'gb', 'gbr', '826', 826, 'Q145', '🇬🇧', 'united kingdom'].forEach(val => {
         const result = loco.validateLocation(val);
-        assert.equal(typeof result, 'object');
+        assert.ok(result instanceof Object);
         assert.equal(result.type, 'countrycoder');
         assert.equal(result.location, val);
         assert.equal(result.id, 'Q145');
