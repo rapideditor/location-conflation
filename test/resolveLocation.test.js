@@ -1,4 +1,5 @@
-import { test } from 'tap';
+import { test } from 'node:test';
+import { strict as assert } from 'node:assert';
 import { LocationConflation } from '../index.mjs';
 
 import features from './fixtures/features.json' assert {type: 'json'};
@@ -6,129 +7,122 @@ const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features);
 locoNS.strict = false;
 
-test('resolveLocation', t => {
+test('resolveLocation', async t => {
 
-  t.test('points', t => {
-    t.test('a valid [lon, lat] Array returns a feature match', t => {
+  await t.test('points', async t => {
+    await t.test('a valid [lon, lat] Array returns a feature match', t => {
       const location = [0, 0];
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'point');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                     // result includes a `feature`
-      t.equal(result.feature.id, '[0,0]');                  // feature has an `id`
-      t.type(result.feature.properties, 'object');          // feature has `properties`
-      t.equal(result.feature.properties.id, '[0,0]');       // properties has an `id` property
-      t.equal(result.feature.properties.area, 1963.5);      // area = Pi * 25 * 25
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'point');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');             // result includes a `feature`
+      assert.equal(result.feature.id, '[0,0]');                  // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');  // feature has `properties`
+      assert.equal(result.feature.properties.id, '[0,0]');       // properties has an `id` property
+      assert.equal(result.feature.properties.area, 1963.5);      // area = Pi * 25 * 25
     });
-    t.test('a valid [lon, lat, radius] Array returns a feature match', t => {
+
+    await t.test('a valid [lon, lat, radius] Array returns a feature match', t => {
       const location = [0, 0, 100];
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'point');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                     // result includes a `feature`
-      t.equal(result.feature.id, '[0,0,100]');              // feature has an `id`
-      t.type(result.feature.properties, 'object');          // feature has `properties`
-      t.equal(result.feature.properties.id, '[0,0,100]');   // properties has an `id` property
-      t.equal(result.feature.properties.area, 31415.93);    // area = Pi * 100 * 100
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'point');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');             // result includes a `feature`
+      assert.equal(result.feature.id, '[0,0,100]');              // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');  // feature has `properties`
+      assert.equal(result.feature.properties.id, '[0,0,100]');   // properties has an `id` property
+      assert.equal(result.feature.properties.area, 31415.93);    // area = Pi * 100 * 100
     });
-    t.test('(strict mode) an invalid [lon, lat] Array throws an error', t => {
+
+    await t.test('(strict mode) an invalid [lon, lat] Array throws an error', t => {
       const location = [];
-      t.throws(() => loco.resolveLocation(location));
-      t.end();
+      assert.throws(() => loco.resolveLocation(location));
     });
-    t.test('(non strict mode) an invalid [lon, lat] Array returns falsy', t => {
+
+    await t.test('(non strict mode) an invalid [lon, lat] Array returns null', t => {
       const location = [];
-      t.notOk(locoNS.resolveLocation(location));
-      t.end();
+      assert.equal(locoNS.resolveLocation(location), null);
     });
-    t.end();
   });
 
 
-  t.test('`.geojson` filenames', t => {
-    t.test('a known `.geojson` filename with id returns a feature match', t => {
+  await t.test('`.geojson` filenames', async t => {
+    await t.test('a known `.geojson` filename with id returns a feature match', t => {
       const location = 'dc_metro.geojson';
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'geojson');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                            // result includes a `feature`
-      t.equal(result.feature.id, 'dc_metro.geojson');              // feature has an `id`
-      t.type(result.feature.properties, 'object');                 // feature has `properties`
-      t.equal(result.feature.properties.id, 'dc_metro.geojson');   // properties has an `id` property
-      t.match(result.feature.properties, { area: /\d+/ });         // properties has a numeric `area` property
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'geojson');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');                    // result includes a `feature`
+      assert.equal(result.feature.id, 'dc_metro.geojson');              // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');         // feature has `properties`
+      assert.equal(result.feature.properties.id, 'dc_metro.geojson');   // properties has an `id` property
+      assert.equal(typeof result.feature.properties.area, 'number');    // properties has a numeric `area` property
     });
-    t.test('a known `.geojson` filename with id property returns a feature match', t => {
+
+    await t.test('a known `.geojson` filename with id property returns a feature match', t => {
       const location = 'philly_metro.geojson';
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'geojson');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                                // result includes a `feature`
-      t.equal(result.feature.id, 'philly_metro.geojson');              // feature has an `id`
-      t.type(result.feature.properties, 'object');                     // feature has `properties`
-      t.equal(result.feature.properties.id, 'philly_metro.geojson');   // properties has an `id` property
-      t.match(result.feature.properties, { area: /\d+/ });             // properties has a numeric `area` property
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'geojson');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');                        // result includes a `feature`
+      assert.equal(result.feature.id, 'philly_metro.geojson');              // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');             // feature has `properties`
+      assert.equal(result.feature.properties.id, 'philly_metro.geojson');   // properties has an `id` property
+      assert.equal(typeof result.feature.properties.area, 'number');        // properties has a numeric `area` property
     });
-    t.test('`.geojson` identifiers compare as lowercase', t => {
+
+    await t.test('`.geojson` identifiers compare as lowercase', t => {
       const location = 'PHiLLy_MeTRo.GeoJSoN';
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'geojson');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                                // result includes a `feature`
-      t.equal(result.feature.id, 'philly_metro.geojson');              // feature has an `id`
-      t.type(result.feature.properties, 'object');                     // feature has `properties`
-      t.equal(result.feature.properties.id, 'philly_metro.geojson');   // properties has an `id` property
-      t.match(result.feature.properties, { area: /\d+/ });             // properties has a numeric `area` property
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'geojson');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');                        // result includes a `feature`
+      assert.equal(result.feature.id, 'philly_metro.geojson');              // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');             // feature has `properties`
+      assert.equal(result.feature.properties.id, 'philly_metro.geojson');   // properties has an `id` property
+      assert.equal(typeof result.feature.properties.area, 'number');        // properties has a numeric `area` property
     });
-    t.test('(strict mode) an invalid `.geojson` filename throws an error', t => {
+
+    await t.test('(strict mode) an invalid `.geojson` filename throws an error', t => {
       const location = 'fake.geojson';
-      t.throws(() => loco.resolveLocation(location));
-      t.end();
+      assert.throws(() => loco.resolveLocation(location));
     });
-    t.test('(non strict mode) an invalid `.geojson` filename returns falsy', t => {
+
+    await t.test('(non strict mode) an invalid `.geojson` filename returns null', t => {
       const location = 'fake.geojson';
-      t.notOk(locoNS.resolveLocation(location));
-      t.end();
+      assert.equal(locoNS.resolveLocation(location), null);
     });
-    t.end();
   });
 
 
-  t.test('country coder feature identifiers', t => {
-    t.test('a valid country coder feature identifier returns a feature match', t => {
+  await t.test('country coder feature identifiers', async t => {
+    await t.test('a valid country coder feature identifier returns a feature match', t => {
       const location = 'gb';
       const result = loco.resolveLocation(location);
-      t.not(result, null);
-      t.equal(result.type, 'countrycoder');
-      t.equal(result.location, location);
-      t.type(result.feature, 'object');                       // result includes a `feature`
-      t.equal(result.feature.id, 'Q145');                     // feature has an `id`
-      t.type(result.feature.properties, 'object');            // feature has `properties`
-      t.equal(result.feature.properties.id, 'Q145');          // properties has an `id` property
-      t.match(result.feature.properties, { area: /\d+/ });    // properties has a numeric `area` property
-      t.end();
+      assert.notEqual(result, null);
+      assert.equal(result.type, 'countrycoder');
+      assert.equal(result.location, location);
+      assert.equal(typeof result.feature, 'object');                   // result includes a `feature`
+      assert.equal(result.feature.id, 'Q145');                         // feature has an `id`
+      assert.equal(typeof result.feature.properties, 'object');        // feature has `properties`
+      assert.equal(result.feature.properties.id, 'Q145');              // properties has an `id` property
+      assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
     });
-    t.test('(strict mode) an invalid country coder feature identifier throws an error', t => {
+
+    await t.test('(strict mode) an invalid country coder feature identifier throws an error', t => {
       const location = 'fake';
-      t.throws(() => loco.resolveLocation(location));
-      t.end();
+      assert.throws(() => loco.resolveLocation(location));
     });
-    t.test('(non strict mode) an invalid country coder feature identifier returns falsy', t => {
+
+    await t.test('(non strict mode) an invalid country coder feature identifier returns null', t => {
       const location = 'fake';
-      t.notOk(locoNS.resolveLocation(location));
-      t.end();
+      assert.equal(locoNS.resolveLocation(location), null);
     });
-    t.end();
   });
 
-  t.end();
 });
