@@ -304,7 +304,7 @@ loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
 
 **location-conflation** is really just a wrapper around these other great projects:
 * [country-coder](https://github.com/rapideditor/country-coder) for world boundaries, and
-* [polygon-clipping](https://github.com/mfogel/polygon-clipping) for union/difference functions
+* [polyclip-ts](https://github.com/luizbarboza/polyclip-ts) for union/difference functions
 
 
 ### License
