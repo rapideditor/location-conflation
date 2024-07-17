@@ -1,8 +1,9 @@
+import fs from 'node:fs';
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { LocationConflation } from '../index.mjs';
 
-import features from './fixtures/features.json' assert {type: 'json'};
+const features = JSON.parse(fs.readFileSync('test/fixtures/features.json', 'utf8'));
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features);
 locoNS.strict = false;

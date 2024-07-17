@@ -1,16 +1,8 @@
-{
-  "env": {
-    "node": true,
-    "es6": true
-  },
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
-  },
-  "extends": [
-    "eslint:recommended"
-  ],
-  "rules": {
+import js from '@eslint/js';
+import globals from 'globals';
+
+const common = {
+  rules: {
     "dot-notation": "error",
     "eqeqeq": ["error", "smart"],
     "keyword-spacing": "error",
@@ -49,7 +41,7 @@
     "no-unneeded-ternary": "error",
     "no-unused-expressions": "error",
     "no-unexpected-multiline": "error",
-    "no-unused-vars": "warn",
+    "no-unused-vars": ["warn", { "vars": "all", "args": "none", "caughtErrors": "none" }],
     "no-void": "error",
     "no-warning-comments": "warn",
     "no-with": "error",
@@ -59,4 +51,23 @@
     "space-unary-ops": "error",
     "wrap-regex": "off"
   }
-}
+};
+
+
+export default [
+  js.configs.recommended,
+  common,
+  {
+    files: ['index.mjs'],
+    languageOptions: {
+    }
+  },
+  {
+    files: ['test/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
+    }
+  }
+];
