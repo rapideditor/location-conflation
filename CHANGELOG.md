@@ -16,6 +16,11 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+# 1.4.0
+##### 2024-Jul-17
+* Update country-coder to v5.3.0
+
+
 # 1.3.0
 ##### 2023-Sep-18
 * ⚠️  Use a named export for ESM, 'default' export for CJS/IIFE ([#68])
