@@ -81,7 +81,7 @@ When you load this file in a `<script>` tag, you'll get a `LocationConflation` g
 ## Examples
 ```js
 import { LocationConflation } from '@rapideditor/location-conflation';
-import myFeatures from './fixtures/features.json' assert {type: 'json'};  // optional
+import myFeatures from './fixtures/features.json' with {type: 'json'};  // optional
 const loco = new LocationConflation(myFeatures);
 ```
 
