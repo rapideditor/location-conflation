@@ -16,6 +16,12 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+# 1.6.0
+##### 2025-Jul-18
+* Test against Node 24
+* Update country-coder to v5.5.1
+
+
 # 1.5.0
 ##### 2025-Apr-28
 * Drop support for Node 18
