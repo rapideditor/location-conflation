@@ -396,16 +396,6 @@ function locoParseInputWhenReady() {
       messageHTML += '<span class="nameEn">' + props.nameEn + '</span>';
     }
 
-    // Display the emoji flag
-    // https://github.com/rapideditor/country-coder/issues/25
-    // https://github.com/rapideditor/country-coder/issues/26
-    var overrideFlag = {
-      Q21: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',        // GB-ENG (England)
-      Q22: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',        // GB-SCT (Scotland)
-      Q25: '🏴󠁧󠁢󠁷󠁬󠁳󠁿󠁧󠁢󠁳󠁣󠁴󠁿',        // GB-WLS (Wales)
-      Q212429: '🇫🇷'     // FX (Metropolitan France)
-    };
-    props.emojiFlag = overrideFlag[feature.id] || props.emojiFlag;
     if (props.emojiFlag) {
       messageHTML += '<span class="emojiFlag">' + props.emojiFlag + '</span>';
     }
