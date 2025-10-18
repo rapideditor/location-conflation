@@ -16,6 +16,13 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+# 1.7.0
+##### 2025-??
+* This project uses [`bun`](https://bun.com/) now, for simpler developer tooling ([#71])
+
+[#71]: https://github.com/rapideditor/location-conflation/issues/71
+
+
 # 1.6.0
 ##### 2025-Jul-18
 * Test against Node 24
