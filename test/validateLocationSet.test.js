@@ -1,23 +1,22 @@
-import fs from 'node:fs';
-import { test } from 'node:test';
-import { strict as assert } from 'node:assert';
-import { LocationConflation } from '../index.mjs';
+import { describe, it } from 'bun:test';
+import { strict as assert } from 'bun:assert';
+import { LocationConflation } from '../src/location-conflation.mjs';
 
-const features = JSON.parse(fs.readFileSync('test/fixtures/features.json', 'utf8'));
+const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features);
 locoNS.strict = false;
 
 
-test('validateLocationSet', async t => {
+describe('validateLocationSet', () => {
 
-  await t.test('empty locationSet', async t => {
-    await t.test('(strict mode) empty locationSet throws an error', t => {
+  describe('empty locationSet', () => {
+    it('(strict mode) empty locationSet throws an error', () => {
       const locationSet = { };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) empty locationSet defaults to world (Q2)', t => {
+    it('(non strict mode) empty locationSet defaults to world (Q2)', () => {
       const locationSet = { };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -28,8 +27,8 @@ test('validateLocationSet', async t => {
   });
 
 
-  await t.test('country coder feature identifiers', async t => {
-    await t.test('sorts included countrycoder locations', t => {
+  describe('country coder feature identifiers', () => {
+    it('sorts included countrycoder locations', () => {
       const locationSet = { include: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -38,12 +37,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q18,Q27611]');
     });
 
-    await t.test('(strict mode) fake included countrycoder locations throw an error', t => {
+    it('(strict mode) fake included countrycoder locations throw an error', () => {
       const locationSet = { include: ['013', 'fake', '005'] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake included countrycoder locations are ignored', t => {
+    it('(non strict mode) fake included countrycoder locations are ignored', () => {
       const locationSet = { include: ['013', 'fake', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -52,7 +51,7 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q18,Q27611]');
     });
 
-    await t.test('sorts excluded countrycoder locations', t => {
+    it('sorts excluded countrycoder locations', () => {
       const locationSet = { include: ['001'], exclude: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -61,12 +60,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q2]-[Q18,Q27611]');
     });
 
-    await t.test('(strict mode) fake excluded countrycoder locations throw an error', t => {
+    it('(strict mode) fake excluded countrycoder locations throw an error', () => {
       const locationSet = { include: ['001'], exclude: ['013', 'fake', '005'] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake excluded countrycoder locations are ignored', t => {
+    it('(non strict mode) fake excluded countrycoder locations are ignored', () => {
       const locationSet = { include: ['001'], exclude: ['013', 'fake', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -75,12 +74,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q2]-[Q18,Q27611]');
     });
 
-    await t.test('(strict mode) missing include throws an error', t => {
+    it('(strict mode) missing include throws an error', () => {
       const locationSet = { exclude: ['013', '005'] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) missing include is replaced with world', t => {
+    it('(non strict mode) missing include is replaced with world', () => {
       const locationSet = { exclude: ['013', '005'] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -91,8 +90,8 @@ test('validateLocationSet', async t => {
   });
 
 
-  await t.test('`.geojson` filenames', async t => {
-    await t.test('sorts included .geojson locations', t => {
+  describe('`.geojson` filenames', () => {
+    it('sorts included .geojson locations', () => {
       const locationSet = { include: ['philly_metro.geojson', 'dc_metro.geojson'] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -101,12 +100,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[dc_metro.geojson,philly_metro.geojson]');
     });
 
-    await t.test('(strict mode) fake included .geojson locations throw an error', t => {
+    it('(strict mode) fake included .geojson locations throw an error', () => {
       const locationSet = { include: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake included .geojson locations are ignored', t => {
+    it('(non strict mode) fake included .geojson locations are ignored', () => {
       const locationSet = { include: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -115,7 +114,7 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[dc_metro.geojson,philly_metro.geojson]');
     });
 
-    await t.test('sorts excluded .geojson locations', t => {
+    it('sorts excluded .geojson locations', () => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'dc_metro.geojson'] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -124,12 +123,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q2]-[dc_metro.geojson,philly_metro.geojson]');
     });
 
-    await t.test('(strict mode) fake excluded .geojson locations throw an error', t => {
+    it('(strict mode) fake excluded .geojson locations throw an error', () => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake excluded .geojson locations are ignored', t => {
+    it('(non strict mode) fake excluded .geojson locations are ignored', () => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -141,8 +140,8 @@ test('validateLocationSet', async t => {
   });
 
 
-  await t.test('points', async t => {
-    await t.test('sorts included point locations', t => {
+  describe('points', () => {
+    it('sorts included point locations', () => {
       const locationSet = { include: [[1, 0], [0, 1], [1, 1], [0, 0]] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -151,12 +150,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[[0,0],[0,1],[1,0],[1,1]]');
     });
 
-    await t.test('(strict mode) fake included point locations throw an error', t => {
+    it('(strict mode) fake included point locations throw an error', () => {
       const locationSet = { include: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake included point locations are ignored', t => {
+    it('(non strict mode) fake included point locations are ignored', () => {
       const locationSet = { include: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -165,7 +164,7 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[[0,0],[0,1],[1,0],[1,1]]');
     });
 
-    await t.test('sorts excluded point locations', t => {
+    it('sorts excluded point locations', () => {
       const locationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [1, 1], [0, 0]] };
       const result = loco.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -174,12 +173,12 @@ test('validateLocationSet', async t => {
       assert.equal(result.id, '+[Q2]-[[0,0],[0,1],[1,0],[1,1]]');
     });
 
-    await t.test('(strict mode) fake excluded point locations throw an error', t => {
+    it('(strict mode) fake excluded point locations throw an error', () => {
       const locationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       assert.throws(() => loco.resolveLocationSet(locationSet));
     });
 
-    await t.test('(non strict mode) fake excluded point locations are ignored', t => {
+    it('(non strict mode) fake excluded point locations are ignored', () => {
       const locationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       const result = locoNS.resolveLocationSet(locationSet);
       assert.ok(result instanceof Object);
@@ -190,7 +189,7 @@ test('validateLocationSet', async t => {
   });
 
 
-  await t.test('sorts included countrycoder < geojson < point', t => {
+  it('sorts included countrycoder < geojson < point', () => {
     const locationSet = { include: ['philly_metro.geojson', [0,0], 'ca'] };
     const result = loco.resolveLocationSet(locationSet);
     assert.ok(result instanceof Object);
@@ -199,7 +198,7 @@ test('validateLocationSet', async t => {
     assert.equal(result.id, '+[Q16,philly_metro.geojson,[0,0]]');
   });
 
-  await t.test('sorts excluded countrycoder < geojson < point', t => {
+  it('sorts excluded countrycoder < geojson < point', () => {
     const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', [0,0], 'ca'] };
     const result = loco.resolveLocationSet(locationSet);
     assert.ok(result instanceof Object);
@@ -208,7 +207,7 @@ test('validateLocationSet', async t => {
     assert.equal(result.id, '+[Q2]-[Q16,philly_metro.geojson,[0,0]]');
   });
 
-  await t.test('force lowercase', t => {
+  it('force lowercase', () => {
     const locationSet = { include: ['US'], exclude: ['PR'] };
     const result = loco.resolveLocationSet(locationSet);
     assert.ok(result instanceof Object);
