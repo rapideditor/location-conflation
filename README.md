@@ -69,7 +69,7 @@ When you load this file in a `<script>` tag, you'll get a `LocationConflation` g
 </head>
 …
 <script>
-  var loco = new LocationConflation.default();
+  var loco = new LocationConflation();
 </script>
 ```
 
@@ -281,23 +281,9 @@ loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
 
 ## Contributing
 
-### Prerequisites
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for more info.
 
-* [Node.js](https://nodejs.org/) version 18 or newer
-* [`git`](https://www.atlassian.com/git/tutorials/install-git/) for your platform
-
-
-### Installing
-
-* Clone this project, for example:
-  `git clone git@github.com:rapideditor/location-conflation.git`
-* `cd` into the project folder,
-* Run `npm install` to install libraries
-
-
-### Building
-
-* `npm run build`
+&nbsp;
 
 
 ### Thanks!

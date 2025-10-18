@@ -1,17 +1,17 @@
-import fs from 'node:fs';
-import { test } from 'node:test';
-import { strict as assert } from 'node:assert';
-import { LocationConflation } from '../index.mjs';
+import { describe, it } from 'bun:test';
+import { strict as assert } from 'bun:assert';
+import { LocationConflation } from '../src/location-conflation.mjs';
 
-const features = JSON.parse(fs.readFileSync('test/fixtures/features.json', 'utf8'));
+const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features);
 locoNS.strict = false;
 
-test('resolveLocation', async t => {
 
-  await t.test('points', async t => {
-    await t.test('a valid [lon, lat] Array returns a feature match', t => {
+describe('resolveLocation', () => {
+
+  describe('points', () => {
+    it('a valid [lon, lat] Array returns a feature match', () => {
       const location = [0, 0];
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -24,7 +24,7 @@ test('resolveLocation', async t => {
       assert.equal(result.feature.properties.area, 1963.5);      // area = Pi * 25 * 25
     });
 
-    await t.test('a valid [lon, lat, radius] Array returns a feature match', t => {
+    it('a valid [lon, lat, radius] Array returns a feature match', () => {
       const location = [0, 0, 100];
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -37,20 +37,20 @@ test('resolveLocation', async t => {
       assert.equal(result.feature.properties.area, 31415.93);    // area = Pi * 100 * 100
     });
 
-    await t.test('(strict mode) an invalid [lon, lat] Array throws an error', t => {
+    it('(strict mode) an invalid [lon, lat] Array throws an error', () => {
       const location = [];
       assert.throws(() => loco.resolveLocation(location));
     });
 
-    await t.test('(non strict mode) an invalid [lon, lat] Array returns null', t => {
+    it('(non strict mode) an invalid [lon, lat] Array returns null', () => {
       const location = [];
       assert.equal(locoNS.resolveLocation(location), null);
     });
   });
 
 
-  await t.test('`.geojson` filenames', async t => {
-    await t.test('a known `.geojson` filename with id returns a feature match', t => {
+  describe('`.geojson` filenames', () => {
+    it('a known `.geojson` filename with id returns a feature match', () => {
       const location = 'dc_metro.geojson';
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -63,7 +63,7 @@ test('resolveLocation', async t => {
       assert.equal(typeof result.feature.properties.area, 'number');    // properties has a numeric `area` property
     });
 
-    await t.test('a known `.geojson` filename with id property returns a feature match', t => {
+    it('a known `.geojson` filename with id property returns a feature match', () => {
       const location = 'philly_metro.geojson';
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -76,7 +76,7 @@ test('resolveLocation', async t => {
       assert.equal(typeof result.feature.properties.area, 'number');        // properties has a numeric `area` property
     });
 
-    await t.test('`.geojson` identifiers compare as lowercase', t => {
+    it('`.geojson` identifiers compare as lowercase', () => {
       const location = 'PHiLLy_MeTRo.GeoJSoN';
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -89,20 +89,20 @@ test('resolveLocation', async t => {
       assert.equal(typeof result.feature.properties.area, 'number');        // properties has a numeric `area` property
     });
 
-    await t.test('(strict mode) an invalid `.geojson` filename throws an error', t => {
+    it('(strict mode) an invalid `.geojson` filename throws an error', () => {
       const location = 'fake.geojson';
       assert.throws(() => loco.resolveLocation(location));
     });
 
-    await t.test('(non strict mode) an invalid `.geojson` filename returns null', t => {
+    it('(non strict mode) an invalid `.geojson` filename returns null', () => {
       const location = 'fake.geojson';
       assert.equal(locoNS.resolveLocation(location), null);
     });
   });
 
 
-  await t.test('country coder feature identifiers', async t => {
-    await t.test('a valid country coder feature identifier returns a feature match', t => {
+  describe('country coder feature identifiers', () => {
+    it('a valid country coder feature identifier returns a feature match', () => {
       const location = 'gb';
       const result = loco.resolveLocation(location);
       assert.ok(result instanceof Object);
@@ -115,12 +115,12 @@ test('resolveLocation', async t => {
       assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
     });
 
-    await t.test('(strict mode) an invalid country coder feature identifier throws an error', t => {
+    it('(strict mode) an invalid country coder feature identifier throws an error', () => {
       const location = 'fake';
       assert.throws(() => loco.resolveLocation(location));
     });
 
-    await t.test('(non strict mode) an invalid country coder feature identifier returns null', t => {
+    it('(non strict mode) an invalid country coder feature identifier returns null', () => {
       const location = 'fake';
       assert.equal(locoNS.resolveLocation(location), null);
     });

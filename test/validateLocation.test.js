@@ -1,18 +1,17 @@
-import fs from 'node:fs';
-import { test } from 'node:test';
-import { strict as assert } from 'node:assert';
-import { LocationConflation } from '../index.mjs';
+import { describe, it } from 'bun:test';
+import { strict as assert } from 'bun:assert';
+import { LocationConflation } from '../src/location-conflation.mjs';
 
-const features = JSON.parse(fs.readFileSync('test/fixtures/features.json', 'utf8'));
+const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
 const locoNS = new LocationConflation(features);
 locoNS.strict = false;
 
 
-test('validateLocation', async t => {
+describe('validateLocation', () => {
 
-  await t.test('points', async t => {
-    await t.test('a valid [lon, lat] array returns a "point" result', t => {
+  describe('points', () => {
+    it('a valid [lon, lat] array returns a "point" result', () => {
       [[0, 0], [-180, -90], [180, -90], [180, 90]].forEach(val => {
         const result = loco.validateLocation(val);
         assert.ok(result instanceof Object);
@@ -22,7 +21,7 @@ test('validateLocation', async t => {
       });
     });
 
-    await t.test('a valid [lon, lat, radius] array returns a "point" result', t => {
+    it('a valid [lon, lat, radius] array returns a "point" result', () => {
       [[0, 0, 20], [-180, -90, 20], [180, -90, 20], [180, 90, 20]].forEach(val => {
         const result = loco.validateLocation(val);
         assert.ok(result instanceof Object);
@@ -32,7 +31,7 @@ test('validateLocation', async t => {
       });
     });
 
-    await t.test('(strict mode) an invalid [lon, lat, radius?] Array throws an error', t => {
+    it('(strict mode) an invalid [lon, lat, radius?] Array throws an error', () => {
       assert.throws(() => loco.validateLocation([]));
       assert.throws(() => loco.validateLocation(['a']));
       assert.throws(() => loco.validateLocation([0]));
@@ -46,7 +45,7 @@ test('validateLocation', async t => {
       assert.throws(() => loco.validateLocation([10, 10, 10, 10]));
     });
 
-    await t.test('(non strict mode) an invalid [lon, lat, radius?] Array returns null', t => {
+    it('(non strict mode) an invalid [lon, lat, radius?] Array returns null', () => {
       assert.equal(locoNS.validateLocation([]), null);
       assert.equal(locoNS.validateLocation(['a']), null);
       assert.equal(locoNS.validateLocation([0]), null);
@@ -62,8 +61,8 @@ test('validateLocation', async t => {
   });
 
 
-  await t.test('`.geojson` filenames', async t => {
-    await t.test('a valid `.geojson` identifier returns a "geojson" result', t => {
+  describe('`.geojson` filenames', () => {
+    it('a valid `.geojson` identifier returns a "geojson" result', () => {
       ['philly_metro.geojson', 'dc_metro.geojson'].forEach(val => {
         const result = loco.validateLocation(val);
         assert.ok(result instanceof Object);
@@ -73,17 +72,17 @@ test('validateLocation', async t => {
       });
     });
 
-    await t.test('(strict mode) an invalid `.geojson` identifier throws an error', t => {
+    it('(strict mode) an invalid `.geojson` identifier throws an error', () => {
       assert.throws(() => loco.validateLocation('philly_metro'));      // missing .geojson
       assert.throws(() => loco.validateLocation('fake.geojson'));      // fake filename
     });
 
-    await t.test('(non strict mode) an invalid `.geojson` identifier returns null', t => {
+    it('(non strict mode) an invalid `.geojson` identifier returns null', () => {
       assert.equal(locoNS.validateLocation('philly_metro'), null);     // missing .geojson
       assert.equal(locoNS.validateLocation('fake.geojson'), null);     // fake filename
     });
 
-    await t.test('`.geojson` identifiers compare as lowercase', t => {
+    it('`.geojson` identifiers compare as lowercase', () => {
       const result = loco.validateLocation('PHiLLy_MeTRo.GeoJSoN');
       assert.ok(result instanceof Object);
       assert.equal(result.type, 'geojson');
@@ -93,8 +92,8 @@ test('validateLocation', async t => {
   });
 
 
-  await t.test('country coder feature identifiers', async t => {
-    await t.test('a valid country coder identifier returns a "countrycoder" result', t => {
+  describe('country coder feature identifiers', () => {
+    it('a valid country coder identifier returns a "countrycoder" result', () => {
       ['GB', 'gb', 'gbr', '826', 826, 'Q145', '🇬🇧', 'united kingdom'].forEach(val => {
         const result = loco.validateLocation(val);
         assert.ok(result instanceof Object);
@@ -104,13 +103,13 @@ test('validateLocation', async t => {
       });
     });
 
-    await t.test('(strict mode) an invalid country coder identifier throws an error', t => {
+    it('(strict mode) an invalid country coder identifier throws an error', () => {
       assert.throws(() => loco.validateLocation(''));
       assert.throws(() => loco.validateLocation('false'));
       assert.throws(() => loco.validateLocation('null'));
     });
 
-    await t.test('(non strict mode) an invalid country coder identifier returns null', t => {
+    it('(non strict mode) an invalid country coder identifier returns null', () => {
       assert.equal(locoNS.validateLocation(''), null);
       assert.equal(locoNS.validateLocation('false'), null);
       assert.equal(locoNS.validateLocation('null'), null);

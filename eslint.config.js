@@ -1,5 +1,4 @@
 import js from '@eslint/js';
-import globals from 'globals';
 
 const common = {
   rules: {
@@ -58,15 +57,9 @@ export default [
   js.configs.recommended,
   common,
   {
-    files: ['index.mjs'],
-    languageOptions: {
-    }
-  },
-  {
-    files: ['test/**/*.js'],
     languageOptions: {
       globals: {
-        ...globals.node
+        Bun: false
       }
     }
   }
