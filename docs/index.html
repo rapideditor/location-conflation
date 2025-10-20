@@ -213,10 +213,10 @@ window.addEventListener('DOMContentLoaded', function(e) {
       return response.json();
     })
     .then(function(featureCollection) {
-      return _loco = new LocationConflation(featureCollection);
+      return _loco = new LocationConflation.default(featureCollection);
     })
     .catch(function(err) {
-      return _loco = new LocationConflation();
+      return _loco = new LocationConflation.default();
     });
 
 
