@@ -17,8 +17,10 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 -->
 
 # 1.7.0
-##### 2025-??
+##### 2025-Oct-21
 * This project uses [`bun`](https://bun.com/) now, for simpler developer tooling ([#71])
+* ⚠️  This also restores the previous named export - shouldn't need `.default` anymore ([#68])
+* Update country-coder to v5.6.0
 
 [#71]: https://github.com/rapideditor/location-conflation/issues/71
 

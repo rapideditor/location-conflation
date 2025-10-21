@@ -52,7 +52,7 @@ The "locations" can be any of the following:
 
 
 ```js
-const LocationConflation = require('@rapideditor/location-conflation').default;  // require CJS
+const LocationConflation = require('@rapideditor/location-conflation');  // require CJS
 // or
 import { LocationConflation } from '@rapideditor/location-conflation';   // import ESM
 ```
@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser.  A good way 
 When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@1.6/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>

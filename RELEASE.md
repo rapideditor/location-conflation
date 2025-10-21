@@ -30,10 +30,8 @@ Set as latest release on GitHub:
 Include any URLs that anyone might request.
 
 ```bash
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/location-conflation.iife.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation/dist/location-conflation.iife.min.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.js'
+curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.min.js'
 curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.js'
 curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.min.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.6/dist/location-conflation.iife.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1.6/dist/location-conflation.iife.min.js'
 ```
