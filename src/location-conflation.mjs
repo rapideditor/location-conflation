@@ -4,7 +4,7 @@ import * as Polyclip from 'polyclip-ts';
 import calcArea from '@mapbox/geojson-area';
 import circleToPolygon  from 'circle-to-polygon';
 import precision  from 'geojson-precision';
-import prettyStringify from '@aitodotai/json-stringify-pretty-compact';
+import prettyStringify from 'json-stringify-pretty-compact';
 
 
 export class LocationConflation {

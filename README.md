@@ -270,7 +270,7 @@ const isStrict = loco.strict;   // getter: return the current value
 
 <a name="stringify" href="#stringify">#</a> <i>loco</i>.<b>stringify</b>(<i>object</i>, <i>options</i>)
 
-Convenience method that wraps [json-stringify-pretty-compact](https://www.npmjs.com/package/@aitodotai/json-stringify-pretty-compact) to stringify the given object. Optional `options` parameter gets passed through to json-stringify-pretty-compact.
+Convenience method that wraps [json-stringify-pretty-compact](https://github.com/lydell/json-stringify-pretty-compact) to stringify the given object. Optional `options` parameter gets passed through to json-stringify-pretty-compact.
 
 ```js
 loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
