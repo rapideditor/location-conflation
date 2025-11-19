@@ -10,7 +10,7 @@ await Promise.all([
   }),
 
   Bun.build({
-    entrypoints: ['./src/location-conflation.mjs'],
+    entrypoints: ['./src/location-conflation.ts'],
     outdir: './dist',
     target: 'node',
     format: 'cjs',
@@ -20,7 +20,7 @@ await Promise.all([
   }),
 
   Bun.build({
-    entrypoints: ['./src/location-conflation.mjs'],
+    entrypoints: ['./src/location-conflation.ts'],
     outdir: './dist',
     target: 'node',
     format: 'esm',

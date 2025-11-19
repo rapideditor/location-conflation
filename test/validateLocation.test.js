@@ -1,6 +1,6 @@
 import { describe, it } from 'bun:test';
 import { strict as assert } from 'bun:assert';
-import { LocationConflation } from '../src/location-conflation.mjs';
+import { LocationConflation } from '../src/location-conflation.ts';
 
 const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);

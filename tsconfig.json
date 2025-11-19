@@ -1,12 +1,13 @@
 {
-  "include": [""],
+  "include": ["src/**/*.ts"],
   "compilerOptions": {
     "module": "esnext",
     "declaration": true,
     "emitDeclarationOnly": true,
     "outDir": "dist",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "noImplicitAny": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
