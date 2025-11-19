@@ -22,12 +22,14 @@
   "type": "module",
   "exports": {
     "bun": "./src/location-conflation.ts",
-    "import": "./dist/location-conflation.mjs",
-    "require": "./dist/location-conflation.cjs",
-    "browser": "./dist/location-conflation.iife.js"
+    "dist/*": "./dist/*",
+    "types": "./dist/ts/location-conflation.d.ts",
+    "import": "./dist/js/location-conflation.mjs",
+    "require": "./dist/js/location-conflation.cjs",
+    "browser": "./dist/js/location-conflation.iife.js"
   },
   "scripts": {
-    "all": "run-s clean lint build:js test",
+    "all": "run-s clean lint build test",
     "build": "run-p build:js build:ts",
     "build:js": "bun ./scripts/build_js.ts",
     "build:ts": "tsc",
