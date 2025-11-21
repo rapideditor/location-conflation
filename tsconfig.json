@@ -1,14 +1,14 @@
 {
-  "include": ["src/location-conflation.ts"],
+  "include": ["**/*.ts"],
   "compilerOptions": {
     "module": "esnext",
-    "declaration": true,
-    "declarationDir": "./dist/ts",
-    "emitDeclarationOnly": true,
+    "declaration": false,
+    "noEmit": true,
     "outDir": "dist",
     "esModuleInterop": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
     "noImplicitAny": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,

@@ -1,4 +1,4 @@
-import { styleText } from 'bun:util';
+import { styleText } from 'node:util';
 
 const project = 'location-conflation';
 const hostname = '127.0.0.1';

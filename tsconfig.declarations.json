@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/location-conflation.ts"],
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist/ts",
+    "emitDeclarationOnly": true,
+    "noEmit": false
+  }
+}

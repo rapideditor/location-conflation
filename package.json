@@ -32,7 +32,7 @@
     "all": "run-s clean lint build test",
     "build": "run-p build:js build:ts",
     "build:js": "bun ./scripts/build_js.ts",
-    "build:ts": "tsc",
+    "build:ts": "tsc --project tsconfig.declarations.json",
     "clean": "bun ./scripts/clean.ts",
     "lint": "eslint ./scripts ./src ./test",
     "start": "bun ./scripts/server.ts",
