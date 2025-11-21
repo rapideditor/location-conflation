@@ -65,7 +65,7 @@ You can also use **location-conflation** directly in a web browser.  A good way 
 When you load this file in a `<script>` tag, you'll get a `LocationConflation` global to use elsewhere in your scripts:
 ```html
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/js/location-conflation.iife.min.js"></script>
 </head>
 …
 <script>

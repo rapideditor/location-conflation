@@ -16,6 +16,15 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
 -->
 
+# 2.0.0
+##### 2025-Nov-21
+* Switch the project code to TypeScript
+* ⚠️  While everything should backward compatible, generated files have moved:
+  * `dist/js/*` - Built JavaScript files
+  * `dist/ts/*` - Built TypeScript declaration file
+* Update all dependencies
+
+
 # 1.7.0
 ##### 2025-Oct-21
 * This project uses [`bun`](https://bun.com/) now, for simpler developer tooling ([#71])

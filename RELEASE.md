@@ -25,13 +25,3 @@ Set as latest release on GitHub:
 - Open https://github.com/rapideditor/location-conflation/tags and pick the new tag you just pushed
 - There should be a link like "create a release from the tag", click that, and paste in the link to the changelog.
 
-
-### Purge JSDelivr CDN cache
-Include any URLs that anyone might request.
-
-```bash
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@latest/dist/location-conflation.iife.min.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.js'
-curl 'https://purge.jsdelivr.net/npm/@rapideditor/location-conflation@1/dist/location-conflation.iife.min.js'
-```
