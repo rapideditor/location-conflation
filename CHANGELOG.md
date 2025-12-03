@@ -19,9 +19,10 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 # 2.0.0
 ##### 2025-Nov-21
 * Switch the project code to TypeScript
-* ⚠️  While everything should backward compatible, generated files have moved:
+* ⚠️  While everything should be backward compatible, generated files have moved:
   * `dist/js/*` - Built JavaScript files
   * `dist/ts/*` - Built TypeScript declaration file
+* ⚠️  Internal `_cache` has changed from an `Object` to a `Map`
 * Update all dependencies
 
 
