@@ -13,8 +13,15 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 ##### YYYY-MMM-DD
 *
 
-[#xxx]: https://github.com/rapideditor/location-conflation/issues/xxx
+[#xx]: https://github.com/rapideditor/location-conflation/issues/xx
 -->
+
+# 2.0.1
+##### 2025-Dec-14
+* Fix type exports, and mark internal `_cache` as `public` (downstream projects are accessing it) ([#73])
+
+[#73]: https://github.com/rapideditor/location-conflation/issues/73
+
 
 # 2.0.0
 ##### 2025-Nov-21

@@ -1,6 +1,6 @@
 {
   "name": "@rapideditor/location-conflation",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "ISC",
   "repository": "https://github.com/rapideditor/location-conflation",
   "description": "Define complex geographic regions by including and excluding country codes and geojson shapes",
@@ -49,13 +49,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/bun": "^1.3.2",
+    "@types/bun": "^1.3.4",
     "@types/geojson": "^7946.0.16",
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
     "npm-run-all2": "^8.0.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0"
+    "typescript-eslint": "^8.49.0"
   },
   "publishConfig": {
     "access": "public"
