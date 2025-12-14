@@ -7,62 +7,62 @@ import prettyStringify from 'json-stringify-pretty-compact';
 import type { Polygon, MultiPolygon } from 'geojson';
 
 // Type definitions
-type Vec2 = [number, number];
-type Vec3 = [number, number, number];
-type Location = Vec2 | Vec3 | string | number;
+export type Vec2 = [number, number];
+export type Vec3 = [number, number, number];
+export type Location = Vec2 | Vec3 | string | number;
 
-interface FeatureProperties {
+export interface FeatureProperties {
   id: string;
   area: number;
   members?: string[];
   [key: string]: unknown;
 }
 
-type GeoJSONGeometry = Polygon | MultiPolygon;
+export type GeoJSONGeometry = Polygon | MultiPolygon;
 
-interface GeoJSONFeature {
+export interface GeoJSONFeature {
   type: 'Feature';
   id: string;
   properties: FeatureProperties;
   geometry: GeoJSONGeometry;
 }
 
-interface FeatureCollection {
+export interface FeatureCollection {
   type: 'FeatureCollection';
   features: GeoJSONFeature[];
 }
 
-interface LocationSet {
+export interface LocationSet {
   include?: Location[];
   exclude?: Location[];
 }
 
-interface ValidatedLocation {
+export interface ValidatedLocation {
   type: 'point' | 'geojson' | 'countrycoder';
   location: Location;
   id: string;
 }
 
-interface ResolvedLocation extends ValidatedLocation {
+export interface ResolvedLocation extends ValidatedLocation {
   feature: GeoJSONFeature;
 }
 
-interface ValidatedLocationSet {
+export interface ValidatedLocationSet {
   type: 'locationset';
   locationSet: LocationSet;
   id: string;
 }
 
-interface ResolvedLocationSet extends ValidatedLocationSet {
+export interface ResolvedLocationSet extends ValidatedLocationSet {
   feature: GeoJSONFeature;
 }
 
-type ClipOperation = 'UNION' | 'DIFFERENCE';
+export type ClipOperation = 'UNION' | 'DIFFERENCE';
 
-type StringifyOptions = Parameters<typeof prettyStringify>[1];
+export type StringifyOptions = Parameters<typeof prettyStringify>[1];
 
 export class LocationConflation {
-  private _cache: Map<string, GeoJSONFeature>;
+  public _cache: Map<string, GeoJSONFeature>;
   public strict: boolean;
 
   /**
@@ -315,7 +315,7 @@ export class LocationConflation {
    * });
    * ```
    */
-  validateLocationSet(locationSet?: LocationSet): ValidatedLocationSet | null {
+  validateLocationSet(locationSet?: LocationSet): ValidatedLocationSet {
     locationSet = locationSet || {};
     const validator = this.validateLocation.bind(this);
     let include = (locationSet.include || []).map(validator).filter(Boolean) as ValidatedLocation[];
