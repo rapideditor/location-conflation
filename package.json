@@ -2,7 +2,10 @@
   "name": "@rapideditor/location-conflation",
   "version": "2.0.1",
   "license": "ISC",
-  "repository": "https://github.com/rapideditor/location-conflation",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rapideditor/location-conflation.git"
+  },
   "description": "Define complex geographic regions by including and excluding country codes and geojson shapes",
   "keywords": [
     "geofence",
