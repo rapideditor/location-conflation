@@ -197,9 +197,9 @@ var examples = [
 window.addEventListener('DOMContentLoaded', function(e) {
   // If we were referred here from another site, fetch the appropriate featureCollection for that site.
   if (qs.referrer === 'oci') {
-    _fcPromise = fetch('https://cdn.jsdelivr.net/npm/osmlab/osm-community-index@latest/dist/json/featureCollection.min.json');
+    _fcPromise = fetch('https://cdn.jsdelivr.net/npm/osm-community-index@latest/dist/json/featureCollection.min.json');
   } else if (qs.referrer === 'nsi') {
-    _fcPromise = fetch('https://cdn.jsdelivr.net/npm/osmlab/name-suggestion-index@latest/dist/json/featureCollection.min.json');
+    _fcPromise = fetch('https://cdn.jsdelivr.net/npm/name-suggestion-index@latest/dist/json/featureCollection.min.json');
   } else if (qs.referrer === 'ii') {
     _fcPromise = fetch('https://cdn.jsdelivr.net/gh/rapideditor/imagery-index@main/dist/featureCollection.min.json');
   } else {
