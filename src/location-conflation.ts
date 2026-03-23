@@ -388,7 +388,7 @@ export class LocationConflation {
 
     // Return quickly if it's a single included location..
     if (includes.length === 1 && excludes.length === 0) {
-      return { ...valid, feature: includes[0].feature };
+      return { ...valid, feature: includes[0]!.feature };
     }
 
     // Calculate unions
