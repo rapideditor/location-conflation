@@ -37,7 +37,7 @@ When asked to do one of these tasks, prefer using the prompt file rather than im
 
 ### Secrets hygiene
 - Before making any edit or commit, ask: **could this write a secret in plaintext somewhere it shouldn't be?**
-- Never put tokens, keys, or passwords in plaintext in any unencryped file.
+- Never put tokens, keys, or passwords in plaintext in any unencrypted file.
 
 ### Comments
 - **Never remove comments** when modifying files unless:

@@ -29,3 +29,5 @@ await Promise.all([
     naming: 'location-conflation.m[ext]'  // .mjs
   })
 ]);
+
+export {};

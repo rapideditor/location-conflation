@@ -4,122 +4,114 @@ import calcArea from '@mapbox/geojson-area';
 import circleToPolygon from 'circle-to-polygon';
 import precision from 'geojson-precision';
 import prettyStringify from 'json-stringify-pretty-compact';
-import type { Polygon, MultiPolygon } from 'geojson';
+import type { Geom } from 'polyclip-ts';
 
-// Type definitions
-export type Vec2 = [number, number];
-export type Vec3 = [number, number, number];
-export type Location = Vec2 | Vec3 | string | number;
+import type {
+  LCFeature,
+  LCFeatureProperties,
+  Location,
+  LocationSet,
+  ResolvedLocation,
+  ResolvedLocationSet,
+  StringifyOptions,
+  ValidatedLocation,
+  ValidatedLocationSet,
+} from './types.ts';
 
-export interface FeatureProperties {
-  id: string;
-  area: number;
-  members?: string[];
-  [key: string]: unknown;
-}
 
-export type GeoJSONGeometry = Polygon | MultiPolygon;
+// Re-export everything from types.ts so consumers can `import { … } from '@rapideditor/location-conflation'`
+export type * from './types.ts';
 
-export interface GeoJSONFeature {
-  type: 'Feature';
-  id: string;
-  properties: FeatureProperties;
-  geometry: GeoJSONGeometry;
-}
 
-export interface FeatureCollection {
-  type: 'FeatureCollection';
-  features: GeoJSONFeature[];
-}
-
-export interface LocationSet {
-  include?: Location[];
-  exclude?: Location[];
-}
-
-export interface ValidatedLocation {
-  type: 'point' | 'geojson' | 'countrycoder';
-  location: Location;
-  id: string;
-}
-
-export interface ResolvedLocation extends ValidatedLocation {
-  feature: GeoJSONFeature;
-}
-
-export interface ValidatedLocationSet {
-  type: 'locationset';
-  locationSet: LocationSet;
-  id: string;
-}
-
-export interface ResolvedLocationSet extends ValidatedLocationSet {
-  feature: GeoJSONFeature;
-}
-
-export type ClipOperation = 'UNION' | 'DIFFERENCE';
-
-export type StringifyOptions = Parameters<typeof prettyStringify>[1];
-
+/**
+ * LocationConflation lets you define complex geographic regions by including and
+ * excluding country codes, points, and custom `.geojson` shapes.
+ *
+ * It resolves these definitions into GeoJSON `Feature`s with polygon geometries,
+ * caching expensive polygon-clipping operations for performance.
+ *
+ * @example
+ * ```ts
+ * import { LocationConflation } from '@rapideditor/location-conflation';
+ *
+ * const loco = new LocationConflation(myFeatureCollection);
+ *
+ * const result = loco.resolveLocationSet({ include: ['de'], exclude: ['de-berlin.geojson'] });
+ * console.log(result.feature);  // GeoJSON Feature of Germany minus Berlin
+ * ```
+ */
 export class LocationConflation {
-  public _cache: Map<string, GeoJSONFeature>;
+  /**
+   * Internal cache of resolved features, keyed by stable identifiers.
+   *
+   * Identifiers look like:
+   * - `'[8.67039,49.41882]'` — point locations
+   * - `'de-hamburg.geojson'` — geojson file locations
+   * - `'Q2'` — country-coder locations (Wikidata QIDs)
+   * - `'+[Q2]-[Q18,Q27611]'` — aggregated location sets
+   */
+  public _cache: Map<string, LCFeature>;
+
+  /**
+   * When `true` (default), throw on invalid locations or location sets.
+   * When `false`, return `null` for invalid locations or location sets.
+   */
   public strict: boolean;
 
   /**
-   * Creates a new LocationConflation instance
-   * @param fc - Optional FeatureCollection of known features with filename-like IDs (e.g., "something.geojson")
+   * Creates a new LocationConflation instance.
+   *
+   * @param fc - Optional GeoJSON FeatureCollection of known features with filename-like IDs
+   *   (e.g. `"something.geojson"`).  Accepts a standard `GeoJSON.FeatureCollection` from
+   *   `@types/geojson` — no casts needed.  Features without a `.geojson` id are silently skipped.
    */
-  constructor(fc?: FeatureCollection) {
-    // The _cache retains resolved features, so if you ask for the same thing multiple times
-    // we don't repeat the expensive resolving/clipping operations.
-    //
-    // Each feature has a stable identifier that is used as the cache key.
-    // The identifiers look like:
-    // - for point locations, the stringified point:          e.g. '[8.67039,49.41882]'
-    // - for geojson locations, the geojson id:               e.g. 'de-hamburg.geojson'
-    // - for countrycoder locations, feature.id property:     e.g. 'Q2'  (countrycoder uses Wikidata identifiers)
-    // - for aggregated locationSets, +[include]-[exclude]:   e.g '+[Q2]-[Q18,Q27611]'
+  constructor(fc?: GeoJSON.FeatureCollection) {
     this._cache = new Map();
-
-    // When strict mode = true, throw on invalid locations or locationSets.
-    // When strict mode = false, return `null` for invalid locations or locationSets.
     this.strict = true;
 
-    // process input FeatureCollection
+    // Process input FeatureCollection.
+    // We accept standard GeoJSON and coerce each qualifying feature into
+    // the narrower LCFeature shape (guaranteed string id, area, polygon geometry).
     if (fc?.type === 'FeatureCollection' && Array.isArray(fc.features)) {
       for (const feature of fc.features) {
-        feature.properties = feature.properties || ({} as FeatureProperties);
-        const props = feature.properties;
+        const props = feature.properties ?? {};
 
         // Get `id` from either `id` or `properties`
-        let id = feature.id || props.id;
-        if (!id || !/^\S+\.geojson$/i.test(id)) continue;
+        let id = feature.id ?? props['id'];
+        if (!id || !/^\S+\.geojson$/i.test(String(id))) continue;
 
         // Ensure `id` exists and is lowercase
-        id = id.toLowerCase();
-        feature.id = id;
-        props.id = id;
+        id = String(id).toLowerCase();
+
+        const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
 
         // Ensure `area` property exists
-        if (!props.area) {
-          const area = calcArea.geometry(feature.geometry) / 1e6; // m² to km²
-          props.area = Number(area.toFixed(2));
-        }
+        // The purpose of the `area` property is to enable rough size comparisons.
+        const existingArea = props['area'] as number | undefined;
+        const area = existingArea || Number((calcArea.geometry(geometry) / 1e6).toFixed(2)); // m² to km²
 
-        this._cache.set(id, feature);
+        const lcFeature: LCFeature = {
+          type: 'Feature',
+          id,
+          properties: { ...props, id, area } as LCFeatureProperties,
+          geometry,
+        };
+
+        this._cache.set(id, lcFeature);
       }
     }
 
     // Replace CountryCoder world geometry to be a polygon covering the world.
-    const worldFeature = CountryCoder.feature('Q2');
-    const world = cloneDeep(worldFeature) as unknown as GeoJSONFeature;
-    world.geometry = {
+    const worldGeometry: GeoJSON.Polygon = {
       type: 'Polygon',
       coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]],
     };
-    world.id = 'Q2';
-    world.properties.id = 'Q2';
-    world.properties.area = calcArea.geometry(world.geometry) / 1e6; // m² to km²
+    const world: LCFeature = {
+      type: 'Feature',
+      id: 'Q2',
+      properties: { id: 'Q2', area: Number((calcArea.geometry(worldGeometry) / 1e6).toFixed(2)) },
+      geometry: worldGeometry,
+    };
     this._cache.set('Q2', world);
   }
 
@@ -215,7 +207,8 @@ export class LocationConflation {
 
     const id = valid.id;
 
-    // Return a result from cache if we can
+    // Return a result from cache if we can.
+    // (.geojson features are always in _cache — they were loaded in the constructor.)
     if (this._cache.has(id)) {
       return { ...valid, feature: this._cache.get(id)! };
     }
@@ -228,29 +221,25 @@ export class LocationConflation {
       const EDGES = 10;
       const PRECISION = 3;
       const area = Math.PI * radius * radius;
-      const feature = precision(
+      const feature: LCFeature = precision(
         {
-          type: 'Feature',
+          type: 'Feature' as const,
           id,
           properties: { id, area: Number(area.toFixed(2)) },
           geometry: circleToPolygon([lon, lat], radius * 1000, EDGES), // km to m
         },
         PRECISION
-      ) as GeoJSONFeature;
+      );
       this._cache.set(id, feature);
       return { ...valid, feature };
     }
 
-    // A .geojson filename?
-    if (valid.type === 'geojson') {
-      // nothing to do here - these are all in _cache and would have returned already
-    }
-
     // A country-coder identifier?
     if (valid.type === 'countrycoder') {
-      const ccFeature = CountryCoder.feature(id);
-      const feature = cloneDeep(ccFeature) as unknown as GeoJSONFeature;
-      const props = feature.properties;
+      // id is a wikidata QID that validateLocation already confirmed exists in CountryCoder
+      const ccFeature = CountryCoder.feature(id)!;
+      const ccProps = ccFeature.properties;
+      let geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon | undefined;
 
       // -> This block of code is weird and requires some explanation. <-
       // CountryCoder includes higher level features which are made up of members.
@@ -261,25 +250,36 @@ export class LocationConflation {
       // But now mfogel/polygon-clipping handles these MultiPolygons like a boss.
       // This approach also has the benefit of removing all the internal borders and
       //   simplifying the regional polygons a lot.
-      if (Array.isArray(props.members)) {
+      if (Array.isArray(ccProps.members)) {
         const aggregate = CountryCoder.aggregateFeature(id);
         if (aggregate) {
-          const clipped = clip([aggregate as unknown as GeoJSONFeature], 'UNION');
+          const clipped = clip([{
+            type: 'Feature',
+            id: '',
+            properties: {} as LCFeatureProperties,
+            geometry: aggregate.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
+          }], 'UNION');
           if (clipped) {
-            feature.geometry = clipped.geometry;
+            geometry = clipped.geometry;
           }
         }
       }
 
-      // Ensure `area` property exists
-      if (!props.area) {
-        const area = calcArea.geometry(feature.geometry) / 1e6; // m² to km²
-        props.area = Number(area.toFixed(2));
+      // Clone geometry so we never hold a reference to CountryCoder's internal data.
+      // Skip the clone for aggregate features — clip() already produced a fresh geometry.
+      if (!geometry) {
+        geometry = structuredClone(ccFeature.geometry) as GeoJSON.Polygon | GeoJSON.MultiPolygon;
       }
 
-      // Ensure `id` property exists
-      feature.id = id;
-      props.id = id;
+      // Ensure `area` property exists
+      const area = Number((calcArea.geometry(geometry) / 1e6).toFixed(2)); // m² to km²
+
+      const feature: LCFeature = {
+        type: 'Feature',
+        id,
+        properties: { id, area } as LCFeatureProperties,
+        geometry,
+      };
 
       this._cache.set(id, feature);
       return { ...valid, feature };
@@ -426,27 +426,33 @@ export class LocationConflation {
   }
 }
 
+/** The two polygon clipping operations used internally. */
+type ClipOperation = 'UNION' | 'DIFFERENCE';
+
 /**
- * Wraps the polyclip-ts library and returns a GeoJSON feature
+ * Wraps the polyclip-ts library and returns a GeoJSON feature.
  * @param features - Array of features to clip
  * @param which - Operation type (UNION or DIFFERENCE)
  * @returns Clipped GeoJSON feature or null if features array is empty
  */
-function clip(features: GeoJSONFeature[], which: ClipOperation): GeoJSONFeature | null {
+function clip(features: LCFeature[], which: ClipOperation): LCFeature | null {
   if (!Array.isArray(features) || !features.length) return null;
 
-  const fn = { UNION: Polyclip.union, DIFFERENCE: Polyclip.difference }[which];
-  const args = features.map((feature) => feature.geometry.coordinates);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const coords = (fn as any)(...args);
+  const fn = which === 'UNION' ? Polyclip.union : Polyclip.difference;
+  const first = features[0]!.geometry.coordinates as Geom;
+  const rest: Geom[] = [];
+  for (let i = 1; i < features.length; i++) {
+    rest.push(features[i]!.geometry.coordinates as Geom);
+  }
+  const coords = fn(first, ...rest);
 
   return {
     type: 'Feature',
-    properties: {} as FeatureProperties,
+    properties: {} as LCFeatureProperties,
     geometry: {
       type: whichType(coords),
       coordinates: coords,
-    } as GeoJSONGeometry,
+    } as GeoJSON.Polygon | GeoJSON.MultiPolygon,
     id: '',
   };
 
@@ -461,16 +467,7 @@ function clip(features: GeoJSONFeature[], which: ClipOperation): GeoJSONFeature 
 }
 
 /**
- * Deep clones an object using JSON serialization
- * @param obj - Object to clone
- * @returns Cloned object
- */
-function cloneDeep<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-/**
- * Sorting function for locations to generate deterministic IDs
+ * Sorting function for locations to generate deterministic IDs.
  * Sorting the location lists is ok because they end up unioned together.
  * @param a - First location
  * @param b - Second location

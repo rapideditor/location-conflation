@@ -48,7 +48,7 @@ The "locations" can be any of the following:
 
 `npm install @rapideditor/location-conflation`
 
-**location-conflation** is distributed in CJS and ESM module formats for maxmimum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
+**location-conflation** is distributed in CJS and ESM module formats for maximum compatibility. ([Read more about Javascript module formats](https://dev.to/iggredible/what-the-heck-are-cjs-amd-umd-and-esm-ikm))
 
 
 ```js

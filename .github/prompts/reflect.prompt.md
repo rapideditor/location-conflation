@@ -1,5 +1,6 @@
 ---
 description: Reflect on recent work and bring all project documentation up to date
+argument-hint: additional optional context
 ---
 
 You are doing a documentation update pass. Recent code changes may have left docs, guides, and inline comments out of date. Your job is to find and fix those gaps — not to write new documentation for its own sake.
