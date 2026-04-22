@@ -1,15 +1,16 @@
-import { describe, it } from 'bun:test';
-import { strict as assert } from 'bun:assert';
+import { describe, it, expect } from 'bun:test';
+import type { FeatureCollection } from 'geojson';
 import { LocationConflation } from '../src/location-conflation.ts';
+import * as sample from './features.sample.ts';
 
 
 describe('addFeatures', () => {
 
   it('adds features into the cache after construction', () => {
     const loco = new LocationConflation();
-    assert.throws(() => loco.validateLocation('boston.geojson'));  // not yet known
+    expect(() => loco.validateLocation('boston.geojson')).toThrow(/invalid location/i);  // not yet known
 
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -25,16 +26,15 @@ describe('addFeatures', () => {
     loco.addFeatures(fc);
 
     const result = loco.resolveLocation('boston.geojson');
-    assert.ok(result instanceof Object);
-    assert.equal(result.type, 'geojson');
-    assert.equal(result.feature.id, 'boston.geojson');
-    assert.equal(result.feature.properties.id, 'boston.geojson');
-    assert.ok(result.feature.properties.area > 0);
+    expect(result.type).toBe('geojson');
+    expect(result.feature.id).toBe('boston.geojson');
+    expect(result.feature.properties.id).toBe('boston.geojson');
+    expect(result.feature.properties.area).toBeGreaterThan(0);
   });
 
   it('normalizes id to lowercase', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -50,13 +50,12 @@ describe('addFeatures', () => {
     loco.addFeatures(fc);
 
     const result = loco.resolveLocation('myregion.geojson');
-    assert.ok(result instanceof Object);
-    assert.equal(result.feature.id, 'myregion.geojson');
+    expect(result.feature.id).toBe('myregion.geojson');
   });
 
   it('reads id from properties if not on feature', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -71,13 +70,12 @@ describe('addFeatures', () => {
     loco.addFeatures(fc);
 
     const result = loco.resolveLocation('from_props.geojson');
-    assert.ok(result instanceof Object);
-    assert.equal(result.feature.id, 'from_props.geojson');
+    expect(result.feature.id).toBe('from_props.geojson');
   });
 
   it('preserves existing area property', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -93,12 +91,12 @@ describe('addFeatures', () => {
     loco.addFeatures(fc);
 
     const result = loco.resolveLocation('known_area.geojson');
-    assert.equal(result.feature.properties.area, 42);
+    expect(result.feature.properties.area).toBe(42);
   });
 
   it('skips features without .geojson id', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -112,20 +110,21 @@ describe('addFeatures', () => {
     };
 
     loco.addFeatures(fc);
-    assert.throws(() => loco.validateLocation('bad-id'));
+    expect(() => loco.validateLocation('bad-id')).toThrow(/invalid location/i);
   });
 
   it('silently returns if given invalid input', () => {
     const loco = new LocationConflation();
-    loco.addFeatures(null);
-    loco.addFeatures(undefined);
-    loco.addFeatures({});
-    loco.addFeatures({ type: 'Feature' });
+    // Intentionally passing bad input to verify tolerance.
+    loco.addFeatures(null as unknown as FeatureCollection);
+    loco.addFeatures(undefined as unknown as FeatureCollection);
+    loco.addFeatures({} as FeatureCollection);
+    loco.addFeatures({ type: 'Feature' } as unknown as FeatureCollection);
   });
 
   it('overwrites existing cache entry with same id', () => {
     const loco = new LocationConflation();
-    const fc1 = {
+    const fc1: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -137,7 +136,7 @@ describe('addFeatures', () => {
         }
       }]
     };
-    const fc2 = {
+    const fc2: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -154,14 +153,14 @@ describe('addFeatures', () => {
     loco.addFeatures(fc2);
 
     const result = loco.resolveLocation('region.geojson');
-    assert.equal(result.feature.properties.area, 200);
+    expect(result.feature.properties.area).toBe(200);
   });
 
-  it('added features work in resolveLocationSet', async () => {
-    const features = await Bun.file('test/fixtures/features.json').json();
-    const loco = new LocationConflation(features);
+  it('added features work in resolveLocationSet', () => {
+    // use shared sample feature collection
+    const loco = new LocationConflation(sample.featureCollection);
 
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -177,41 +176,39 @@ describe('addFeatures', () => {
     loco.addFeatures(fc);
 
     const result = loco.resolveLocationSet({ include: ['custom_area.geojson'] });
-    assert.ok(result instanceof Object);
-    assert.equal(result.type, 'locationset');
-    assert.ok(result.feature.properties.area > 0);
+    expect(result.type).toBe('locationset');
+    expect(result.feature.properties.area).toBeGreaterThan(0);
   });
 });
 
 
 describe('removeFeatures', () => {
 
-  it('removes a .geojson feature from the cache', async () => {
-    const features = await Bun.file('test/fixtures/features.json').json();
-    const loco = new LocationConflation(features);
+  it('removes a .geojson feature from the cache', () => {
+    // use shared sample feature collection
+    const loco = new LocationConflation(sample.featureCollection);
 
-    // Verify it exists first
-    const before = loco.resolveLocation('dc_metro.geojson');
-    assert.ok(before instanceof Object);
+    // Verify it resolves first (throws if not present)
+    loco.resolveLocation('dc_metro.geojson');
 
     loco.removeFeatures('dc_metro.geojson');
 
-    assert.throws(() => loco.validateLocation('dc_metro.geojson'));
+    expect(() => loco.validateLocation('dc_metro.geojson')).toThrow(/invalid location/i);
   });
 
-  it('removes multiple features at once', async () => {
-    const features = await Bun.file('test/fixtures/features.json').json();
-    const loco = new LocationConflation(features);
+  it('removes multiple features at once', () => {
+    // use shared sample feature collection
+    const loco = new LocationConflation(sample.featureCollection);
 
     loco.removeFeatures('dc_metro.geojson', 'philly_metro.geojson');
 
-    assert.throws(() => loco.validateLocation('dc_metro.geojson'));
-    assert.throws(() => loco.validateLocation('philly_metro.geojson'));
+    expect(() => loco.validateLocation('dc_metro.geojson')).toThrow(/invalid location/i);
+    expect(() => loco.validateLocation('philly_metro.geojson')).toThrow(/invalid location/i);
   });
 
   it('is case-insensitive', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -226,7 +223,7 @@ describe('removeFeatures', () => {
     loco.addFeatures(fc);
     loco.removeFeatures('TEST.GeoJSON');
 
-    assert.throws(() => loco.validateLocation('test.geojson'));
+    expect(() => loco.validateLocation('test.geojson')).toThrow(/invalid location/i);
   });
 
   it('silently ignores non-.geojson ids', () => {
@@ -234,7 +231,7 @@ describe('removeFeatures', () => {
     loco.removeFeatures('Q2', 'not-a-geojson', '');
     // Q2 should still be in the cache
     const result = loco.resolveLocation('Q2');
-    assert.ok(result instanceof Object);
+    expect(result.feature.id).toBe('Q2');
   });
 
   it('silently ignores ids not in the cache', () => {
@@ -247,9 +244,9 @@ describe('removeFeatures', () => {
 
 describe('clearFeatures', () => {
 
-  it('clears all cached features', async () => {
-    const features = await Bun.file('test/fixtures/features.json').json();
-    const loco = new LocationConflation(features);
+  it('clears all cached features', () => {
+    // use shared sample feature collection
+    const loco = new LocationConflation(sample.featureCollection);
 
     // Resolve some things to populate the cache
     loco.resolveLocation('de');
@@ -257,8 +254,8 @@ describe('clearFeatures', () => {
 
     loco.clearFeatures();
 
-    assert.throws(() => loco.validateLocation('dc_metro.geojson'));
-    assert.throws(() => loco.validateLocation('philly_metro.geojson'));
+    expect(() => loco.validateLocation('dc_metro.geojson')).toThrow(/invalid location/i);
+    expect(() => loco.validateLocation('philly_metro.geojson')).toThrow(/invalid location/i);
   });
 
   it('preserves the Q2 world feature', () => {
@@ -266,13 +263,12 @@ describe('clearFeatures', () => {
     loco.clearFeatures();
 
     const result = loco.resolveLocation('Q2');
-    assert.ok(result instanceof Object);
-    assert.equal(result.feature.id, 'Q2');
+    expect(result.feature.id).toBe('Q2');
   });
 
   it('allows re-adding features after clearing', () => {
     const loco = new LocationConflation();
-    const fc = {
+    const fc: FeatureCollection = {
       type: 'FeatureCollection',
       features: [{
         type: 'Feature',
@@ -288,12 +284,12 @@ describe('clearFeatures', () => {
     loco.addFeatures(fc);
     loco.clearFeatures();
 
-    assert.throws(() => loco.validateLocation('test.geojson'));
+    expect(() => loco.validateLocation('test.geojson')).toThrow(/invalid location/i);
 
     // Re-add
     loco.addFeatures(fc);
     const result = loco.resolveLocation('test.geojson');
-    assert.ok(result instanceof Object);
+    expect(result.feature.id).toBe('test.geojson');
   });
 });
 
@@ -304,11 +300,10 @@ describe('_cache accessor (deprecated)', () => {
     const loco = new LocationConflation();
 
     const cache = loco._cache;
-    assert.ok(cache instanceof Map);
+    expect(cache).toBeInstanceOf(Map);
 
     const q2 = cache.get('Q2');
-    assert.ok(q2 instanceof Object);
-    assert.equal(q2.id, 'Q2');
+    expect(q2!.id).toBe('Q2');
   });
 
   it('getter allows mutating the underlying cache map', () => {
@@ -325,9 +320,8 @@ describe('_cache accessor (deprecated)', () => {
     });
 
     const result = loco.resolveLocation('test.geojson');
-    assert.ok(result instanceof Object);
-    assert.equal(result.feature.id, 'test.geojson');
-    assert.equal(result.feature.properties.area, 123);
+    expect(result.feature.id).toBe('test.geojson');
+    expect(result.feature.properties.area).toBe(123);
   });
 });
 
@@ -336,8 +330,8 @@ describe('stringify', () => {
   it('pretty-stringifies values via static method', () => {
     const json = LocationConflation.stringify({ a: 1, b: { c: true } }, { maxLength: 10 });
 
-    assert.equal(typeof json, 'string');
-    assert.ok(json.includes('"a": 1'));
-    assert.ok(json.includes('"b"'));
+    expect(typeof json).toBe('string');
+    expect(json.includes('"a": 1')).toBeTruthy();
+    expect(json.includes('"b"')).toBeTruthy();
   });
 });

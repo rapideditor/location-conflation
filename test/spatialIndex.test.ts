@@ -1,66 +1,55 @@
-import { describe, it } from 'bun:test';
-import { strict as assert } from 'bun:assert';
+import { describe, it, expect } from 'bun:test';
 import { LocationConflation } from '../src/location-conflation.ts';
-
-const features = await Bun.file('test/fixtures/features.json').json();
+import type { HasLocationSet, Vec2 } from '../src/types.ts';
+import * as sample from './features.sample.ts';
 
 
 describe('registerLocationSets', () => {
 
   it('assigns locationSetID to each object', () => {
-    const loco = new LocationConflation(features);
-    const objects = [
+    const loco = new LocationConflation(sample.featureCollection);
+    const objects = loco.registerLocationSets([
       { locationSet: { include: ['de'] } },
       { locationSet: { include: ['us'] } },
-    ];
+    ]);
 
-    loco.registerLocationSets(objects);
-
-    assert.equal(objects[0].locationSetID, '+[Q183]');
-    assert.equal(objects[1].locationSetID, '+[Q30]');
+    expect(objects[0]!.locationSetID).toBe('+[Q183]');
+    expect(objects[1]!.locationSetID).toBe('+[Q30]');
   });
 
   it('handles objects without locationSet (defaults to world)', () => {
-    const loco = new LocationConflation(features);
-    const objects = [{ id: 'no-locationset' }];
+    const loco = new LocationConflation(sample.featureCollection);
+    const objects = loco.registerLocationSets([{ id: 'no-locationset' } as HasLocationSet]);
 
-    loco.registerLocationSets(objects);
-
-    assert.equal(objects[0].locationSetID, '+[Q2]');
+    expect(objects[0]!.locationSetID).toBe('+[Q2]');
   });
 
   it('handles locationSet with empty include (defaults to world)', () => {
-    const loco = new LocationConflation(features);
-    const objects = [{ locationSet: { include: [] } }];
+    const loco = new LocationConflation(sample.featureCollection);
+    const objects = loco.registerLocationSets([{ locationSet: { include: [] } }]);
 
-    loco.registerLocationSets(objects);
-
-    assert.equal(objects[0].locationSetID, '+[Q2]');
+    expect(objects[0]!.locationSetID).toBe('+[Q2]');
   });
 
   it('handles locationSet with include and exclude', () => {
-    const loco = new LocationConflation(features);
-    const objects = [{ locationSet: { include: ['de'], exclude: ['de-berlin.geojson'] } }];
-
+    const loco = new LocationConflation(sample.featureCollection);
     // de-berlin.geojson is not in our fixture features, so registerLocationSets skips it silently
-    loco.registerLocationSets(objects);
+    const objects = loco.registerLocationSets([{ locationSet: { include: ['de'], exclude: ['de-berlin.geojson'] } }]);
 
-    assert.ok(objects[0].locationSetID);
+    expect(objects[0]!.locationSetID).toBeTruthy();
   });
 
   it('preserves other properties on objects', () => {
-    const loco = new LocationConflation(features);
-    const objects = [{ id: 'preset-1', name: 'Cafe', locationSet: { include: ['de'] } }];
+    const loco = new LocationConflation(sample.featureCollection);
+    const objects = loco.registerLocationSets([{ id: 'preset-1', name: 'Cafe', locationSet: { include: ['de'] } }]);
 
-    loco.registerLocationSets(objects);
-
-    assert.equal(objects[0].id, 'preset-1');
-    assert.equal(objects[0].name, 'Cafe');
-    assert.equal(objects[0].locationSetID, '+[Q183]');
+    expect(objects[0]!.id).toBe('preset-1');
+    expect(objects[0]!.name).toBe('Cafe');
+    expect(objects[0]!.locationSetID).toBe('+[Q183]');
   });
 
   it('accumulates across multiple calls', () => {
-    const loco = new LocationConflation(features);
+    const loco = new LocationConflation(sample.featureCollection);
     const batch1 = [{ locationSet: { include: ['de'] } }];
     const batch2 = [{ locationSet: { include: ['us'] } }];
 
@@ -69,18 +58,18 @@ describe('registerLocationSets', () => {
 
     // Both should be in the index (locationSetsAt should return both)
     const results = loco.locationSetsAt([8.68, 49.42]);  // Karlsruhe, Germany
-    assert.ok(results.includes('+[Q183]'));       // Germany
-    assert.ok(!results.includes('+[Q30]'));       // US should not match Germany point
+    expect(results.includes('+[Q183]')).toBeTruthy();       // Germany
+    expect(results.includes('+[Q30]')).toBeFalsy();       // US should not match Germany point
   });
 
   it('returns the objects with locationSetID guaranteed', () => {
-    const loco = new LocationConflation(features);
-    const objects = [{ locationSet: { include: ['fr'] } }];
+    const loco = new LocationConflation(sample.featureCollection);
+    const objects: HasLocationSet[] = [{ locationSet: { include: ['fr'] } }];
 
     const result = loco.registerLocationSets(objects);
 
-    assert.equal(result[0].locationSetID, '+[Q142]');
-    assert.equal(result[0], objects[0]);  // same reference, mutated in place
+    expect(result[0]!.locationSetID).toBe('+[Q142]');
+    expect(result[0] === objects[0]).toBe(true);  // same reference, mutated in place
   });
 
   it('silently handles an empty array', () => {
@@ -95,11 +84,11 @@ describe('locationSetsAt', () => {
   it('returns empty array before registerLocationSets is called', () => {
     const loco = new LocationConflation();
     const results = loco.locationSetsAt([8.68, 49.42]);
-    assert.deepEqual(results, []);
+    expect(results).toEqual([]);
   });
 
   it('returns locationSetIDs for a point in Germany', () => {
-    const loco = new LocationConflation(features);
+    const loco = new LocationConflation(sample.featureCollection);
     loco.registerLocationSets([
       { locationSet: { include: ['de'] } },    // Germany
       { locationSet: { include: ['us'] } },    // United States
@@ -108,9 +97,9 @@ describe('locationSetsAt', () => {
 
     const results = loco.locationSetsAt([8.68, 49.42]);  // Karlsruhe
 
-    assert.ok(results.includes('+[Q183]'));   // Germany
-    assert.ok(results.includes('+[Q2]'));     // World
-    assert.ok(!results.includes('+[Q30]'));  // not US
+    expect(results.includes('+[Q183]')).toBeTruthy();   // Germany
+    expect(results.includes('+[Q2]')).toBeTruthy();     // World
+    expect(results.includes('+[Q30]')).toBeFalsy();  // not US
   });
 
   it('returns world (+[Q2]) for any point when indexed', () => {
@@ -118,14 +107,14 @@ describe('locationSetsAt', () => {
     loco.registerLocationSets([{ locationSet: { include: ['Q2'] } }]);
 
     const results = loco.locationSetsAt([8.68, 49.42]);
-    assert.ok(results.includes('+[Q2]'));
+    expect(results.includes('+[Q2]')).toBeTruthy();
 
     const results2 = loco.locationSetsAt([-118.24, 34.05]);  // Los Angeles
-    assert.ok(results2.includes('+[Q2]'));
+    expect(results2.includes('+[Q2]')).toBeTruthy();
   });
 
   it('applies exclusions correctly', () => {
-    const loco = new LocationConflation(features);
+    const loco = new LocationConflation(sample.featureCollection);
     // Germany minus dc_metro (silly but tests the mechanism with known fixtures)
     // Let's instead use a real exclusion: index two sets - de, and de minus philly_metro (which is in US, so de minus it = de effectively)
     // For a proper exclusion test with these fixtures, let's try: include world, exclude germany
@@ -137,14 +126,14 @@ describe('locationSetsAt', () => {
     // This locationSet excludes Germany, so a point in Germany should NOT be in results
     // The exclude check fires because Germany (Q183) is a CC match for Karlsruhe,
     // and Q183 is in _setsExcluding → removes the locationSetID from results
-    assert.ok(!karlsruhe.includes('+[Q2]-[Q183]'));
+    expect(karlsruhe.includes('+[Q2]-[Q183]')).toBeFalsy();
 
     const la = loco.locationSetsAt([-118.24, 34.05]);  // LA, not in Germany
-    assert.ok(la.includes('+[Q2]-[Q183]'));
+    expect(la.includes('+[Q2]-[Q183]')).toBeTruthy();
   });
 
   it('resolves custom .geojson features correctly', () => {
-    const loco = new LocationConflation(features);  // includes dc_metro.geojson and philly_metro.geojson
+    const loco = new LocationConflation(sample.featureCollection);  // includes dc_metro.geojson and philly_metro.geojson
     loco.registerLocationSets([
       { locationSet: { include: ['dc_metro.geojson'] } },
       { locationSet: { include: ['philly_metro.geojson'] } },
@@ -152,16 +141,16 @@ describe('locationSetsAt', () => {
     ]);
 
     // Point in DC metro area (roughly)
-    const dcPoint = [-77.0, 38.9];  // inside dc_metro fixture polygon
+    const dcPoint: Vec2 = [-77.0, 38.9];  // inside dc_metro fixture polygon
     const dcResults = loco.locationSetsAt(dcPoint);
 
-    assert.ok(dcResults.includes('+[dc_metro.geojson]'));
-    assert.ok(dcResults.includes('+[Q30]'));          // also in US
-    assert.ok(!dcResults.includes('+[philly_metro.geojson]'));
+    expect(dcResults.includes('+[dc_metro.geojson]')).toBeTruthy();
+    expect(dcResults.includes('+[Q30]')).toBeTruthy();          // also in US
+    expect(dcResults.includes('+[philly_metro.geojson]')).toBeFalsy();
   });
 
   it('sorts results by area ascending (smallest first)', () => {
-    const loco = new LocationConflation(features);
+    const loco = new LocationConflation(sample.featureCollection);
     loco.registerLocationSets([
       { locationSet: { include: ['Q2'] } },    // world (~510M km²)
       { locationSet: { include: ['de'] } },    // Germany (~357k km²)
@@ -174,9 +163,9 @@ describe('locationSetsAt', () => {
     const worldIdx = results.indexOf('+[Q2]');
 
     // Germany should come before world (smaller area)
-    assert.ok(qIdx !== -1, 'Germany should be in results');
-    assert.ok(worldIdx !== -1, 'World should be in results');
-    assert.ok(qIdx < worldIdx, 'Germany (smaller) should sort before World (larger)');
+    expect(qIdx).not.toBe(-1);
+    expect(worldIdx).not.toBe(-1);
+    expect(qIdx).toBeLessThan(worldIdx);
   });
 });
 
@@ -206,7 +195,7 @@ describe('rebuildIndex', () => {
     ]);
 
     const results = loco.locationSetsAt([0, 0]);
-    assert.ok(results.includes('+[test_region.geojson]'));
+    expect(results.includes('+[test_region.geojson]')).toBeTruthy();
   });
 
   it('can be called explicitly to refresh after addFeatures post-indexing', () => {
@@ -230,7 +219,7 @@ describe('rebuildIndex', () => {
     ]);
 
     let results = loco.locationSetsAt([0, 0]);
-    assert.ok(results.includes('+[region_a.geojson]'));
+    expect(results.includes('+[region_a.geojson]')).toBeTruthy();
 
     // Add another feature AFTER indexing, then rebuild so it joins the spatial index
     loco.addFeatures({
@@ -253,8 +242,8 @@ describe('rebuildIndex', () => {
     loco.rebuildIndex();
 
     results = loco.locationSetsAt([0, 0]);
-    assert.ok(results.includes('+[region_a.geojson]'));
-    assert.ok(results.includes('+[region_b.geojson]'));
+    expect(results.includes('+[region_a.geojson]')).toBeTruthy();
+    expect(results.includes('+[region_b.geojson]')).toBeTruthy();
   });
 });
 
@@ -262,33 +251,32 @@ describe('rebuildIndex', () => {
 describe('getLocationSetArea', () => {
 
   it('returns the area of an indexed locationSet', () => {
-    const loco = new LocationConflation(features);
+    const loco = new LocationConflation(sample.featureCollection);
     loco.registerLocationSets([{ locationSet: { include: ['de'] } }]);
 
     const area = loco.getLocationSetArea('+[Q183]');
-    assert.ok(typeof area === 'number');
-    assert.ok(area > 0);
+    expect(typeof area === 'number').toBeTruthy();
+    expect(area!).toBeGreaterThan(0);
   });
 
   it('returns undefined for a locationSet that has not been indexed', () => {
-    const loco = new LocationConflation(features);
-    assert.equal(loco.getLocationSetArea('+[Q183]'), undefined);
+    const loco = new LocationConflation(sample.featureCollection);
+    expect(loco.getLocationSetArea('+[Q183]')).toBe(undefined);
   });
 
   it('sums component areas for multi-include locationSets', () => {
-    const loco = new LocationConflation(features);
-    const both = [{ locationSet: { include: ['de', 'fr'] } }];
-    loco.registerLocationSets([
+    const loco = new LocationConflation(sample.featureCollection);
+    const registered = loco.registerLocationSets([
       { locationSet: { include: ['de'] } },
       { locationSet: { include: ['fr'] } },
-      ...both,
+      { locationSet: { include: ['de', 'fr'] } },
     ]);
 
     const deArea = loco.getLocationSetArea('+[Q183]');
     const frArea = loco.getLocationSetArea('+[Q142]');
-    const bothArea = loco.getLocationSetArea(both[0].locationSetID);
+    const bothArea = loco.getLocationSetArea(registered[2]!.locationSetID);
 
-    assert.ok(deArea && frArea && bothArea);
-    assert.equal(bothArea, deArea + frArea);
+    expect(deArea && frArea && bothArea).toBeTruthy();
+    expect(bothArea).toBe(deArea! + frArea!);
   });
 });

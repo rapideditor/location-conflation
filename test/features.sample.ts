@@ -1,13 +1,14 @@
-{
-  "type": "FeatureCollection",
-  "features": [
+
+export const featureCollection: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
     {
-      "type": "Feature",
-      "id": "dc_metro.geojson",
-      "properties": {},
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
+      type: 'Feature',
+      id: 'dc_metro.geojson',
+      properties: {},
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
           [
             [-77.04437, 38.70266],
             [-77.27783, 38.69409],
@@ -25,13 +26,13 @@
       }
     },
     {
-      "type": "Feature",
-      "properties": {
-        "id": "philly_metro.geojson"
+      type: 'Feature',
+      properties: {
+        id: 'philly_metro.geojson'
       },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
           [
             [-75.7, 40.3],
             [-75.3, 40.4],
@@ -47,4 +48,4 @@
       }
     }
   ]
-}
+};
