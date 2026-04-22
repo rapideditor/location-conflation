@@ -11,6 +11,7 @@
         "geojson-precision": "^1.0.0",
         "json-stringify-pretty-compact": "^4.0.0",
         "polyclip-ts": "~0.16.8",
+        "which-polygon": "^2.2.1",
       },
       "devDependencies": {
         "@eslint/js": "^10.0.1",

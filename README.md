@@ -121,11 +121,17 @@ const result = loco.resolveLocationSet({ include: ['alps.geojson'], exclude: ['l
 ## API Reference
 
 * [constructor](#constructor)
+* [addFeatures](#addfeatures)
+* [removeFeatures](#removefeatures)
+* [clearFeatures](#clearfeatures)
+* [_cache (deprecated)](#_cache-deprecated)
 * [validateLocation](#validateLocation)
 * [validateLocationSet](#validateLocationSet)
 * [resolveLocation](#resolveLocation)
 * [resolveLocationSet](#resolveLocationSet)
-* [strict](#strict)
+* [registerLocationSets](#registerlocationsets)
+* [rebuildIndex](#rebuildindex)
+* [locationSetsAt](#locationsetsat)
 * [stringify](#stringify)
 
 &nbsp;
@@ -153,6 +159,36 @@ Each feature *must* have a filename-like `id`, for example: `new_jersey.geojson`
 
 &nbsp;
 
+<a name="addfeatures" href="#addfeatures">#</a> <i>loco</i>.<b>addFeatures</b>(<i>featureCollection</i>)
+
+Adds custom `.geojson` features into the internal resolved cache.
+
+Each feature must include an `id` ending in `.geojson` (on either `feature.id` or `feature.properties.id`).
+IDs are normalized to lowercase.
+
+&nbsp;
+
+<a name="removefeatures" href="#removefeatures">#</a> <i>loco</i>.<b>removeFeatures</b>(<i>...ids</i>)
+
+Removes custom `.geojson` features by id (case-insensitive).
+Non-`.geojson` ids are ignored.
+
+&nbsp;
+
+<a name="clearfeatures" href="#clearfeatures">#</a> <i>loco</i>.<b>clearFeatures</b>()
+
+Clears all resolved-cache entries and re-seeds world fallbacks (`Q2` and `+[Q2]`).
+
+&nbsp;
+
+<a name="_cache-deprecated" href="#_cache-deprecated">#</a> <i>loco</i>.<b>_cache</b>
+
+Backward-compatibility getter for the internal resolved cache (`Map`).
+
+⚠️ Deprecated: prefer API methods like `addFeatures`, `removeFeatures`, `clearFeatures`, `resolveLocation`, and `resolveLocationSet`.
+
+&nbsp;
+
 <a name="validateLocation" href="#validateLocation">#</a> <i>loco</i>.<b>validateLocation</b>(<i>location</i>)
 
 Validates a given location. The "locations" can be:
@@ -177,9 +213,7 @@ If the location is valid, returns a result `Object` like:
 }
 ```
 
-If the location is invalid,
-* _in strict mode_, throws an error
-* _in non-strict mode_, returns `null`
+If the location is invalid, throws an error.
 
 &nbsp;
 
@@ -203,9 +237,7 @@ If the locationSet is valid, returns a result `Object` like:
 }
 ```
 
-If the locationSet is invalid or contains any invalid locations,
-* _in strict mode_, throws an error
-* _in non-strict mode_, invalid locations are quietly ignored. A locationSet with nothing included will be considered valid, and will validate as if it were a locationSet covering the entire world.  `{ type: 'locationset', locationSet: ['Q2'], id: +[Q2] }`
+If the locationSet is invalid or contains any invalid locations, throws an error.
 
 &nbsp;
 
@@ -225,9 +257,7 @@ If the location is valid, returns a result `Object` like:
 }
 ```
 
-If the location is invalid,
-* _in strict mode_, throws an error
-* _in non-strict mode_, returns `null`
+If the location is invalid, throws an error.
 
 &nbsp;
 
@@ -248,32 +278,43 @@ If the locationSet is valid, returns a result `Object` like:
 }
 ```
 
-If the locationSet is invalid or contains any invalid locations,
-* _in strict mode_, throws an error
-* _in non-strict mode_, invalid locations are quietly ignored. A locationSet with nothing included will be considered valid, and will validate as if it were a locationSet covering the entire world.  `{ type: 'locationset', locationSet: ['Q2'], id: +[Q2] }`
+If the locationSet is invalid or contains any invalid locations, throws an error.
 
 &nbsp;
 
-<a name="strict" href="#strict">#</a> <i>loco</i>.<b>strict</b>(<i>val</i>)
+<a name="registerlocationsets" href="#registerlocationsets">#</a> <i>loco</i>.<b>registerLocationSets</b>(<i>objects</i>)
 
-Getter/setter for "strict mode".  Current versions of LocationConflation start out in strict mode by default.
+Builds an inverted spatial index from objects that contain `locationSet` values.
+Each object receives a `locationSetID` property.
 
-* In strict mode, any invalid location or locationSet throws an error.
-* In non strict mode, invalid locations are ignored, and locationSets that include nothing are assumed to include the entire world.
+Unlike the single-item `validate*`/`resolve*` methods, this method is **tolerant** of bad input so that a batch of thousands of presets won't be rejected over a single typo:
+* Objects with a missing, empty, or invalid `locationSet` fall back to world (`+[Q2]`).
+* Individual invalid `include`/`exclude` components are silently ignored.
 
-```js
-loco.strict = false;            // setter: pass a true/false value to set the strict mode
-const isStrict = loco.strict;   // getter: return the current value
-```
+This method accumulates: multiple calls add to the same index.
 
 &nbsp;
 
-<a name="stringify" href="#stringify">#</a> <i>loco</i>.<b>stringify</b>(<i>object</i>, <i>options</i>)
+<a name="rebuildindex" href="#rebuildindex">#</a> <i>loco</i>.<b>rebuildIndex</b>()
+
+Rebuilds the internal spatial index from currently indexed locationSets and cached features.
+Call this after adding/removing custom features if they are already referenced by indexed locationSets.
+
+&nbsp;
+
+<a name="locationsetsat" href="#locationsetsat">#</a> <i>loco</i>.<b>locationSetsAt</b>(<i>[lon, lat]</i>)
+
+Returns matching `locationSetID` values for a point.
+Results are sorted by approximate area ascending (smallest / most specific first).
+
+&nbsp;
+
+<a name="stringify" href="#stringify">#</a> <b>LocationConflation.stringify</b>(<i>object</i>, <i>options</i>)
 
 Convenience method that wraps [json-stringify-pretty-compact](https://github.com/lydell/json-stringify-pretty-compact) to stringify the given object. Optional `options` parameter gets passed through to json-stringify-pretty-compact.
 
 ```js
-loco.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
+LocationConflation.stringify(someGeoJson, { maxLength: 100 });    // Make it pretty!
 ```
 
 &nbsp;

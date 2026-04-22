@@ -19,6 +19,7 @@ declare module '@mapbox/geojson-area' {
 
 
 declare module 'circle-to-polygon' {
+  import type { Vec2 } from 'types.ts';
   import type { Polygon } from 'geojson';
   /**
    * Convert a center point and radius to a GeoJSON Polygon approximation of a circle.
@@ -28,7 +29,7 @@ declare module 'circle-to-polygon' {
    * @returns A GeoJSON Polygon geometry
    */
   export default function circleToPolygon(
-    center: [number, number],
+    center: Vec2,
     radius: number,
     options?: number | { numberOfEdges?: number; earthRadius?: number; bearing?: number; rightHandRule?: boolean }
   ): Polygon;
@@ -45,6 +46,25 @@ declare module 'geojson-precision' {
    * @returns A new GeoJSON object with reduced precision
    */
   export default function parse<T extends GeoJSON>(t: T, coordinatePrecision?: number, extrasPrecision?: number): T;
+}
+
+
+declare module 'which-polygon' {
+  import type { Vec2, Vec4 } from 'types.ts';
+  /** Query function returned by {@link whichPolygon}. */
+  interface WhichPolygonQuery<P extends object = Record<string, unknown>> {
+    /** Returns all matching feature properties for the given point `[longitude, latitude]`, or null if none. */
+    (point: Vec2, multi: true): P[] | null;
+    /** Returns the first matching feature properties for the given point `[longitude, latitude]`, or null. */
+    (point: Vec2, multi?: false): P | null;
+    /** Returns all matching feature properties within the given bounding box `[minX, minY, maxX, maxY]`. */
+    bbox(bbox: Vec4): P[];
+  }
+
+  /** Build an R-tree spatial index for quick point-in-polygon lookups over a GeoJSON FeatureCollection. */
+  export default function whichPolygon<P extends object = Record<string, unknown>>(
+    data: { type?: string; features: Array<{ geometry: { type: string; coordinates: unknown } | null; properties: P }> }
+  ): WhichPolygonQuery<P>;
 }
 
 

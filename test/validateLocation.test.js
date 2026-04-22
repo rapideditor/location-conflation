@@ -4,8 +4,6 @@ import { LocationConflation } from '../src/location-conflation.ts';
 
 const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
-const locoNS = new LocationConflation(features);
-locoNS.strict = false;
 
 
 describe('validateLocation', () => {
@@ -31,7 +29,7 @@ describe('validateLocation', () => {
       });
     });
 
-    it('(strict mode) an invalid [lon, lat, radius?] Array throws an error', () => {
+    it('an invalid [lon, lat, radius?] Array throws an error', () => {
       assert.throws(() => loco.validateLocation([]));
       assert.throws(() => loco.validateLocation(['a']));
       assert.throws(() => loco.validateLocation([0]));
@@ -43,20 +41,6 @@ describe('validateLocation', () => {
       assert.throws(() => loco.validateLocation([10, 10, -10]));
       assert.throws(() => loco.validateLocation([10, 10, 0]));
       assert.throws(() => loco.validateLocation([10, 10, 10, 10]));
-    });
-
-    it('(non strict mode) an invalid [lon, lat, radius?] Array returns null', () => {
-      assert.equal(locoNS.validateLocation([]), null);
-      assert.equal(locoNS.validateLocation(['a']), null);
-      assert.equal(locoNS.validateLocation([0]), null);
-      assert.equal(locoNS.validateLocation([-181, -90]), null);
-      assert.equal(locoNS.validateLocation([-180, 91]), null);
-      assert.equal(locoNS.validateLocation([181, -90]), null);
-      assert.equal(locoNS.validateLocation([180, 91]), null);
-      assert.equal(locoNS.validateLocation([10, 10, null]), null);
-      assert.equal(locoNS.validateLocation([10, 10, -10]), null);
-      assert.equal(locoNS.validateLocation([10, 10, 0]), null);
-      assert.equal(locoNS.validateLocation([10, 10, 10, 10]), null);
     });
   });
 
@@ -72,14 +56,9 @@ describe('validateLocation', () => {
       });
     });
 
-    it('(strict mode) an invalid `.geojson` identifier throws an error', () => {
-      assert.throws(() => loco.validateLocation('philly_metro'));      // missing .geojson
-      assert.throws(() => loco.validateLocation('fake.geojson'));      // fake filename
-    });
-
-    it('(non strict mode) an invalid `.geojson` identifier returns null', () => {
-      assert.equal(locoNS.validateLocation('philly_metro'), null);     // missing .geojson
-      assert.equal(locoNS.validateLocation('fake.geojson'), null);     // fake filename
+    it('an invalid `.geojson` identifier throws an error', () => {
+      assert.throws(() => loco.validateLocation('philly_metro'));
+      assert.throws(() => loco.validateLocation('fake.geojson'));
     });
 
     it('`.geojson` identifiers compare as lowercase', () => {
@@ -103,16 +82,10 @@ describe('validateLocation', () => {
       });
     });
 
-    it('(strict mode) an invalid country coder identifier throws an error', () => {
+    it('an invalid country coder identifier throws an error', () => {
       assert.throws(() => loco.validateLocation(''));
       assert.throws(() => loco.validateLocation('false'));
       assert.throws(() => loco.validateLocation('null'));
-    });
-
-    it('(non strict mode) an invalid country coder identifier returns null', () => {
-      assert.equal(locoNS.validateLocation(''), null);
-      assert.equal(locoNS.validateLocation('false'), null);
-      assert.equal(locoNS.validateLocation('null'), null);
     });
   });
 

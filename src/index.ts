@@ -7,4 +7,5 @@ declare global {
 export { LocationConflation };
 export type * from './types.ts';
 export default LocationConflation;
+
 globalThis.LocationConflation = LocationConflation;

@@ -4,8 +4,6 @@ import { LocationConflation } from '../src/location-conflation.ts';
 
 const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
-const locoNS = new LocationConflation(features);
-locoNS.strict = false;
 
 
 describe('resolveLocation', () => {
@@ -37,14 +35,9 @@ describe('resolveLocation', () => {
       assert.equal(result.feature.properties.area, 31415.93);    // area = Pi * 100 * 100
     });
 
-    it('(strict mode) an invalid [lon, lat] Array throws an error', () => {
+    it('an invalid [lon, lat] Array throws an error', () => {
       const location = [];
       assert.throws(() => loco.resolveLocation(location));
-    });
-
-    it('(non strict mode) an invalid [lon, lat] Array returns null', () => {
-      const location = [];
-      assert.equal(locoNS.resolveLocation(location), null);
     });
   });
 
@@ -89,14 +82,9 @@ describe('resolveLocation', () => {
       assert.equal(typeof result.feature.properties.area, 'number');        // properties has a numeric `area` property
     });
 
-    it('(strict mode) an invalid `.geojson` filename throws an error', () => {
+    it('an invalid `.geojson` filename throws an error', () => {
       const location = 'fake.geojson';
       assert.throws(() => loco.resolveLocation(location));
-    });
-
-    it('(non strict mode) an invalid `.geojson` filename returns null', () => {
-      const location = 'fake.geojson';
-      assert.equal(locoNS.resolveLocation(location), null);
     });
   });
 
@@ -115,14 +103,9 @@ describe('resolveLocation', () => {
       assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
     });
 
-    it('(strict mode) an invalid country coder feature identifier throws an error', () => {
+    it('an invalid country coder feature identifier throws an error', () => {
       const location = 'fake';
       assert.throws(() => loco.resolveLocation(location));
-    });
-
-    it('(non strict mode) an invalid country coder feature identifier returns null', () => {
-      const location = 'fake';
-      assert.equal(locoNS.resolveLocation(location), null);
     });
   });
 

@@ -4,30 +4,14 @@ import { LocationConflation } from '../src/location-conflation.ts';
 
 const features = await Bun.file('test/fixtures/features.json').json();
 const loco = new LocationConflation(features);
-const locoNS = new LocationConflation(features);
-locoNS.strict = false;
 
 
 describe('resolveLocationSet', () => {
 
   describe('empty locationSet', () => {
-    it('(strict mode) empty locationSet throws an error', () => {
+    it('empty locationSet throws an error', () => {
       const locationSet = { };
       assert.throws(() => loco.resolveLocationSet(locationSet));
-    });
-
-    it('(non strict mode) empty locationSet defaults to world (Q2)', () => {
-      const locationSet = { };
-      const result = locoNS.resolveLocationSet(locationSet);
-      assert.ok(result instanceof Object);
-      assert.equal(result.type, 'locationset');
-      assert.equal(result.locationSet, locationSet);
-      assert.equal(result.id, '+[Q2]');
-      assert.ok(result.feature instanceof Object);                     // result includes a `feature`
-      assert.equal(result.feature.id, 'Q2');                           // feature has an `id`
-      assert.ok(result.feature.properties instanceof Object);          // feature has `properties`
-      assert.equal(result.feature.properties.id, 'Q2');                // properties has an `id` property
-      assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
     });
   });
 
@@ -125,42 +109,14 @@ describe('resolveLocationSet', () => {
   });
 
 
-  it('(strict mode) included junk locations throw an error', () => {
+  it('included junk locations throw an error', () => {
     const locationSet = { include: ['fake', 'null'] };
     assert.throws(() => loco.resolveLocationSet(locationSet));
   });
 
-  it('(non strict mode) ignores included junk locations', () => {
-    const locationSet = { include: ['fake', 'null'] };
-    const result = locoNS.resolveLocationSet(locationSet);
-    assert.ok(result instanceof Object);
-    assert.equal(result.type, 'locationset');
-    assert.equal(result.locationSet, locationSet);
-    assert.equal(result.id, '+[Q2]');
-    assert.ok(result.feature instanceof Object);                     // result includes a `feature`
-    assert.equal(result.feature.id, 'Q2');                           // feature has an `id`
-    assert.ok(result.feature.properties instanceof Object);          // feature has `properties`
-    assert.equal(result.feature.properties.id, 'Q2');                // properties has an `id` property
-    assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
-  });
-
-  it('(strict mode) excluded junk locations throw an error', () => {
+  it('excluded junk locations throw an error', () => {
     const locationSet = { include: ['001'], exclude: ['fake', 'null'] };
     assert.throws(() => loco.resolveLocationSet(locationSet));
-  });
-
-  it('(non strict mode) ignores excluded junk locations', () => {
-    const locationSet = { include: ['001'], exclude: ['fake', 'null'] };
-    const result = locoNS.resolveLocationSet(locationSet);
-    assert.ok(result instanceof Object);
-    assert.equal(result.type, 'locationset');
-    assert.equal(result.locationSet, locationSet);
-    assert.equal(result.id, '+[Q2]');
-    assert.ok(result.feature instanceof Object);                     // result includes a `feature`
-    assert.equal(result.feature.id, 'Q2');                           // feature has an `id`
-    assert.ok(result.feature.properties instanceof Object);          // feature has `properties`
-    assert.equal(result.feature.properties.id, 'Q2');                // properties has an `id` property
-    assert.equal(typeof result.feature.properties.area, 'number');   // properties has a numeric `area` property
   });
 
   it('sorts included countrycoder < geojson < point', () => {

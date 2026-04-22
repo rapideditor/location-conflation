@@ -42,7 +42,7 @@
     "clean": "bun ./scripts/clean.ts",
     "postpublish": "bun ./scripts/postpublish.ts",
     "start": "bun ./scripts/server.ts",
-    "test": "bun test --dots --coverage ./test",
+    "test": "bun test --dots --coverage ./test"
   },
   "dependencies": {
     "@mapbox/geojson-area": "^0.2.2",
@@ -50,7 +50,8 @@
     "circle-to-polygon": "^2.2.0",
     "geojson-precision": "^1.0.0",
     "json-stringify-pretty-compact": "^4.0.0",
-    "polyclip-ts": "~0.16.8"
+    "polyclip-ts": "~0.16.8",
+    "which-polygon": "^2.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
