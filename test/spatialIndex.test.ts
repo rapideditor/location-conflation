@@ -58,8 +58,8 @@ describe('registerLocationSets', () => {
 
     // Both should be in the index (locationSetsAt should return both)
     const results = loco.locationSetsAt([8.68, 49.42]);  // Karlsruhe, Germany
-    expect(results.includes('+[Q183]')).toBeTruthy();       // Germany
-    expect(results.includes('+[Q30]')).toBeFalsy();       // US should not match Germany point
+    expect(results.has('+[Q183]')).toBeTruthy();       // Germany
+    expect(results.has('+[Q30]')).toBeFalsy();         // US should not match Germany point
   });
 
   it('returns the objects with locationSetID guaranteed', () => {
@@ -81,10 +81,11 @@ describe('registerLocationSets', () => {
 
 describe('locationSetsAt', () => {
 
-  it('returns empty array before registerLocationSets is called', () => {
+  it('returns world (+[Q2]) before registerLocationSets is called', () => {
     const loco = new LocationConflation();
     const results = loco.locationSetsAt([8.68, 49.42]);
-    expect(results).toEqual([]);
+    expect(results).toBeInstanceOf(Map);
+    expect(results.has('+[Q2]')).toBeTruthy();
   });
 
   it('returns locationSetIDs for a point in Germany', () => {
@@ -97,20 +98,40 @@ describe('locationSetsAt', () => {
 
     const results = loco.locationSetsAt([8.68, 49.42]);  // Karlsruhe
 
-    expect(results.includes('+[Q183]')).toBeTruthy();   // Germany
-    expect(results.includes('+[Q2]')).toBeTruthy();     // World
-    expect(results.includes('+[Q30]')).toBeFalsy();  // not US
+    expect(results.has('+[Q183]')).toBeTruthy();   // Germany
+    expect(results.has('+[Q2]')).toBeTruthy();     // World
+    expect(results.has('+[Q30]')).toBeFalsy();     // not US
   });
 
-  it('returns world (+[Q2]) for any point when indexed', () => {
+  it('returns world (+[Q2]) for any valid point', () => {
     const loco = new LocationConflation();
-    loco.registerLocationSets([{ locationSet: { include: ['Q2'] } }]);
 
-    const results = loco.locationSetsAt([8.68, 49.42]);
-    expect(results.includes('+[Q2]')).toBeTruthy();
+    const results1 = loco.locationSetsAt([8.68, 49.42]);
+    expect(results1.has('+[Q2]')).toBeTruthy();
 
     const results2 = loco.locationSetsAt([-118.24, 34.05]);  // Los Angeles
-    expect(results2.includes('+[Q2]')).toBeTruthy();
+    expect(results2.has('+[Q2]')).toBeTruthy();
+
+    // Even if CountryCoder returns no administrative coverage here,
+    // valid coordinates should still include world.
+    const results3 = loco.locationSetsAt([0, -90]);
+    expect(results3.has('+[Q2]')).toBeTruthy();
+  });
+
+  it('returns an empty Map for out-of-range coordinates', () => {
+    const loco = new LocationConflation();
+    const results = loco.locationSetsAt([200, 95]);
+    expect(results.size).toBe(0);
+  });
+
+  it('does not re-add world when world is explicitly excluded', () => {
+    const loco = new LocationConflation();
+    loco.registerLocationSets([
+      { locationSet: { include: ['Q2'], exclude: ['Q2'] } },
+    ]);
+
+    const results = loco.locationSetsAt([8.68, 49.42]);
+    expect(results.has('+[Q2]-[Q2]')).toBeFalsy();
   });
 
   it('applies exclusions correctly', () => {
@@ -126,10 +147,10 @@ describe('locationSetsAt', () => {
     // This locationSet excludes Germany, so a point in Germany should NOT be in results
     // The exclude check fires because Germany (Q183) is a CC match for Karlsruhe,
     // and Q183 is in _setsExcluding → removes the locationSetID from results
-    expect(karlsruhe.includes('+[Q2]-[Q183]')).toBeFalsy();
+    expect(karlsruhe.has('+[Q2]-[Q183]')).toBeFalsy();
 
     const la = loco.locationSetsAt([-118.24, 34.05]);  // LA, not in Germany
-    expect(la.includes('+[Q2]-[Q183]')).toBeTruthy();
+    expect(la.has('+[Q2]-[Q183]')).toBeTruthy();
   });
 
   it('resolves custom .geojson features correctly', () => {
@@ -144,28 +165,27 @@ describe('locationSetsAt', () => {
     const dcPoint: Vec2 = [-77.0, 38.9];  // inside dc_metro fixture polygon
     const dcResults = loco.locationSetsAt(dcPoint);
 
-    expect(dcResults.includes('+[dc_metro.geojson]')).toBeTruthy();
-    expect(dcResults.includes('+[Q30]')).toBeTruthy();          // also in US
-    expect(dcResults.includes('+[philly_metro.geojson]')).toBeFalsy();
+    expect(dcResults.has('+[dc_metro.geojson]')).toBeTruthy();
+    expect(dcResults.has('+[Q30]')).toBeTruthy();          // also in US
+    expect(dcResults.has('+[philly_metro.geojson]')).toBeFalsy();
   });
 
-  it('sorts results by area ascending (smallest first)', () => {
+  it('returns each locationSetID mapped to its approximate area in km²', () => {
     const loco = new LocationConflation(sample.featureCollection);
     loco.registerLocationSets([
       { locationSet: { include: ['Q2'] } },    // world (~510M km²)
       { locationSet: { include: ['de'] } },    // Germany (~357k km²)
-      { locationSet: { include: ['001'] } },   // world alias
     ]);
 
     const results = loco.locationSetsAt([8.68, 49.42]);
 
-    const qIdx = results.indexOf('+[Q183]');  // Germany
-    const worldIdx = results.indexOf('+[Q2]');
+    const germanyArea = results.get('+[Q183]');
+    const worldArea = results.get('+[Q2]');
 
-    // Germany should come before world (smaller area)
-    expect(qIdx).not.toBe(-1);
-    expect(worldIdx).not.toBe(-1);
-    expect(qIdx).toBeLessThan(worldIdx);
+    expect(germanyArea).toBeGreaterThan(0);
+    expect(worldArea).toBeGreaterThan(0);
+    // Germany should have a smaller area than world
+    expect(germanyArea!).toBeLessThan(worldArea!);
   });
 });
 
@@ -195,7 +215,7 @@ describe('rebuildIndex', () => {
     ]);
 
     const results = loco.locationSetsAt([0, 0]);
-    expect(results.includes('+[test_region.geojson]')).toBeTruthy();
+    expect(results.has('+[test_region.geojson]')).toBeTruthy();
   });
 
   it('can be called explicitly to refresh after addFeatures post-indexing', () => {
@@ -219,7 +239,7 @@ describe('rebuildIndex', () => {
     ]);
 
     let results = loco.locationSetsAt([0, 0]);
-    expect(results.includes('+[region_a.geojson]')).toBeTruthy();
+    expect(results.has('+[region_a.geojson]')).toBeTruthy();
 
     // Add another feature AFTER indexing, then rebuild so it joins the spatial index
     loco.addFeatures({
@@ -242,8 +262,8 @@ describe('rebuildIndex', () => {
     loco.rebuildIndex();
 
     results = loco.locationSetsAt([0, 0]);
-    expect(results.includes('+[region_a.geojson]')).toBeTruthy();
-    expect(results.includes('+[region_b.geojson]')).toBeTruthy();
+    expect(results.has('+[region_a.geojson]')).toBeTruthy();
+    expect(results.has('+[region_b.geojson]')).toBeTruthy();
   });
 });
 

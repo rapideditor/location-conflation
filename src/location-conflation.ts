@@ -29,20 +29,6 @@ import type {
 export type * from './types.ts';
 
 
-// Template "world" features always available in the cache.
-const WORLD_GEOMETRY: GeoJSON.Polygon = {
-  type: 'Polygon',
-  coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]],
-};
-
-// 'Q2' - A Location representing the entire world.
-const WORLD_LOCATION: LocoFeature = {
-  type: 'Feature',
-  id: 'Q2',
-  properties: { id: 'Q2', area: _getArea(WORLD_GEOMETRY) },
-  geometry: WORLD_GEOMETRY
-};
-
 
 /**
  * LocationConflation lets you define complex geographic regions by including and
@@ -63,24 +49,25 @@ const WORLD_LOCATION: LocoFeature = {
  */
 export class LocationConflation {
   /**
-   * Internal cache of resolved features, keyed by stable identifiers.
+   * Internal cache of all resolved features, keyed by stable identifiers.
    * Identifiers look like:
    * - `'[8.67039,49.41882]'` — point locations
    * - `'de-hamburg.geojson'` — geojson file locations
    * - `'Q2'` — country-coder locations (Wikidata QIDs)
    * - `'+[Q2]-[Q18,Q27611]'` — aggregated location sets
    */
-  private _resolved: Map<string, LocoFeature>;
+  private _resolved: Map<LocationID | LocationSetID, LocoFeature>;
+
+  // Internal cache of registered LocationSetID → approximate area in km²
+  private _registered: Map<LocationSetID, number>;
 
   // Spatial index state, built by `registerLocationSets()` and rebuilt by `rebuildIndex()`.
-  //
   // Inverted index: locationID → Set of locationSetIDs that include/exclude that component location.
   // Reads as English: "the sets including this location" / "the sets excluding this location".
   private _setsIncluding: Map<LocationID, Set<LocationSetID>>;
   private _setsExcluding: Map<LocationID, Set<LocationSetID>>;
-  // locationSetID → approximate area in km² (used for sorting locationSetsAt results).
-  private _setAreas: Map<LocationSetID, number>;
-  // Spatial index for custom .geojson and point-radius features only.
+
+  // A `WhichPolygon` spatial index for custom .geojson and point-radius features only.
   // CountryCoder regions are looked up via CountryCoder's own spatial index.
   private _spatialIndex: ReturnType<typeof whichPolygon<{ id: string }>> | null;
 
@@ -94,9 +81,9 @@ export class LocationConflation {
    */
   constructor(fc?: GeoJSON.FeatureCollection) {
     this._resolved = new Map();
+    this._registered = new Map();
     this._setsIncluding = new Map();
     this._setsExcluding = new Map();
-    this._setAreas = new Map();
     this._spatialIndex = null;
 
     // Load any .geojson features from the input FeatureCollection.
@@ -104,8 +91,54 @@ export class LocationConflation {
       this.addFeatures(fc);
     }
 
-    // Seed the resolved cache with the world Location and LocationSet, always available as fallback.
-    this._resolved.set('Q2', structuredClone(WORLD_LOCATION));
+    this._setupWorld();
+  }
+
+
+  /**
+   * Setup the world objects.
+   * This ensures that we both have our world polygon and world locationset available.
+   *
+   * Calling `registerLocationSets` is important here because allows `locationSetsAt`
+   * to return the world locationset, even if no locationSets have been otherwise registered.
+   */
+  private _setupWorld(): void {
+    // Template "world" features always available in the cache.
+    // Note that CountryCoder's "world" is an aggregate of its known administrative boundaries.
+    // It excludes regions like the north pole or ocean.
+    // What we want for our purposes is a polygon that covers the entire world.
+    const WORLD_GEOMETRY: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]],
+    };
+
+    // 'Q2' - A Location representing the entire world.
+    const WORLD_LOCATION: LocoFeature = {
+      type: 'Feature',
+      id: 'Q2',
+      properties: { id: 'Q2', area: _getArea(WORLD_GEOMETRY) },
+      geometry: WORLD_GEOMETRY
+    };
+
+    // '+[Q2]' - A LocationSet that just includes the entire world.
+    const WORLD_LOCATIONSET: HasLocationSet = {
+      locationSet: { include: ['Q2'] }
+    };
+
+    this._resolved.set('Q2', WORLD_LOCATION);
+    this.registerLocationSets([WORLD_LOCATIONSET]);  // will also call rebuildIndex()
+  }
+
+
+  /**
+   * Returns whether a coordinate pair is within valid WGS84 bounds.
+   */
+  private _isValidPoint(loc: Vec2): boolean {
+    const [lon, lat] = loc;
+    return (
+      Number.isFinite(lon) && lon >= -180 && lon <= 180 &&
+      Number.isFinite(lat) && lat >= -90  && lat <= 90
+    );
   }
 
 
@@ -164,8 +197,8 @@ export class LocationConflation {
       this._resolved.set(id, lcFeature);
     }
 
-    // If any locationSets have been registered, the spatial index may now be stale.
-    if (this._setAreas.size > 0) this.rebuildIndex();
+    // Keep the local spatial index synced with any indexed locationSets.
+    this.rebuildIndex();
   }
 
 
@@ -188,16 +221,16 @@ export class LocationConflation {
       this._resolved.delete(id.toLowerCase());
     }
 
-    // If any locationSets have been registered, the spatial index may now be stale.
-    if (this._setAreas.size > 0) this.rebuildIndex();
+    // Keep the local spatial index synced with any indexed locationSets.
+    this.rebuildIndex();
   }
 
 
   /**
-   * Removes all cached features.
-   * This clears everything from the cache — `.geojson` features, resolved
+   * Removes all cached resolved features.
+   * This clears everything from the resolved cache — `.geojson` features, resolved
    * country-coder features, point circles, and aggregated location sets.
-   * The world feature (`Q2`) is re-added automatically.
+   * The world feature ('Q2') is re-added automatically.
    *
    * @example
    * ```ts
@@ -207,12 +240,7 @@ export class LocationConflation {
    */
   clearFeatures(): void {
     this._resolved.clear();
-
-    // Seed the resolved cache with the world Location and LocationSet, always available as fallback.
-    this._resolved.set('Q2', structuredClone(WORLD_LOCATION));
-
-    // If any locationSets have been registered, the spatial index may now be stale.
-    if (this._setAreas.size > 0) this.rebuildIndex();
+    this._setupWorld();
   }
 
 
@@ -228,7 +256,7 @@ export class LocationConflation {
   /**
    * Validates a location and returns its type and stable identifier.
    * @param location - Location to validate (point, geojson filename, or country code)
-   * @returns Validated location object
+   * @returns Validated location result object
    * @throws  Throws Error if the given location is invalid.
    *
    * @example
@@ -251,36 +279,34 @@ export class LocationConflation {
    * ```
    */
   validateLocation(location: Location): ValidatedLocation {
-    // [lon, lat] or [lon, lat, radius] point?
+    // A [lon, lat] or [lon, lat, radius] point?
     if (Array.isArray(location) && (location.length === 2 || location.length === 3)) {
       const lon = location[0];
       const lat = location[1];
       const radius = location[2];
-
       if (
-        Number.isFinite(lon) &&
-        lon >= -180 &&
-        lon <= 180 &&
-        Number.isFinite(lat) &&
-        lat >= -90 &&
-        lat <= 90 &&
+        this._isValidPoint([lon, lat]) &&
         (location.length === 2 || (radius !== undefined && Number.isFinite(radius) && radius > 0))
       ) {
         const id = '[' + location.toString() + ']';
         return { type: 'point', location, id };
       }
+
+    // A custom .geojson filename?
     } else if (typeof location === 'string' && /^\S+\.geojson$/i.test(location)) {
-      // a .geojson filename?
       const id = location.toLowerCase();
       if (this._resolved.has(id)) {
         return { type: 'geojson', location, id };
       }
+
+    // A country-coder identifier?
     } else if (typeof location === 'string' || typeof location === 'number') {
       // a country-coder value?
       const feature = CountryCoder.feature(location);
       if (feature) {
-        // Use wikidata QID as the identifier, since that seems to be the one
-        // property that everything in CountryCoder is guaranteed to have.
+        // Normalize CountryCoder locations by using the returned Wikidata QID.
+        // It's the one property that everything in CountryCoder is guaranteed to have,
+        // and it allows us to match 'Q2' World and resolve it to our own world polygon.
         const id = feature.properties.wikidata;
         return { type: 'countrycoder', location, id };
       }
@@ -291,9 +317,9 @@ export class LocationConflation {
 
 
   /**
-   * Resolves a location to a GeoJSON feature.
+   * Resolves a location to a GeoJSON Feature.
    * @param location - Location to resolve
-   * @returns Resolved location with GeoJSON feature
+   * @returns Resolved location result object, including the GeoJSON Feature
    * @throws  Throws Error if the given location is invalid or cannot be resolved.
    *
    * @example
@@ -315,13 +341,17 @@ export class LocationConflation {
     const valid = this.validateLocation(location);
     const id = valid.id;
 
-    // Return a result from cache if we can.
-    // (.geojson features are always in _resolvedLocations — they were loaded in the constructor.)
+    // Return an already-resolved result from cache if we can.
+    // This will hit cache for:
+    // - all custom .geojson
+    // - previously generated point-radius
+    // - previously seen country coder locations
+    // - our custom 'Q2' World location
     if (this._resolved.has(id)) {
       return { ...valid, feature: this._resolved.get(id)! };
     }
 
-    // A [lon,lat] coordinate pair?
+    // A newly seen [lon, lat] or [lon, lat, radius] point?
     if (valid.type === 'point' && Array.isArray(location)) {
       const lon = location[0];
       const lat = location[1];
@@ -342,7 +372,7 @@ export class LocationConflation {
       return { ...valid, feature };
     }
 
-    // A country-coder identifier?
+    // A newly seen country-coder identifier?
     if (valid.type === 'countrycoder') {
       // id is a wikidata QID that validateLocation already confirmed exists in CountryCoder
       const ccFeature = CountryCoder.feature(id)!;
@@ -398,9 +428,9 @@ export class LocationConflation {
 
 
   /**
-   * Validates a locationSet and returns its stable identifier
+   * Validates a locationSet and returns its stable identifier.
    * @param locationSet - LocationSet with include/exclude arrays
-   * @returns Validated locationSet object
+   * @returns Validated locationSet result object
    * @throws  Throws Error if any referenced location is invalid, or locationSet has no include.
    *
    * @example
@@ -445,9 +475,9 @@ export class LocationConflation {
 
 
   /**
-   * Resolves a locationSet to a GeoJSON feature by combining included/excluded regions
+   * Resolves a locationSet to a GeoJSON Feature by combining included/excluded regions.
    * @param locationSet - LocationSet with include/exclude arrays
-   * @returns Resolved locationSet with GeoJSON feature
+   * @returns Resolved locationSet result object, including the GeoJSON Feature
    * @throws  Throws Error if any referenced location is invalid, or locationSet has no include.
    *
    * @example
@@ -562,8 +592,8 @@ export class LocationConflation {
       obj.locationSetID = locationSetID;
 
       // If we've already indexed this exact locationSetID, skip the inner work.
-      // The object still gets its locationSetID set above.
-      if (this._setAreas.has(locationSetID)) continue;
+      // The object has already gotten its locationSetID assigned above.
+      if (this._registered.has(locationSetID)) continue;
 
       let area = 0;
 
@@ -598,7 +628,7 @@ export class LocationConflation {
         s.add(locationSetID);
       }
 
-      this._setAreas.set(locationSetID, area);
+      this._registered.set(locationSetID, area);
     }
 
     this.rebuildIndex();
@@ -645,30 +675,34 @@ export class LocationConflation {
 
 
   /**
-   * Returns the stable `locationSetID`s of all indexed location sets that cover the given point.
+   * Returns the indexed location sets that cover the given point, mapped to their
+   * approximate area in km².
    *
    * Uses the inverted spatial index built by {@link registerLocationSets} — no polygon clipping is
    * performed.  For country-coder regions, CountryCoder's built-in spatial index is used.
    * For custom `.geojson` and point-radius features, the local which-polygon index is used.
    *
-   * Results are sorted by approximate area ascending (smallest / most specific region first).
+   * The returned `Map` gives callers O(1) `has(locationSetID)` membership tests (the common
+   * "is this locationSet valid here?" check) without a linear array scan.  Results are not
+   * sorted — if you need them ordered, sort `[...result.entries()]` by value.
    *
    * Call {@link resolveLocationSet} on any returned ID if you need the actual GeoJSON feature.
    *
-   * @param point - `[longitude, latitude]` coordinate to query.
-   * @returns Array of locationSetIDs valid at the given point.
+   * @param loc - `[longitude, latitude]` coordinate to query.
+   * @returns Map of locationSetID → approximate area (km²), for all sets valid at the point.
    *
    * @example
    * ```ts
    * loco.registerLocationSets(presets);
-   * const ids = loco.locationSetsAt([-75.16, 39.95]);
-   * // => ['+[Q30]', '+[Q1]', ...]
-   * // resolve one if you need the feature:
-   * const feature = loco.resolveLocationSet({ include: ['us'] })?.feature;
+   * const hits = loco.locationSetsAt([-75.16, 39.95]);
+   * if (hits.has('+[Q30]')) { ... }
+   * // Iterate smallest-first:
+   * const sorted = [...hits.entries()].sort((a, b) => a[1] - b[1]);
    * ```
    */
-  locationSetsAt(point: Vec2): string[] {
-    if (!this._spatialIndex) return [];
+  locationSetsAt(loc: Vec2): Map<LocationSetID, number> {
+    const results = new Map<LocationSetID, number>();
+    const isValidPoint = this._isValidPoint(loc);
 
     // Two-pass design:
     //   1. For each component location covering the point, walk the inverted index to
@@ -681,28 +715,38 @@ export class LocationConflation {
     // which-polygon — membership is always derived from component hits via the inverted
     // index.  This keeps the spatial index small and avoids needing to resolve every set
     // to a combined polygon up front.
-    const results = new Set<string>();
-    const toExclude = new Set<string>();
+    const toExclude = new Set<LocationSetID>();
 
     // Search the inverted index for occurrances of the given locationID.
     const gather = (locationID: LocationID): void => {
       for (const id of (this._setsIncluding.get(locationID) ?? [])) {
-        results.add(id);
+        results.set(id, this._registered.get(id) ?? Infinity);
       }
       for (const id of (this._setsExcluding.get(locationID) ?? [])) {
         toExclude.add(id);
       }
     };
 
-    // Country-coder components: delegate to CountryCoder's own spatial index
-    for (const ccFeature of CountryCoder.featuresContaining(point)) {
-      gather(ccFeature.properties.wikidata);
+    // Country-coder components: delegate to CountryCoder's own spatial index.
+    // CountryCoder models "world" as an aggregation of known administrative features,
+    // which can be empty in places like open ocean/poles. We still guarantee `+[Q2]`
+    // for any valid coordinate via special handling below.
+    if (isValidPoint) {
+      try {
+        for (const ccFeature of CountryCoder.featuresContaining(loc)) {
+          gather(ccFeature.properties.wikidata);
+        }
+      } catch {
+        // Defensive: treat lookup failures as "no CountryCoder matches".
+      }
     }
 
     // Custom .geojson and point-radius components: use our which-polygon index
     // which-polygon returns null (not []) when multi=true and no matches
-    for (const props of (this._spatialIndex(point, true) ?? [])) {
-      gather(props.id);
+    if (isValidPoint && this._spatialIndex) {
+      for (const props of (this._spatialIndex(loc, true) ?? [])) {
+        gather(props.id);
+      }
     }
 
     // Apply exclusions
@@ -710,12 +754,17 @@ export class LocationConflation {
       results.delete(id);
     }
 
-    // Sort by approximate area ascending (smallest/most specific region first)
-    return [...results].sort((a, b) => {
-      const aArea = this._setAreas.get(a) ?? Infinity;
-      const bArea = this._setAreas.get(b) ?? Infinity;
-      return aArea - bArea;
-    });
+    // Our world means "any valid lon/lat in [-180..180] x [-90..90]", not just
+    // CountryCoder's aggregated administrative coverage. Ensure `+[Q2]` is present
+    // for valid coordinates unless that locationSet was explicitly excluded.
+    if (isValidPoint && !toExclude.has('+[Q2]')) {
+      const worldArea = this._registered.get('+[Q2]');
+      if (worldArea !== undefined) {
+        results.set('+[Q2]', worldArea);
+      }
+    }
+
+    return results;
   }
 
   /**
@@ -734,7 +783,7 @@ export class LocationConflation {
    * ```
    */
   getLocationSetArea(locationSetID: LocationSetID): number | undefined {
-    return this._setAreas.get(locationSetID);
+    return this._registered.get(locationSetID);
   }
 
   /**

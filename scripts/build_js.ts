@@ -14,7 +14,7 @@ await Promise.all([
     outdir: './dist/js',
     target: 'node',
     format: 'cjs',
-    external: ['*'],
+    packages: 'external',
     sourcemap: 'linked',
     naming: 'location-conflation.c[ext]'  // .cjs
   }),
@@ -24,7 +24,7 @@ await Promise.all([
     outdir: './dist/js',
     target: 'node',
     format: 'esm',
-    external: ['*'],
+    packages: 'external',
     sourcemap: 'linked',
     naming: 'location-conflation.m[ext]'  // .mjs
   })

@@ -24,7 +24,8 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 * ⚠️  Add `registerLocationSets(objects)` to build an inverted spatial index from `locationSet`-bearing objects. Tolerant of bad input:
   * Objects with missing/empty/invalid `locationSet` fall back to world (`+[Q2]`).
   * Individual invalid `include`/`exclude` components are silently ignored.
-* Add `locationSetsAt([lon, lat])` — returns the `locationSetID`s of indexed sets covering a point, sorted by area ascending.
+* Add `locationSetsAt([lon, lat])` — returns a `Map<locationSetID, area>` of indexed sets covering a point. The `Map` gives O(1) membership tests for the common "is this locationSet valid here?" check.
+  * World locationSet (`+[Q2]`) is pre-registered on construction and after `clearFeatures()`, so any valid WGS84 coordinate will include world in results — no need to manually register a world locationSet first.
 * Add `getLocationSetArea(locationSetID)` — approximate km² of an indexed locationSet.
 * Add `rebuildIndex()` — normally invoked automatically by `registerLocationSets`, `addFeatures`, `removeFeatures`, `clearFeatures`.
 * Add `addFeatures`, `removeFeatures`, `clearFeatures` for managing custom `.geojson` features after construction. The constructor now delegates to `addFeatures`.
