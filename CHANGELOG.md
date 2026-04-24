@@ -17,18 +17,28 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 -->
 
 # 3.0.0
-##### (unreleased)
-* ⚠️  Remove strict/non-strict modes. `validateLocation`, `validateLocationSet`, `resolveLocation`, and `resolveLocationSet` now always throw on invalid input (previously strict-mode behavior). The `loco.strict` property has been removed.
-  * Callers that were relying on non-strict `null` returns should wrap calls in try/catch.
-  * `validateLocationSet` no longer mutates its input (previously, non-strict mode would set `locationSet.include = ['Q2']` on empty input).
-* ⚠️  Add `registerLocationSets(objects)` to build an inverted spatial index from `locationSet`-bearing objects. Tolerant of bad input:
-  * Objects with missing/empty/invalid `locationSet` fall back to world (`+[Q2]`).
-  * Individual invalid `include`/`exclude` components are silently ignored.
-* Add `locationSetsAt([lon, lat])` — returns a `Map<locationSetID, area>` of indexed sets covering a point. The `Map` gives O(1) membership tests for the common "is this locationSet valid here?" check.
-  * World locationSet (`+[Q2]`) is pre-registered on construction and after `clearFeatures()`, so any valid WGS84 coordinate will include world in results — no need to manually register a world locationSet first.
-* Add `getLocationSetArea(locationSetID)` — approximate km² of an indexed locationSet.
-* Add `rebuildIndex()` — normally invoked automatically by `registerLocationSets`, `addFeatures`, `removeFeatures`, `clearFeatures`.
-* Add `addFeatures`, `removeFeatures`, `clearFeatures` for managing custom `.geojson` features after construction. The constructor now delegates to `addFeatures`.
+##### 2026-Apr-24
+* Improve TypeScript compatibility with other projects by extending the standard DefinitelyTyped GeoJSON types. Improve TypeScript strictness, modernize. ([#75])
+* NEW: LocationConflation now handles spatial indexing and point-in-polygon lookups.
+  * Indexing was previously the responsibility of downstream projects (Name-Suggestion-Index, Rapid, iD).  This change allows those projects to remove a bunch of complex code.
+  * `registerLocationSets(objects)` - Accepts an array of `locationSet`-bearing objects and builds an include/exclude inverted index and which-polygon spatial index. Tolerant of bad input:
+    * Objects with missing/empty/invalid `locationSet` fall back to world (`+[Q2]`).
+    * Individual invalid `include`/`exclude` components are silently ignored.
+  * `locationSetsAt([lon, lat])` — returns a `Map<locationSetID, area>` of locationSets covering the given point.
+    * Returned `Map` gives O(1) membership tests for the common "is this locationSet valid here?" check.
+    * World locationSet (`+[Q2]`) is pre-registered, so any valid WGS84 coordinate will include world in results — no need to manually register a world locationSet first.
+  * `getLocationSetArea(locationSetID)` — returns the approximate km² of a registered locationSet.
+* ⚠️  Removed "non-strict" mode.  Previous "strict" mode behavior is now the default.
+  * `validateLocation`, `validateLocationSet`, `resolveLocation`, and `resolveLocationSet` now always throw on invalid input.
+  * Callers that were relying on "non-strict" `null` returns should wrap calls in try/catch.
+  * The `.strict` property has been removed.
+  * `validateLocationSet` no longer mutates its input (previously, "non-strict" mode would set `locationSet.include = ['Q2']` on empty input).
+* ⚠️  Deprecate direct access to internal resolved GeoJSON `_cache`
+  * A `_cache` accessor is provided for backward compatibility, but will be removed in a future release.  Downstream projects that previously accessed the internal `_cache` should stop doing that.
+  * Add `addFeatures()`, `removeFeatures()`, `clearFeatures()` for managing custom `.geojson` cache after construction. (The constructor still optionally accepts custom features, but delegates to `addFeatures`).
+  * Add `rebuildIndex()` — This is automatically invoked by `addFeatures`, `removeFeatures`, `clearFeatures`, `registerLocationSets`.  (But if you are still changing the `_cache`, you'll need to call this after making changes).
+
+[#75]: https://github.com/rapideditor/location-conflation/issues/75
 
 
 # 2.0.1
