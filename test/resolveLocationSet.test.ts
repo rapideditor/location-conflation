@@ -17,7 +17,7 @@ describe('resolveLocationSet', () => {
   });
 
 
-  describe('country coder feature identifiers', () => {
+  describe('country coder identifiers', () => {
     it('sorts included countrycoder locations', () => {
       const locationSet = { include: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
@@ -92,12 +92,12 @@ describe('resolveLocationSet', () => {
   });
 
 
-  it('included junk locations throw an error', () => {
+  it('invalid included locations throw an error', () => {
     const locationSet = { include: ['fake', 'null'] };
     expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
   });
 
-  it('excluded junk locations throw an error', () => {
+  it('invalid excluded locations throw an error', () => {
     const locationSet = { include: ['001'], exclude: ['fake', 'null'] };
     expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
   });

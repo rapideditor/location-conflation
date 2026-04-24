@@ -12,7 +12,7 @@ describe('validateLocation', () => {
   describe('points', () => {
     // Note: `it.each` spreads tuple elements as args, so we wrap each point in a single-element array.
     it.each<[Vec2]>([[[0, 0]], [[-180, -90]], [[180, -90]], [[180, 90]]])(
-      'a valid [lon, lat] array %j returns a "point" result',
+      'valid [lon, lat] array %j returns a "point" result',
       (val) => {
         const result = loco.validateLocation(val);
         expect(result.type).toBe('point');
@@ -22,7 +22,7 @@ describe('validateLocation', () => {
     );
 
     it.each<[Vec3]>([[[0, 0, 20]], [[-180, -90, 20]], [[180, -90, 20]], [[180, 90, 20]]])(
-      'a valid [lon, lat, radius] array %j returns a "point" result',
+      'valid [lon, lat, radius] array %j returns a "point" result',
       (val) => {
         const result = loco.validateLocation(val);
         expect(result.type).toBe('point');
@@ -31,7 +31,7 @@ describe('validateLocation', () => {
       }
     );
 
-    it('an invalid [lon, lat, radius?] Array throws an error', () => {
+    it('invalid [lon, lat, radius?] Array throws an error', () => {
       // Helper to call validateLocation with inputs that are intentionally wrong at compile time.
       // Using `unknown` + cast keeps the call site typed while letting us pass bad values.
       const badCall = (v: unknown) => () => loco.validateLocation(v as Location);
@@ -53,7 +53,7 @@ describe('validateLocation', () => {
 
   describe('`.geojson` filenames', () => {
     it.each(['philly_metro.geojson', 'dc_metro.geojson'])(
-      'a valid `.geojson` identifier %s returns a "geojson" result',
+      'valid `.geojson` identifier %s returns a "geojson" result',
       (val) => {
         const result = loco.validateLocation(val);
         expect(result.type).toBe('geojson');
@@ -63,7 +63,7 @@ describe('validateLocation', () => {
     );
 
     it.each(['philly_metro', 'fake.geojson'])(
-      'an invalid `.geojson` identifier %s throws an error',
+      'invalid `.geojson` identifier %s throws an error',
       (val) => {
         expect(() => loco.validateLocation(val)).toThrow(/invalid location/i);
       }
@@ -80,7 +80,7 @@ describe('validateLocation', () => {
 
   describe('country coder feature identifiers', () => {
     it.each<Location>(['GB', 'gb', 'gbr', '826', 826, 'Q145', '🇬🇧', 'united kingdom'])(
-      'a valid country coder identifier %j returns a "countrycoder" result',
+      'valid country coder identifier %j returns a normalized "countrycoder" result',
       (val) => {
         const result = loco.validateLocation(val);
         expect(result.type).toBe('countrycoder');
@@ -89,8 +89,18 @@ describe('validateLocation', () => {
       }
     );
 
+    it.each<Location>(['world', 'q2', 1, '001'])(
+      'valid country coder world identifier %j returns a normalized "countrycoder" result',
+      (val) => {
+        const result = loco.validateLocation(val);
+        expect(result.type).toBe('countrycoder');
+        expect(result.location).toBe(val);
+        expect(result.id).toBe('Q2');
+      }
+    );
+
     it.each(['', 'false', 'null'])(
-      'an invalid country coder identifier %j throws an error',
+      'invalid country coder identifier %j throws an error',
       (val) => {
         expect(() => loco.validateLocation(val)).toThrow(/invalid location/i);
       }

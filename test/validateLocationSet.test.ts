@@ -17,7 +17,7 @@ describe('validateLocationSet', () => {
   });
 
 
-  describe('country coder feature identifiers', () => {
+  describe('country coder identifiers', () => {
     it('sorts included countrycoder locations', () => {
       const locationSet = { include: ['013', '005'] };
       const result = loco.resolveLocationSet(locationSet);
@@ -26,7 +26,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[Q18,Q27611]');
     });
 
-    it('fake included countrycoder locations throw an error', () => {
+    it('invalid included countrycoder locations throw an error', () => {
       const locationSet = { include: ['013', 'fake', '005'] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });
@@ -39,7 +39,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[Q2]-[Q18,Q27611]');
     });
 
-    it('fake excluded countrycoder locations throw an error', () => {
+    it('invalid excluded countrycoder locations throw an error', () => {
       const locationSet = { include: ['001'], exclude: ['013', 'fake', '005'] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });
@@ -60,7 +60,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[dc_metro.geojson,philly_metro.geojson]');
     });
 
-    it('fake included .geojson locations throw an error', () => {
+    it('invalid included .geojson locations throw an error', () => {
       const locationSet = { include: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });
@@ -73,7 +73,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[Q2]-[dc_metro.geojson,philly_metro.geojson]');
     });
 
-    it('fake excluded .geojson locations throw an error', () => {
+    it('invalid excluded .geojson locations throw an error', () => {
       const locationSet = { include: ['001'], exclude: ['philly_metro.geojson', 'fake.geojson', 'dc_metro.geojson'] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });
@@ -89,7 +89,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[[0,0],[0,1],[1,0],[1,1]]');
     });
 
-    it('fake included point locations throw an error', () => {
+    it('invalid included point locations throw an error', () => {
       const locationSet: LocationSet = { include: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });
@@ -102,7 +102,7 @@ describe('validateLocationSet', () => {
       expect(result.id).toBe('+[Q2]-[[0,0],[0,1],[1,0],[1,1]]');
     });
 
-    it('fake excluded point locations throw an error', () => {
+    it('invalid excluded point locations throw an error', () => {
       const locationSet: LocationSet = { include: ['001'], exclude: [[1, 0], [0, 1], [NaN, NaN], [1, 1], [0, 0]] };
       expect(() => loco.resolveLocationSet(locationSet)).toThrow(/invalid location/i);
     });

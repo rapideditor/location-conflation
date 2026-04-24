@@ -31,6 +31,11 @@ A **location** can be any of:
 | A custom `.geojson` filename (add custom features via the constructor or `addFeatures`) | `"de-hamburg.geojson"`, `"new_jersey.geojson"` |
 | A circular area `[lon, lat, radius?]` (radius in km, defaults to 25) | `[8.67039, 49.41882]`, `[-88.3726, 39.4818, 32]` |
 
+> [!WARNING]
+> For numeric-looking country-coder identifiers (for example UN M.49 codes), pass strings like `"001"` and `"039"`.
+> Avoid using numeric literals in JavaScript, because leading-zero values may be treated like octal numbers and represent a different number than you expect.
+
+
 > [!TIP]
 > The full list of recognized country-coder identifiers is browsable at <https://ideditor.codes>.
 

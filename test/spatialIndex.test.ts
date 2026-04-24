@@ -270,7 +270,7 @@ describe('rebuildIndex', () => {
 
 describe('getLocationSetArea', () => {
 
-  it('returns the area of an indexed locationSet', () => {
+  it('returns the area of a registered locationSet', () => {
     const loco = new LocationConflation(sample.featureCollection);
     loco.registerLocationSets([{ locationSet: { include: ['de'] } }]);
 
@@ -279,7 +279,7 @@ describe('getLocationSetArea', () => {
     expect(area!).toBeGreaterThan(0);
   });
 
-  it('returns undefined for a locationSet that has not been indexed', () => {
+  it('returns undefined for a locationSet that has not been registered', () => {
     const loco = new LocationConflation(sample.featureCollection);
     expect(loco.getLocationSetArea('+[Q183]')).toBe(undefined);
   });

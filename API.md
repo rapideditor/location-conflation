@@ -113,6 +113,10 @@ A **location** can be any of:
 | Custom `.geojson` filename | `"new_jersey.geojson"` | Must have been passed to the constructor or `addFeatures`. |
 | Point with radius | `[8.67, 49.42]`, `[-88.37, 39.48, 32]` | `[lon, lat, radius?]`. Radius in km; defaults to 25. |
 
+> [!WARNING]
+> For numeric-looking country-coder identifiers, pass strings like `"001"` and `"039"`.
+> Avoid using numeric identifiers in JavaScript, because leading-zero values may be treated like octal numbers and represent a different number than you expect.
+
 On success, returns:
 
 ```js

@@ -91,21 +91,20 @@ export class LocationConflation {
       this.addFeatures(fc);
     }
 
-    this._setupWorld();
+    this._setupWorld();  // will also call rebuildIndex()
   }
 
 
   /**
    * Setup the world objects.
-   * This ensures that we both have our world polygon and world locationset available.
+   * This ensures that we both have our world location and world locationSet available.
    *
    * Calling `registerLocationSets` is important here because allows `locationSetsAt`
-   * to return the world locationset, even if no locationSets have been otherwise registered.
+   * to return the world locationSet, even if no locationSets have been otherwise registered.
    */
   private _setupWorld(): void {
-    // Template "world" features always available in the cache.
-    // Note that CountryCoder's "world" is an aggregate of its known administrative boundaries.
-    // It excludes regions like the north pole or ocean.
+    // Note that CountryCoder's "world" is an aggregate of its administrative boundaries.
+    // (It excludes regions like the north pole or ocean.)
     // What we want for our purposes is a polygon that covers the entire world.
     const WORLD_GEOMETRY: GeoJSON.Polygon = {
       type: 'Polygon',
@@ -172,7 +171,7 @@ export class LocationConflation {
     for (const feature of fc.features) {
       const props = feature.properties ?? {};
 
-      // Get `id` from either `id` or `properties.id`
+      // Get `id` from either `id` or `properties.id`.
       // Features without a valid id are silently skipped.
       let id = feature.id ?? props['id'];
       if (!id || !/^\S+\.geojson$/i.test(String(id))) continue;
@@ -182,7 +181,7 @@ export class LocationConflation {
 
       const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
 
-      // Ensure `area` property exists
+      // Ensure `area` property exists.
       // The purpose of the `area` property is to enable rough size comparisons.
       const existingArea = props['area'] as number | undefined;
       const area = existingArea || _getArea(geometry);
@@ -197,8 +196,7 @@ export class LocationConflation {
       this._resolved.set(id, lcFeature);
     }
 
-    // Keep the local spatial index synced with any indexed locationSets.
-    this.rebuildIndex();
+    this.rebuildIndex();   // Need to rebuild the index after adding new locations.
   }
 
 
@@ -221,8 +219,7 @@ export class LocationConflation {
       this._resolved.delete(id.toLowerCase());
     }
 
-    // Keep the local spatial index synced with any indexed locationSets.
-    this.rebuildIndex();
+    this.rebuildIndex();   // Need to rebuild the index after removing locations.
   }
 
 
@@ -240,13 +237,14 @@ export class LocationConflation {
    */
   clearFeatures(): void {
     this._resolved.clear();
-    this._setupWorld();
+    this._setupWorld();  // will also call rebuildIndex()
   }
 
 
   /**
-   * Backward-compatibility alias to access the internal resolved-feature cache.
-   * @deprecated Use the LocationConflation APIs instead (`addFeatures`, `removeFeatures`, `clearFeatures`).
+   * Backward-compatibility alias to direct access the internal resolved-feature cache.
+   * If you use this to change the features, make sure to call `rebuildIndex()` after.
+   * @deprecated Use the LocationConflation cache management APIs instead (`addFeatures`, `removeFeatures`, `clearFeatures`).
    */
   public get _cache(): Map<string, LocoFeature> {
     return this._resolved;
@@ -272,6 +270,8 @@ export class LocationConflation {
    * // Country code
    * loco.validateLocation('de');
    * // => { type: 'countrycoder', location: 'de', id: 'Q183' }
+  * loco.validateLocation('001');
+  * // => { type: 'countrycoder', location: '001', id: 'Q2' }
    *
    * // GeoJSON file
    * loco.validateLocation('philly_metro.geojson');
@@ -304,7 +304,7 @@ export class LocationConflation {
       // a country-coder value?
       const feature = CountryCoder.feature(location);
       if (feature) {
-        // Normalize CountryCoder locations by using the returned Wikidata QID.
+        // Normalize CountryCoder location id by using the returned Wikidata QID.
         // It's the one property that everything in CountryCoder is guaranteed to have,
         // and it allows us to match 'Q2' World and resolve it to our own world polygon.
         const id = feature.properties.wikidata;
@@ -591,14 +591,14 @@ export class LocationConflation {
       obj.locationSet = locationSet;
       obj.locationSetID = locationSetID;
 
-      // If we've already indexed this exact locationSetID, skip the inner work.
+      // If we've already registered this exact locationSetID, skip the inner work.
       // The object has already gotten its locationSetID assigned above.
       if (this._registered.has(locationSetID)) continue;
 
       let area = 0;
 
       for (const location of (locationSet.include ?? [])) {
-        // Silently skip invalid/unresolvable components in batch mode.
+        // Silently skip invalid/unresolvable locations in batch mode.
         let resolved: ResolvedLocation;
         try {
           resolved = this.resolveLocation(location);
@@ -614,7 +614,7 @@ export class LocationConflation {
       }
 
       for (const location of (locationSet.exclude ?? [])) {
-        // Silently skip invalid/unresolvable components in batch mode.
+        // Silently skip invalid/unresolvable locations in batch mode.
         let resolved: ResolvedLocation;
         try {
           resolved = this.resolveLocation(location);
@@ -675,16 +675,16 @@ export class LocationConflation {
 
 
   /**
-   * Returns the indexed location sets that cover the given point, mapped to their
-   * approximate area in km².
+   * Returns the registered locationSets that cover the given point,
+   * mapped to their approximate area in km².
    *
    * Uses the inverted spatial index built by {@link registerLocationSets} — no polygon clipping is
    * performed.  For country-coder regions, CountryCoder's built-in spatial index is used.
-   * For custom `.geojson` and point-radius features, the local which-polygon index is used.
+   * For custom `.geojson` and point-radius features, our local which-polygon index is used.
    *
    * The returned `Map` gives callers O(1) `has(locationSetID)` membership tests (the common
-   * "is this locationSet valid here?" check) without a linear array scan.  Results are not
-   * sorted — if you need them ordered, sort `[...result.entries()]` by value.
+   * "is this locationSet valid here?" check).
+   * Results are not sorted — if you need them ordered, sort `[...result.entries()]` by value.
    *
    * Call {@link resolveLocationSet} on any returned ID if you need the actual GeoJSON feature.
    *
@@ -707,14 +707,14 @@ export class LocationConflation {
     // Two-pass design:
     //   1. For each component location covering the point, walk the inverted index to
     //      collect the locationSetIDs that include or exclude it.
-    //   2. Apply exclusions (a locationSet that excludes any covering component is removed).
+    //   2. Apply exclusions (a locationSet that excludes any covering location is removed).
     //
-    // Component lookup is split across two spatial indexes because CountryCoder regions
+    // Location lookup is split across two spatial indexes because CountryCoder regions
     // use CountryCoder's own index, while custom .geojson and point-radius features use ours.
     // Unlike some earlier designs, we do NOT put resolved locationSet polygons into
-    // which-polygon — membership is always derived from component hits via the inverted
-    // index.  This keeps the spatial index small and avoids needing to resolve every set
-    // to a combined polygon up front.
+    // which-polygon — membership is always derived from location hits via the inverted
+    // index.  This keeps the spatial index small and avoids needing to resolve every
+    // locationSet to a GeoJSON polygon, which is expensive.
     const toExclude = new Set<LocationSetID>();
 
     // Search the inverted index for occurrances of the given locationID.
@@ -768,13 +768,13 @@ export class LocationConflation {
   }
 
   /**
-   * Returns the approximate area (in km²) of an indexed locationSet.
+   * Returns the approximate area (in km²) of a registered locationSet.
    * The area is the sum of `include` location areas computed during
    * {@link registerLocationSets} — it does not subtract `exclude` areas.
-   * Returns `undefined` if the locationSet has not been indexed.
+   * Returns `undefined` if the locationSet has not been registered.
    *
    * @param locationSetID - Stable locationSet identifier, e.g. `'+[Q183]'`.
-   * @returns Approximate area in km², or `undefined` if not indexed.
+   * @returns Approximate area in km², or `undefined` if not registered.
    *
    * @example
    * ```ts
@@ -851,7 +851,7 @@ function _clip(features: LocoFeature[], which: ClipOperation): LocoFeature | nul
 
 /**
  * Sorting function for locations to generate deterministic IDs.
- * Sorting the location lists is ok because they end up unioned together.
+ * Note that sorting the include/exclude lists is ok because their contents end up unioned together.
  * @param a - First location
  * @param b - Second location
  * @returns Sort order
