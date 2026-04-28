@@ -1,12 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Agent working memory (see AGENTS.md)
 SCRATCHPAD.md
 
-npm-debug.log
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-
-.vscode/
+# Editor
 coverage/
-dist/
-node_modules/
+.vscode/
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime temp files
+*.tmp
+*.temp
+
+# sync:
+# version=1
+# source=https://github.com/rapideditor/agent-practices/blob/main/templates/.gitignore
+# instructions="merge only: add entries absent locally; never remove local-only entries"
