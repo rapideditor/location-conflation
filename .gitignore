@@ -14,14 +14,14 @@ build/
 .DS_Store
 Thumbs.db
 
-# Agent working memory (see AGENTS.md)
-SCRATCHPAD.md
-
 # Editor
 coverage/
 .vscode/
 !.vscode/extensions.json
 .idea/
+
+# Agent memory
+SCRATCHPAD.md
 
 # Logs
 *.log
