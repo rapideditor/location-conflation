@@ -12,15 +12,7 @@ If a `SCRATCHPAD.md` file exists at the repo root (gitignored), read it at sessi
 
 ## Prompt Files
 
-This project has reusable Copilot prompt files in `.github/prompts/`:
-
-- `/commit` — stage and commit all changes
-- `/reflect` — update all project documentation with the current state of the code
-- `/release` — prepare a new release (CHANGELOG entry + version bump); accepts version number as input
-- `/suggest` — review the codebase and suggest concrete improvements
-- `/sync` — sync scaffold files against a source repo; accepts source repo URL as input
-
-When asked to do one of these tasks, prefer using the prompt file rather than improvising.
+This project has reusable Copilot prompt files in `.github/prompts/`. Your editor surfaces them via the `/` menu (or equivalent). When a task matches an existing prompt, prefer invoking it over improvising — the prompts encode project-specific conventions.
 
 ## General Guidelines
 
