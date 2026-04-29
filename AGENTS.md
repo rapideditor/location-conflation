@@ -54,15 +54,9 @@ When asked to do one of these tasks, prefer using the prompt file rather than im
 - If your change introduces a new lint warning, mention it; don't silently suppress it.
 
 ### File Operations
-- Use VS Code file tools (`create_file`, `replace_string_in_file`, `multi_replace_string_in_file`) instead of terminal commands. This shows changes in VS Code's diff view for easier review.
-- For bulk/repetitive edits across multiple files, use `multi_replace_string_in_file` with explicit before/after context in each replacement. The exact-match requirement prevents silent damage that regex-based tools can cause.
-- **Do not use `sed`, `perl -i`, or inline Python/Node scripts to edit source files.** Greedy regexes (especially around whitespace and line boundaries) can collapse or corrupt code in ways that are hard to spot without a full re-read. If an edit feels too repetitive for `multi_replace_string_in_file`, that's a signal to slow down, not to reach for a script.
+- **Edit files using the structured file-editing operations exposed by your host environment** — e.g. the `create_file` / `replace_string_in_file` / `multi_replace_string_in_file` tools in VS Code Copilot, the equivalent `Edit` / `Write` tools in Claude Code, Cursor's edit tools, an MCP filesystem server, or whatever your runtime offers. These show changes in a reviewable diff and (where applicable) require exact-match context, which prevents silent damage that regex-based tools can cause.
+- For bulk/repetitive edits across multiple files, prefer a multi-edit operation (e.g. `multi_replace_string_in_file`) over many separate calls when your environment supports it.
+- **Do not** mutate files via shell stream-editing tools like `sed`, `perl -i`, `awk -i`, or inline `python -c` / `node -e` scripts. Greedy regexes (especially around whitespace and line boundaries) can collapse or corrupt code in ways that are hard to spot without a full re-read. If an edit feels too repetitive for the structured edit tools, that's a signal to slow down, not to reach for a script.
 - Avoid `cat` with heredoc or other terminal-based file writing.
 
-<!--
-sync:
-version=1
-source=https://github.com/rapideditor/agent-practices/blob/main/templates/AGENTS.md
-instructions="keep the local Prompt Files list (it reflects this project's actual prompts) and any local sections that have no counterpart in the template; adopt new General Guidelines subsections from the template if absent locally"
--->
 
