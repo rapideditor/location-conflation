@@ -16,6 +16,14 @@ _Breaking changes, which may affect downstream projects, are marked with a_ тЪая
 [#xx]: https://github.com/rapideditor/location-conflation/issues/xx
 -->
 
+# 3.0.1
+##### 2026-Apr-30
+* Fix: Move `@types/geojson` to `dependencies` so TypeScript consumers no longer need to install it separately ([#76])
+* Update dependencies
+
+[#76]: https://github.com/rapideditor/location-conflation/issues/76
+
+
 # 3.0.0
 ##### 2026-Apr-24
 * Improve TypeScript compatibility with other projects by extending the standard DefinitelyTyped GeoJSON types. Improve TypeScript strictness, modernize. ([#75])
