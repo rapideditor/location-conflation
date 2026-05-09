@@ -401,7 +401,7 @@ function locoParseInputWhenReady() {
     }
 
     locoResultMessage.innerHTML = messageHTML;
-    geojsonContainer.textContent = _loco.stringify(feature, { maxLength: 100 });
+    geojsonContainer.textContent = LocationConflation.stringify(feature, { maxLength: 100 });
     qs.locationSet = locoTextarea.value;
     history.replaceState(locationSet, locoTextarea.value,  '?' + utilQsString(qs));
     document.title = 'LocationConflation - ' + JSON.stringify(locationSet);
