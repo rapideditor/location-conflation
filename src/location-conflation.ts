@@ -584,7 +584,8 @@ export class LocationConflation {
       let locationSetID: LocationSetID;
       try {
         locationSetID = this.validateLocationSet(locationSet).id;
-      } catch {
+      } catch (error) {
+        console.error(error);
         locationSet = { include: ['Q2'] };
         locationSetID = '+[Q2]';
       }
@@ -602,7 +603,8 @@ export class LocationConflation {
         let resolved: ResolvedLocation;
         try {
           resolved = this.resolveLocation(location);
-        } catch {
+        } catch (error) {
+          console.error(error);
           continue;
         }
         const locationID: LocationID = resolved.id;
@@ -618,7 +620,8 @@ export class LocationConflation {
         let resolved: ResolvedLocation;
         try {
           resolved = this.resolveLocation(location);
-        } catch {
+        } catch (error) {
+          console.error(error);
           continue;
         }
         const locationID: LocationID = resolved.id;
@@ -736,7 +739,8 @@ export class LocationConflation {
         for (const ccFeature of CountryCoder.featuresContaining(loc)) {
           gather(ccFeature.properties.wikidata);
         }
-      } catch {
+      } catch (error) {
+        console.error(error);
         // Defensive: treat lookup failures as "no CountryCoder matches".
       }
     }

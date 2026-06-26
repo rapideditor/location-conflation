@@ -24,7 +24,7 @@ const rules = {
     "no-await-in-loop": "off",
     "no-caller": "error",
     "no-catch-shadow": "error",
-    "no-console": "warn",
+    "no-console": ["warn" , { allow: ["error"] }],
     "no-constructor-return": "error",
     "no-div-regex": "error",
     "no-duplicate-imports": "warn",
