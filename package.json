@@ -45,7 +45,7 @@
     "test": "bun test --dots --coverage ./test"
   },
   "dependencies": {
-    "@mapbox/geojson-area": "^0.2.2",
+    "@mapbox/geojson-area": "^0.3.0",
     "@rapideditor/country-coder": "^5.6.1",
     "@types/geojson": "^7946.0.16",
     "circle-to-polygon": "^2.2.0",
