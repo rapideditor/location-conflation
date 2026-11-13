@@ -5,6 +5,7 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
+    "types": ["bun"],
 
     // Bundler mode
     "moduleResolution": "bundler",
@@ -24,7 +25,11 @@
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true,
     "exactOptionalPropertyTypes": true,
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+
+    // Library publishes declarations
+    "declaration": true,
+    "isolatedDeclarations": true
   },
   "include": ["./src/**/*", "./scripts/**/*", "./test/**/*"],
   "exclude": ["node_modules", "dist"]
