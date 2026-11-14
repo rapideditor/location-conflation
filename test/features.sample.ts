@@ -1,3 +1,4 @@
+import type * as GeoJSON from 'geojson';
 
 export const featureCollection: GeoJSON.FeatureCollection = {
   type: 'FeatureCollection',
