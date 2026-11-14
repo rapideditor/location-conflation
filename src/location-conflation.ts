@@ -394,7 +394,7 @@ export class LocationConflation {
       if (Array.isArray(ccProps.members)) {
         const aggregate = CountryCoder.aggregateFeature(id);
         if (aggregate) {
-          geometry = _clip([aggregate.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon], 'UNION') ?? undefined;
+          geometry = _clip([aggregate.geometry], 'UNION') ?? undefined;
         }
       }
 
