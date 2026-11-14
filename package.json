@@ -32,7 +32,7 @@
     "default": "./dist/js/location-conflation.mjs"
   },
   "scripts": {
-    "all": "bun run --sequential clean check build test",
+    "all": "bun run --sequential clean check build test package",
     "build": "bun run --parallel 'build:*'",
     "build:js": "bun ./scripts/build_js.ts",
     "build:ts": "tsc -p tsconfig.build.json",
@@ -40,6 +40,10 @@
     "check:lint": "oxlint ./scripts ./src ./test",
     "check:types": "tsc --noEmit",
     "clean": "bun ./scripts/clean.ts",
+    "package": "bun run --sequential package:pack package:publint package:attw",
+    "package:pack": "bun pm pack --quiet --ignore-scripts --destination ./build",
+    "package:publint": "publint --level warning ./build/*.tgz",
+    "package:attw": "attw --profile esm-only --no-summary ./build/*.tgz",
     "postpublish": "bun ./scripts/postpublish.ts",
     "start": "bun ./scripts/server.ts",
     "test": "bun test --dots --coverage ./test"
@@ -55,9 +59,11 @@
     "which-polygon": "^2.2.1"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@types/bun": "^1.3.13",
     "oxlint": "^1.93.0",
-    "typescript": "^7"
+    "publint": "^0.3.25",
+    "typescript": "^7.0.2"
   },
   "publishConfig": {
     "access": "public"
