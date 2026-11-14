@@ -1,3 +1,4 @@
+import type * as GeoJSON from 'geojson';
 import type prettyStringify from 'json-stringify-pretty-compact';
 
 

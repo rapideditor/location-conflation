@@ -5,6 +5,7 @@ import circleToPolygon from 'circle-to-polygon';
 import precision from 'geojson-precision';
 import prettyStringify from 'json-stringify-pretty-compact';
 import whichPolygon from 'which-polygon';
+import type * as GeoJSON from 'geojson';
 import type { Geom } from 'polyclip-ts';
 
 import type {
