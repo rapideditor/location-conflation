@@ -16,6 +16,27 @@ _Breaking changes, which may affect downstream projects, are marked with a_ ⚠�
 [#xx]: https://github.com/rapideditor/location-conflation/issues/xx
 -->
 
+# 4.0.0
+##### 2026-Nov-14
+* ⚠️  location-conflation is published as an ES module only ([#86])
+  * The CommonJS build (`dist/js/location-conflation.cjs`) is removed. `require()` loads the ES module instead, which needs Node 20.19+ or 22.12+
+  * The browser bundle (`dist/js/location-conflation.iife.js`) is unchanged
+* ⚠️  `addFeatures()` and the constructor now skip features without a `Polygon` or `MultiPolygon` geometry ([#85])
+  * Previously, features with other geometry types were accepted, and a feature with a `null` geometry threw an error
+  * Both now accept a `FeatureCollection<Geometry | null>`, since GeoJSON allows `null` geometries
+* ⚠️  A locationSet that resolves to nothing (e.g. `{ include: ['de'], exclude: ['de'] }`) now has an empty `MultiPolygon` geometry instead of an empty `Polygon` ([#85])
+* Fix: the published TypeScript types now work in projects using TypeScript 7, which no longer loads `@types/geojson` automatically ([#85])
+* Upgrade to country-coder 6, which fixes invalid codes like `de-by` resolving to a real feature ([#85])
+* Fix the demo website ([#77])
+* Development: switch to oxlint and TypeScript 7, check the package with publint and arethetypeswrong ([#84], [#85], [#86])
+* Update dependencies
+
+[#77]: https://github.com/rapideditor/location-conflation/issues/77
+[#84]: https://github.com/rapideditor/location-conflation/issues/84
+[#85]: https://github.com/rapideditor/location-conflation/issues/85
+[#86]: https://github.com/rapideditor/location-conflation/issues/86
+
+
 # 3.0.1
 ##### 2026-Apr-30
 * Fix: Move `@types/geojson` to `dependencies` so TypeScript consumers no longer need to install it separately ([#76])
