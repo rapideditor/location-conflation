@@ -27,7 +27,7 @@
     "types": "./dist/ts/location-conflation.d.ts",
     "bun": "./src/location-conflation.ts",
     "import": "./dist/js/location-conflation.mjs",
-    "require": "./dist/js/location-conflation.cjs",
+    "require": "./dist/js/location-conflation.mjs",
     "browser": "./dist/js/location-conflation.iife.js",
     "default": "./dist/js/location-conflation.mjs"
   },

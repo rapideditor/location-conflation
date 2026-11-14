@@ -49,12 +49,12 @@ A **location** can be any of:
 npm install @rapideditor/location-conflation
 ```
 
-The package is distributed as both CJS and ESM:
+The package is distributed as an ES module. `require()` loads it too, on Node 20.19+ or 22.12+:
 
 ```js
-const { LocationConflation } = require('@rapideditor/location-conflation');   // CJS
+import { LocationConflation } from '@rapideditor/location-conflation';
 // or
-import { LocationConflation } from '@rapideditor/location-conflation';        // ESM
+const { LocationConflation } = require('@rapideditor/location-conflation');
 ```
 
 ### Browser

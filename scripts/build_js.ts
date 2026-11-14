@@ -13,16 +13,6 @@ await Promise.all([
     entrypoints: ['./src/location-conflation.ts'],
     outdir: './dist/js',
     target: 'node',
-    format: 'cjs',
-    packages: 'external',
-    sourcemap: 'linked',
-    naming: 'location-conflation.c[ext]'  // .cjs
-  }),
-
-  Bun.build({
-    entrypoints: ['./src/location-conflation.ts'],
-    outdir: './dist/js',
-    target: 'node',
     format: 'esm',
     packages: 'external',
     sourcemap: 'linked',
