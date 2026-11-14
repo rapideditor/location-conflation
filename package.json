@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@mapbox/geojson-area": "^0.2.2",
-    "@rapideditor/country-coder": "^5.6.1",
+    "@rapideditor/country-coder": "^6.0.0",
     "@types/geojson": "^7946.0.16",
     "circle-to-polygon": "^2.2.0",
     "geojson-precision": "^1.0.0",
