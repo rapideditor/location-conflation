@@ -19,8 +19,8 @@ declare module '@mapbox/geojson-area' {
 
 
 declare module 'circle-to-polygon' {
-  import type { Vec2 } from 'types.ts';
   import type { Polygon } from 'geojson';
+  type Vec2 = [longitude: number, latitude: number];
   /**
    * Convert a center point and radius to a GeoJSON Polygon approximation of a circle.
    * @param  center - [longitude, latitude]
@@ -50,7 +50,8 @@ declare module 'geojson-precision' {
 
 
 declare module 'which-polygon' {
-  import type { Vec2, Vec4 } from 'types.ts';
+  type Vec2 = [longitude: number, latitude: number];
+  type Vec4 = [minX: number, minY: number, maxX: number, maxY: number];
   /** Query function returned by {@link whichPolygon}. */
   interface WhichPolygonQuery<P extends object = Record<string, unknown>> {
     /** Returns all matching feature properties for the given point `[longitude, latitude]`, or null if none. */
@@ -66,8 +67,3 @@ declare module 'which-polygon' {
     data: { type?: string; features: Array<{ geometry: { type: string; coordinates: unknown } | null; properties: P }> }
   ): WhichPolygonQuery<P>;
 }
-
-
-// structuredClone is available in all target environments (Node, Bun, modern browsers)
-// but lives in the DOM lib which we don't include.
-declare function structuredClone<T>(value: T): T;
