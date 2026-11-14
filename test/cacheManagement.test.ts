@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import type { FeatureCollection } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 import { LocationConflation } from '../src/location-conflation.ts';
 import * as sample from './features.sample.ts';
 
@@ -111,6 +111,28 @@ describe('addFeatures', () => {
 
     loco.addFeatures(fc);
     expect(() => loco.validateLocation('bad-id')).toThrow(/invalid location/i);
+  });
+
+  it('skips features without polygon geometry', () => {
+    const loco = new LocationConflation();
+    const fc: FeatureCollection<Geometry | null> = {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        id: 'point.geojson',
+        properties: {},
+        geometry: { type: 'Point', coordinates: [0, 0] }
+      }, {
+        type: 'Feature',
+        id: 'null.geojson',
+        properties: {},
+        geometry: null
+      }]
+    };
+
+    loco.addFeatures(fc);
+    expect(() => loco.validateLocation('point.geojson')).toThrow(/invalid location/i);
+    expect(() => loco.validateLocation('null.geojson')).toThrow(/invalid location/i);
   });
 
   it('silently returns if given invalid input', () => {
