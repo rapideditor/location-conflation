@@ -22,10 +22,12 @@ If you want to contribute to location-conflation, you'll probably need to:
 - `bun install` the dependencies
 
 As you change things, you'll want to `bun run all` to ensure that things are working.
-(This command runs `clean`, `check`, `build`, and `test`.)
+(This command runs `clean`, `check`, `build`, `test`, and `package`.)
 
-You can also type-check the project without emitting files:
+You can also run parts of it on their own:
 - `bun run check:types` — runs `tsc --noEmit` across all source, script, and test files.
+- `bun run check:lint` — lints with [oxlint](https://oxc.rs/docs/guide/usage/linter.html), configured in `.oxlintrc.json`.
+- `bun run package` — packs the npm tarball and checks it with [publint](https://publint.dev) and [arethetypeswrong](https://arethetypeswrong.github.io). Run `bun run build` first.
 
 You can also test the code in a local server:
 - `bun start` - then open `http://127.0.0.1:8080/` in a browser.
