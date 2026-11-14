@@ -49,7 +49,7 @@
     "test": "bun test --dots --coverage ./test"
   },
   "dependencies": {
-    "@mapbox/geojson-area": "^0.2.2",
+    "@mapbox/geojson-area": "^0.3.0",
     "@rapideditor/country-coder": "^6.0.0",
     "@types/geojson": "^7946.0.16",
     "circle-to-polygon": "^2.2.0",
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@types/bun": "^1.3.13",
+    "@types/bun": "^1.4.4",
     "oxlint": "^1.93.0",
     "publint": "^0.3.25",
     "typescript": "^7.0.2"
