@@ -62,10 +62,10 @@ Optionally pass a GeoJSON `FeatureCollection` of custom features that can be ref
 ### `addFeatures`
 
 ```ts
-loco.addFeatures(featureCollection: GeoJSON.FeatureCollection): void
+loco.addFeatures(featureCollection: GeoJSON.FeatureCollection<GeoJSON.Geometry | null>): void
 ```
 
-Adds custom `.geojson` features into the internal resolved cache. Each feature must include an `id` ending in `.geojson`.
+Adds custom `.geojson` features into the internal resolved cache. Each feature must include an `id` ending in `.geojson`, and a `Polygon` or `MultiPolygon` geometry.
 
 ### `removeFeatures`
 

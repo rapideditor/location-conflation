@@ -12,7 +12,6 @@ import type {
   HasLocationSet,
   HasLocationSetID,
   LocoFeature,
-  LocoProperties,
   Location,
   LocationID,
   LocationSet,
@@ -80,7 +79,7 @@ export class LocationConflation {
    *   (e.g. `"something.geojson"`).  Accepts a standard `GeoJSON.FeatureCollection` from
    *   `@types/geojson` — no casts needed.  Features without a `.geojson` id are silently skipped.
    */
-  constructor(fc?: GeoJSON.FeatureCollection) {
+  constructor(fc?: GeoJSON.FeatureCollection<GeoJSON.Geometry | null>) {
     this._resolved = new Map();
     this._registered = new Map();
     this._setsIncluding = new Map();
@@ -146,8 +145,8 @@ export class LocationConflation {
    * Adds `.geojson` features to the cache of known locations.
    *
    * Each feature must have a filename-like `id` ending in `.geojson` (either on
-   * the feature itself or in its `properties`).  Features without a qualifying
-   * `id` are silently skipped.
+   * the feature itself or in its `properties`), and a `Polygon` or `MultiPolygon`
+   * geometry.  Features without a qualifying `id` or geometry are silently skipped.
    *
    * The method normalizes each feature into the {@link LocoFeature} shape
    * (lowercased id, guaranteed `area` property, polygon geometry).  If a
@@ -166,7 +165,7 @@ export class LocationConflation {
    * const result = loco.resolveLocation('philly_metro.geojson');
    * ```
    */
-  addFeatures(fc: GeoJSON.FeatureCollection): void {
+  addFeatures(fc: GeoJSON.FeatureCollection<GeoJSON.Geometry | null>): void {
     if (fc?.type !== 'FeatureCollection' || !Array.isArray(fc.features)) return;
 
     for (const feature of fc.features) {
@@ -180,7 +179,9 @@ export class LocationConflation {
       // Ensure `id` exists and is lowercase
       id = String(id).toLowerCase();
 
-      const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+      // Features without a polygon geometry are silently skipped.
+      const geometry = feature.geometry;
+      if (geometry?.type !== 'Polygon' && geometry?.type !== 'MultiPolygon') continue;
 
       // Ensure `area` property exists.
       // The purpose of the `area` property is to enable rough size comparisons.
@@ -190,7 +191,7 @@ export class LocationConflation {
       const lcFeature: LocoFeature = {
         type: 'Feature',
         id,
-        properties: { ...props, id, area } as LocoProperties,
+        properties: { ...props, id, area },
         geometry,
       };
 
@@ -348,8 +349,9 @@ export class LocationConflation {
     // - previously generated point-radius
     // - previously seen country coder locations
     // - our custom 'Q2' World location
-    if (this._resolved.has(id)) {
-      return { ...valid, feature: this._resolved.get(id)! };
+    const cached = this._resolved.get(id);
+    if (cached) {
+      return { ...valid, feature: cached };
     }
 
     // A newly seen [lon, lat] or [lon, lat, radius] point?
@@ -392,15 +394,7 @@ export class LocationConflation {
       if (Array.isArray(ccProps.members)) {
         const aggregate = CountryCoder.aggregateFeature(id);
         if (aggregate) {
-          const clipped = _clip([{
-            type: 'Feature',
-            id: '',
-            properties: {} as LocoProperties,
-            geometry: aggregate.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
-          }], 'UNION');
-          if (clipped) {
-            geometry = clipped.geometry;
-          }
+          geometry = _clip([aggregate.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon], 'UNION') ?? undefined;
         }
       }
 
@@ -416,7 +410,7 @@ export class LocationConflation {
       const feature: LocoFeature = {
         type: 'Feature',
         id,
-        properties: { id, area } as LocoProperties,
+        properties: { id, area },
         geometry,
       };
 
@@ -456,8 +450,8 @@ export class LocationConflation {
   validateLocationSet(locationSet?: LocationSet): ValidatedLocationSet {
     locationSet = locationSet || {};
     const validator = this.validateLocation.bind(this);
-    const include = (locationSet.include || []).map(validator) as ValidatedLocation[];
-    const exclude = (locationSet.exclude || []).map(validator) as ValidatedLocation[];
+    const include = (locationSet.include || []).map(validator);
+    const exclude = (locationSet.exclude || []).map(validator);
 
     if (!include.length) {
       throw new Error('validateLocationSet:  LocationSet includes nothing.');
@@ -510,13 +504,14 @@ export class LocationConflation {
     const id = valid.id;
 
     // Return a result from cache if we can
-    if (this._resolved.has(id)) {
-      return { ...valid, feature: this._resolved.get(id)! };
+    const cached = this._resolved.get(id);
+    if (cached) {
+      return { ...valid, feature: cached };
     }
 
     const resolver = this.resolveLocation.bind(this);
-    const includes = (locationSet.include || []).map(resolver) as ResolvedLocation[];
-    const excludes = (locationSet.exclude || []).map(resolver) as ResolvedLocation[];
+    const includes = (locationSet.include || []).map(resolver);
+    const excludes = (locationSet.exclude || []).map(resolver);
 
     // Return quickly if it's just a single included location.
     if (includes.length === 1 && excludes.length === 0) {
@@ -524,16 +519,20 @@ export class LocationConflation {
     }
 
     // Calculate unions
-    const includeGeoJSON = _clip(includes.map((d) => d.feature), 'UNION')!;
-    const excludeGeoJSON = _clip(excludes.map((d) => d.feature), 'UNION');
+    const includeGeometry = _clip(includes.map((d) => d.feature.geometry), 'UNION')!;
+    const excludeGeometry = _clip(excludes.map((d) => d.feature.geometry), 'UNION');
 
     // Calculate difference, update `area` and return result
-    const resultGeoJSON = excludeGeoJSON ? _clip([includeGeoJSON, excludeGeoJSON], 'DIFFERENCE')! : includeGeoJSON;
-    resultGeoJSON.id = id;
-    resultGeoJSON.properties = { id, area: _getArea(resultGeoJSON.geometry) };
+    const geometry = excludeGeometry ? _clip([includeGeometry, excludeGeometry], 'DIFFERENCE')! : includeGeometry;
+    const feature: LocoFeature = {
+      type: 'Feature',
+      id,
+      properties: { id, area: _getArea(geometry) },
+      geometry,
+    };
 
-    this._resolved.set(id, resultGeoJSON);
-    return { ...valid, feature: resultGeoJSON };
+    this._resolved.set(id, feature);
+    return { ...valid, feature };
   }
 
 
@@ -813,40 +812,23 @@ export class LocationConflation {
 type ClipOperation = 'UNION' | 'DIFFERENCE';
 
 /**
- * Wraps the polyclip-ts library and returns a GeoJSON feature.
- * @param features - Array of features to clip
+ * Wraps the polyclip-ts library and returns a GeoJSON geometry.
+ * polyclip-ts always returns MultiPolygon coordinates (empty if nothing is left).
+ * @param geometries - Array of geometries to clip
  * @param which - Operation type (UNION or DIFFERENCE)
- * @returns Clipped GeoJSON feature or null if features array is empty
+ * @returns Clipped GeoJSON MultiPolygon or null if geometries array is empty
  */
-function _clip(features: LocoFeature[], which: ClipOperation): LocoFeature | null {
-  if (!Array.isArray(features) || !features.length) return null;
+function _clip(geometries: Array<GeoJSON.Polygon | GeoJSON.MultiPolygon>, which: ClipOperation): GeoJSON.MultiPolygon | null {
+  if (!Array.isArray(geometries) || !geometries.length) return null;
 
   const fn = which === 'UNION' ? Polyclip.union : Polyclip.difference;
-  const first = features[0]!.geometry.coordinates as Geom;
+  const first = geometries[0]!.coordinates as Geom;
   const rest: Geom[] = [];
-  for (let i = 1; i < features.length; i++) {
-    rest.push(features[i]!.geometry.coordinates as Geom);
+  for (let i = 1; i < geometries.length; i++) {
+    rest.push(geometries[i]!.coordinates as Geom);
   }
-  const coords = fn(first, ...rest);
 
-  return {
-    type: 'Feature',
-    properties: {} as LocoProperties,
-    geometry: {
-      type: whichType(coords),
-      coordinates: coords,
-    } as GeoJSON.Polygon | GeoJSON.MultiPolygon,
-    id: '',
-  };
-
-  // is this a Polygon or a MultiPolygon?
-  function whichType(coords: unknown): 'Polygon' | 'MultiPolygon' {
-    const a = Array.isArray(coords);
-    const b = a && Array.isArray(coords[0]);
-    const c = b && Array.isArray(coords[0][0]);
-    const d = c && Array.isArray(coords[0][0][0]);
-    return d ? 'MultiPolygon' : 'Polygon';
-  }
+  return { type: 'MultiPolygon', coordinates: fn(first, ...rest) };
 }
 
 
@@ -858,7 +840,7 @@ function _clip(features: LocoFeature[], which: ClipOperation): LocoFeature | nul
  * @returns Sort order
  */
 function _sortLocations(a: ValidatedLocation, b: ValidatedLocation): number {
-  const rank = { countrycoder: 1, geojson: 2, point: 3 };
+  const rank = { countrycoder: 1, geojson: 2, point: 3 } satisfies Record<ValidatedLocation['type'], number>;
   const aRank = rank[a.type];
   const bRank = rank[b.type];
 
